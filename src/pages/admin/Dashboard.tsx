@@ -35,28 +35,16 @@ export default function Dashboard() {
   const [totalEvents, setTotalEvents] = useState(0);
   const [totalParticipants, setTotalParticipants] = useState(0);
 
-  // If user is MASTER, show Master Dashboard
-  if (roleLoading) {
-    return (
-      <div className="p-6">
-        <Skeleton className="h-12 w-64 mb-6" />
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <Skeleton className="h-32" />
-          <Skeleton className="h-32" />
-          <Skeleton className="h-32" />
-        </div>
-      </div>
-    );
-  }
-
-  if (userRole === "master") {
-    console.log("[UI] Dashboard loaded as: MASTER");
-    return <MasterDashboard />;
-  }
-
-  console.log("[UI] Dashboard loaded as:", userRole || "AGENCY");
+  const isMaster = userRole === "master";
 
   useEffect(() => {
+    // Only fetch data for agency users, not master users
+    if (isMaster || roleLoading) {
+      return;
+    }
+
+    console.log("[UI] Dashboard loaded as:", userRole || "AGENCY");
+
     // Fetch initial data
     const fetchData = async () => {
       const { data: eventsData, error: eventsError } = await supabase
@@ -131,7 +119,7 @@ export default function Dashboard() {
       unsubscribeParticipants();
       unsubscribeForms();
     };
-  }, []);
+  }, [isMaster, roleLoading, userRole]);
 
   const mapStatus = (status: string): EventStatus => {
     const statusMap: Record<string, EventStatus> = {
@@ -141,6 +129,32 @@ export default function Dashboard() {
     };
     return statusMap[status] || "pending";
   };
+
+  // Conditional rendering based on role
+  if (roleLoading) {
+    return (
+      <AdminLayout>
+        <div className="p-6">
+          <Skeleton className="h-12 w-64 mb-6" />
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <Skeleton className="h-32" />
+            <Skeleton className="h-32" />
+            <Skeleton className="h-32" />
+          </div>
+        </div>
+      </AdminLayout>
+    );
+  }
+
+  if (isMaster) {
+    console.log("[UI] Dashboard loaded as: MASTER");
+    return (
+      <AdminLayout>
+        <MasterDashboard />
+      </AdminLayout>
+    );
+  }
+
   return (
     <AdminLayout>
       <div className="space-y-8">
