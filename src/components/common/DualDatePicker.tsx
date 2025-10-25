@@ -5,6 +5,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { CalendarIcon } from "lucide-react";
+import { toast } from "@/hooks/use-toast";
 
 type OutRange = { from?: Date; to?: Date };
 type InRange = { start?: Date; end?: Date };
@@ -54,6 +55,12 @@ export default function DualDatePicker({ value, onChange }: Props) {
     setDates({ start, end: date });
     setOpen(null);
     onChange?.({ from: start, to: date });
+    
+    // 완료 토스트
+    toast({
+      title: "기간이 설정되었습니다.",
+      duration: 2000,
+    });
   };
 
   // Popover의 onOpenChange가 자동으로 닫아버리지 않도록 no-op 핸들러 사용
@@ -68,17 +75,17 @@ export default function DualDatePicker({ value, onChange }: Props) {
           <PopoverTrigger asChild>
             <Button
               variant="outline"
-              className="w-full justify-start font-normal hover:border-primary"
+              className="w-full justify-start font-normal px-5 py-[10px] hover:border-blue-500 focus-visible:ring-1 focus-visible:ring-blue-300 transition-all duration-200"
               onClick={() => setOpen("start")}
             >
-              <CalendarIcon className="mr-2 h-4 w-4 text-primary" />
+              <CalendarIcon className="mr-2 h-4 w-4 text-blue-500" />
               {fmtLabel(dates.start)}
             </Button>
           </PopoverTrigger>
           {open === "start" && (
             <PopoverContent
               align="start"
-              className="p-3 w-auto bg-popover border shadow-lg rounded-xl"
+              className="p-3 w-auto bg-popover border shadow-lg rounded-xl animate-scale-in transition-all duration-200"
               onPointerDownOutside={(e) => { console.log("[DualDatePicker:outside-start]"); e.preventDefault(); }}
               onInteractOutside={(e) => e.preventDefault()}
             >
@@ -86,9 +93,9 @@ export default function DualDatePicker({ value, onChange }: Props) {
                 mode="single"
                 numberOfMonths={2}
                 selected={dates.start}
-                // shadcn Calendar 래퍼 호환: onSelect만 사용 (중복호출 방지)
                 onSelect={selectStart}
                 defaultMonth={dates.start ?? new Date()}
+                className="sympo-calendar"
               />
             </PopoverContent>
           )}
@@ -102,18 +109,18 @@ export default function DualDatePicker({ value, onChange }: Props) {
           <PopoverTrigger asChild>
             <Button
               variant="outline"
-              className="w-full justify-start font-normal hover:border-primary"
+              className="w-full justify-start font-normal px-5 py-[10px] hover:border-blue-500 focus-visible:ring-1 focus-visible:ring-blue-300 transition-all duration-200 disabled:opacity-50"
               onClick={() => setOpen("end")}
               disabled={!dates.start}
             >
-              <CalendarIcon className="mr-2 h-4 w-4 text-primary" />
+              <CalendarIcon className="mr-2 h-4 w-4 text-blue-500" />
               {fmtLabel(dates.end)}
             </Button>
           </PopoverTrigger>
           {open === "end" && (
             <PopoverContent
               align="start"
-              className="p-3 w-auto bg-popover border shadow-lg rounded-xl"
+              className="p-3 w-auto bg-popover border shadow-lg rounded-xl animate-fade-in transition-all duration-200"
               onPointerDownOutside={(e) => { console.log("[DualDatePicker:outside-end]"); e.preventDefault(); }}
               onInteractOutside={(e) => e.preventDefault()}
             >
@@ -124,6 +131,7 @@ export default function DualDatePicker({ value, onChange }: Props) {
                 disabled={(d: Date) => !!dates.start && d < dates.start}
                 onSelect={selectEnd}
                 defaultMonth={dates.end ?? dates.start ?? new Date()}
+                className="sympo-calendar"
               />
             </PopoverContent>
           )}
