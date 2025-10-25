@@ -10,8 +10,7 @@ import { toast } from "sonner";
 import { Plus, Trash2, Building } from "lucide-react";
 import { useAppData } from "@/contexts/AppDataContext";
 import { useUser } from "@/context/UserContext";
-import DateRangePicker from "@/components/common/DateRangePicker";
-import type { DateRange } from "react-day-picker";
+import DualDatePicker from "@/components/common/DualDatePicker";
 
 interface CreateEventModalProps {
   open: boolean;
@@ -23,7 +22,7 @@ export default function CreateEventModal({ open, onOpenChange }: CreateEventModa
   const navigate = useNavigate();
   const { user } = useUser();
   const [eventName, setEventName] = useState("");
-  const [dateRange, setDateRange] = useState<DateRange>({
+  const [dateRange, setDateRange] = useState<{ from?: Date; to?: Date }>({
     from: undefined,
     to: undefined,
   });
@@ -372,7 +371,10 @@ export default function CreateEventModal({ open, onOpenChange }: CreateEventModa
             </div>
             <div>
               <Label>일정</Label>
-              <DateRangePicker value={dateRange} onChange={(v) => setDateRange(v)} />
+              <DualDatePicker
+                value={{ start: dateRange.from, end: dateRange.to }}
+                onChange={(v) => setDateRange({ from: v.from, to: v.to })}
+              />
             </div>
           </div>
 
