@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { AdminLayout } from "@/components/layout/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -107,17 +106,14 @@ export default function EventOverview() {
 
   if (loading) {
     return (
-      <AdminLayout>
-        <div className="p-6 text-muted-foreground">불러오는 중…</div>
-      </AdminLayout>
+      <div className="p-6 text-muted-foreground">불러오는 중…</div>
     );
   }
 
   const hotelName = rows[0]?.hotel_name ?? "호텔 미지정";
 
   return (
-    <AdminLayout>
-      <div className="p-6 space-y-6">
+    <div className="p-6 space-y-6">
         <div className="flex items-center gap-4">
           <Button
             variant="ghost"
@@ -218,6 +214,5 @@ export default function EventOverview() {
           </CardContent>
         </Card>
       </div>
-    </AdminLayout>
   );
 }

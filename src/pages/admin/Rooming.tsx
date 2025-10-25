@@ -1,5 +1,4 @@
 import { Plus, Search, Building2, Bed } from "lucide-react";
-import { AdminLayout } from "@/components/layout/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -72,8 +71,7 @@ const roomAssignments = [
 
 export default function Rooming() {
   return (
-    <AdminLayout>
-      <div className="space-y-6">
+    <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold">숙박 및 룸핑 관리</h1>
@@ -189,6 +187,5 @@ export default function Rooming() {
           </CardContent>
         </Card>
       </div>
-    </AdminLayout>
   );
 }

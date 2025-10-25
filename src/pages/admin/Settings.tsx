@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { AdminLayout } from "@/components/layout/AdminLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -51,14 +50,13 @@ export default function Settings() {
   };
 
   return (
-    <AdminLayout>
-      <motion.div
-        variants={slideInLeft}
-        initial="initial"
-        animate="animate"
-        transition={slideInLeftConfig}
-        className="space-y-8"
-      >
+    <motion.div
+      variants={slideInLeft}
+      initial="initial"
+      animate="animate"
+      transition={slideInLeftConfig}
+      className="space-y-8"
+    >
         <div>
           <h1 className="text-3xl font-bold">관리자 계정 설정</h1>
           <p className="mt-2 text-muted-foreground">
@@ -173,6 +171,5 @@ export default function Settings() {
           </CardContent>
         </Card>
       </motion.div>
-    </AdminLayout>
   );
 }

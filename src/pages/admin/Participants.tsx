@@ -1,6 +1,5 @@
 // Phase 3.8-A — Participants Scope Sync
 import { Plus, Search, Filter, Phone, MessageSquare, User, BedDouble, RefreshCw, X } from "lucide-react";
-import { AdminLayout } from "@/components/layout/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -70,20 +69,17 @@ export default function Participants() {
   // Empty state for master without agency selection
   if (role === "master" && !agencyScope) {
     return (
-      <AdminLayout>
-        <div className="flex flex-col items-center justify-center h-96 text-gray-500">
-          <p className="text-lg mb-4">먼저 에이전시를 선택하세요.</p>
-          <Button onClick={() => navigate("/master-dashboard")}>
-            마스터 대시보드로 이동
-          </Button>
-        </div>
-      </AdminLayout>
+      <div className="flex flex-col items-center justify-center h-96 text-gray-500">
+        <p className="text-lg mb-4">먼저 에이전시를 선택하세요.</p>
+        <Button onClick={() => navigate("/master/dashboard")}>
+          마스터 대시보드로 이동
+        </Button>
+      </div>
     );
   }
 
   return (
-    <AdminLayout>
-      <div className="space-y-6">
+    <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold">참가자 관리</h1>
@@ -294,6 +290,5 @@ export default function Participants() {
           </div>
         </div>
       </div>
-    </AdminLayout>
   );
 }

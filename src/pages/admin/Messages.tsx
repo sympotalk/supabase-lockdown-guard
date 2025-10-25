@@ -1,5 +1,4 @@
 import { Plus, Send, FileText, Clock } from "lucide-react";
-import { AdminLayout } from "@/components/layout/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
@@ -65,8 +64,7 @@ const messageLogs = [
 
 export default function Messages() {
   return (
-    <AdminLayout>
-      <div className="space-y-6">
+    <div className="space-y-6">
         <div>
           <h1 className="text-3xl font-bold">문자·알림 발송</h1>
           <p className="mt-2 text-muted-foreground">
@@ -195,6 +193,5 @@ export default function Messages() {
           </CardContent>
         </Card>
       </div>
-    </AdminLayout>
   );
 }

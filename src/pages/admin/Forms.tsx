@@ -1,5 +1,4 @@
 import { Plus, FileText, Eye, Sparkles } from "lucide-react";
-import { AdminLayout } from "@/components/layout/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -43,8 +42,7 @@ const forms = [
 
 export default function Forms() {
   return (
-    <AdminLayout>
-      <div className="space-y-6">
+    <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold">설문·초청장 관리</h1>
@@ -168,6 +166,5 @@ export default function Forms() {
           </Card>
         </div>
       </div>
-    </AdminLayout>
   );
 }

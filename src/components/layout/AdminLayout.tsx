@@ -1,19 +1,15 @@
-import { ReactNode } from "react";
+import { Outlet } from "react-router-dom";
 import { Header } from "./Header";
 import { Sidebar } from "./Sidebar";
 
-interface AdminLayoutProps {
-  children: ReactNode;
-}
-
-export function AdminLayout({ children }: AdminLayoutProps) {
+export function AdminLayout() {
   return (
     <div className="min-h-screen w-full bg-background">
       <Header />
       <div className="flex w-full pt-16">
         <Sidebar />
         <main className="ml-60 flex-1 p-8">
-          {children}
+          <Outlet />
         </main>
       </div>
     </div>

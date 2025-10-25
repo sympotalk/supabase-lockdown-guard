@@ -46,45 +46,37 @@ const App = () => (
             <Route path="/signup/:inviteId" element={<Signup />} />
 
             {/* Master-only routes */}
-            <Route
-              path="/master/*"
-              element={
-                <ProtectedRoute requiredRole="master">
-                  <MasterLayout>
-                    <Routes>
-                      <Route path="dashboard" element={<MasterDashboard />} />
-                      <Route path="agencies" element={<MasterAgencies />} />
-                      <Route path="logs" element={<MasterLogs />} />
-                    </Routes>
-                  </MasterLayout>
-                </ProtectedRoute>
-              }
-            />
+            <Route path="/master" element={
+              <ProtectedRoute requiredRole="master">
+                <MasterLayout />
+              </ProtectedRoute>
+            }>
+              <Route path="dashboard" element={<MasterDashboard />} />
+              <Route path="agencies" element={<MasterAgencies />} />
+              <Route path="logs" element={<MasterLogs />} />
+              <Route index element={<Navigate to="dashboard" replace />} />
+            </Route>
 
             {/* Legacy redirect */}
             <Route path="/master-dashboard" element={<Navigate to="/master/dashboard" replace />} />
 
-            {/* Agency routes - accessible by master in view mode OR agency users */}
-            <Route
-              path="/admin/*"
-              element={
-                <ProtectedRoute allowedRoles={["master", "agency_owner", "admin", "staff"]}>
-                  <AdminLayout>
-                    <Routes>
-                      <Route path="dashboard" element={<Dashboard />} />
-                      <Route path="events" element={<Events />} />
-                      <Route path="events/:eventId/overview" element={<EventOverview />} />
-                      <Route path="participants" element={<Participants />} />
-                      <Route path="rooming" element={<Rooming />} />
-                      <Route path="messages" element={<Messages />} />
-                      <Route path="forms" element={<Forms />} />
-                      <Route path="account" element={<Account />} />
-                      <Route path="settings" element={<AdminSettings />} />
-                    </Routes>
-                  </AdminLayout>
-                </ProtectedRoute>
-              }
-            />
+            {/* Admin routes - accessible by master in view mode OR agency users */}
+            <Route path="/admin" element={
+              <ProtectedRoute allowedRoles={["master", "agency_owner", "admin", "staff"]}>
+                <AdminLayout />
+              </ProtectedRoute>
+            }>
+              <Route path="dashboard" element={<Dashboard />} />
+              <Route path="events" element={<Events />} />
+              <Route path="events/:eventId/overview" element={<EventOverview />} />
+              <Route path="participants" element={<Participants />} />
+              <Route path="rooming" element={<Rooming />} />
+              <Route path="messages" element={<Messages />} />
+              <Route path="forms" element={<Forms />} />
+              <Route path="account" element={<Account />} />
+              <Route path="settings" element={<AdminSettings />} />
+              <Route index element={<Navigate to="dashboard" replace />} />
+            </Route>
 
             {/* Agency user-specific routes */}
             <Route

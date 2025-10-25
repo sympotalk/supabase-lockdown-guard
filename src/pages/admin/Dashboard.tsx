@@ -1,5 +1,4 @@
 import { Calendar, Users, Hotel, TrendingUp, RefreshCw, Activity } from "lucide-react";
-import { AdminLayout } from "@/components/layout/AdminLayout";
 import { StatCard } from "@/components/ui/stat-card";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -57,20 +56,17 @@ export default function Dashboard() {
 
   if (loading) {
     return (
-      <AdminLayout>
-        <div className="flex min-h-[60vh] items-center justify-center">
-          <div className="flex flex-col items-center gap-4">
-            <Spinner size="lg" />
-            <p className="text-sm text-muted-foreground">대시보드 로딩 중...</p>
-          </div>
+      <div className="flex min-h-[60vh] items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <Spinner size="lg" />
+          <p className="text-sm text-muted-foreground">대시보드 로딩 중...</p>
         </div>
-      </AdminLayout>
+      </div>
     );
   }
 
   return (
-    <AdminLayout>
-      <div className="space-y-8">
+    <div className="space-y-8">
         {/* Master Overview Panel - Only for masters with multiple agencies */}
         {role === "master" && agencyList.length > 0 && (
           <>
@@ -188,6 +184,5 @@ export default function Dashboard() {
         {/* Activity Log Section */}
         <AgencyActivityLog />
       </div>
-    </AdminLayout>
   );
 }

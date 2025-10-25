@@ -4,7 +4,6 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Plus, Search, Filter, MoreHorizontal } from "lucide-react";
-import { AdminLayout } from "@/components/layout/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -150,8 +149,7 @@ export default function Events() {
   };
 
   return (
-    <AdminLayout>
-      <div className="space-y-6">
+    <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold">행사 관리</h1>
@@ -307,6 +305,5 @@ export default function Events() {
           </CardContent>
         </Card>
       </div>
-    </AdminLayout>
   );
 }
