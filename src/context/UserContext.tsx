@@ -1,12 +1,15 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
+import type { Session, User } from "@supabase/supabase-js";
 import type { AppRole } from "@/lib/useRoleGuard";
 
 interface UserContextType {
   role: AppRole | null;
   agencyScope: string | null;
   userId: string | null;
+  user: User | null;
+  session: Session | null;
   loading: boolean;
   setRole: (role: AppRole | null) => void;
   setAgencyScope: (scope: string | null) => void;
@@ -19,6 +22,8 @@ export function UserProvider({ children }: { children: ReactNode }) {
   const [role, setRole] = useState<AppRole | null>(null);
   const [agencyScope, setAgencyScopeState] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
+  const [user, setUser] = useState<User | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
@@ -35,26 +40,31 @@ export function UserProvider({ children }: { children: ReactNode }) {
 
   const refreshContext = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { session: currentSession } } = await supabase.auth.getSession();
       
-      if (!user) {
-        console.log("[UserContext] No authenticated user");
+      if (!currentSession) {
+        console.log("[UserContext] No authenticated session");
         setRole(null);
         setAgencyScope(null);
         setUserId(null);
+        setUser(null);
+        setSession(null);
         setLoading(false);
         navigate("/");
         return;
       }
 
-      setUserId(user.id);
-      console.log("[UserContext] User authenticated:", user.id);
+      const currentUser = currentSession.user;
+      setUserId(currentUser.id);
+      setUser(currentUser);
+      setSession(currentSession);
+      console.log("[UserContext] User authenticated:", currentUser.id);
 
       // Fetch user role from user_roles table
       const { data: roleData, error: roleError } = await supabase
         .from("user_roles")
-        .select("role")
-        .eq("user_id", user.id)
+        .select("role, agency_id")
+        .eq("user_id", currentUser.id)
         .single();
 
       if (roleError) {
@@ -84,21 +94,14 @@ export function UserProvider({ children }: { children: ReactNode }) {
         
         console.log("[UserContext] MASTER context:", agencyScope || "All agencies");
       } else {
-        // For AGENCY: fetch from agency_summary or user_roles
-        // Agency users should have their agency_id set via their organization
-        const { data: agencySummary } = await supabase
-          .from("agency_summary")
-          .select("agency_id")
-          .limit(1)
-          .single();
-
-        if (agencySummary?.agency_id) {
-          setAgencyScope(agencySummary.agency_id);
-          console.log("[UserContext] AGENCY scope auto-set:", agencySummary.agency_id);
+        // For AGENCY: use agency_id from user_roles
+        if (roleData?.agency_id) {
+          setAgencyScope(roleData.agency_id);
+          console.log("[UserContext] AGENCY scope auto-set:", roleData.agency_id);
         } else {
           // Fallback: use user's own ID as agency scope
-          setAgencyScope(user.id);
-          console.log("[UserContext] AGENCY scope set to user ID:", user.id);
+          setAgencyScope(currentUser.id);
+          console.log("[UserContext] AGENCY scope set to user ID:", currentUser.id);
         }
       }
 
@@ -110,12 +113,22 @@ export function UserProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
+    // Initialize auth state
     refreshContext();
 
     // Listen for auth state changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session?.user) {
-        refreshContext();
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, currentSession) => {
+      console.log("[UserContext] Auth state changed:", _event);
+      
+      // Only sync state updates here, defer Supabase calls to prevent deadlock
+      setSession(currentSession);
+      setUser(currentSession?.user ?? null);
+      
+      if (currentSession?.user) {
+        // Defer context refresh to prevent deadlock
+        setTimeout(() => {
+          refreshContext();
+        }, 0);
       } else {
         setRole(null);
         setAgencyScope(null);
@@ -134,6 +147,8 @@ export function UserProvider({ children }: { children: ReactNode }) {
         role,
         agencyScope,
         userId,
+        user,
+        session,
         loading,
         setRole,
         setAgencyScope,

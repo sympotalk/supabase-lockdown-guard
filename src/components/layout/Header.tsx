@@ -1,7 +1,11 @@
-import { Bell, Settings, ChevronDown, Moon, Sun } from "lucide-react";
+import { Bell, Settings, ChevronDown, Moon, Sun, LogOut } from "lucide-react";
 import { useTheme } from "next-themes";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { useUser } from "@/context/UserContext";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,6 +17,24 @@ import {
 
 export function Header() {
   const { theme, setTheme } = useTheme();
+  const navigate = useNavigate();
+  const { user, role } = useUser();
+
+  const handleLogout = async () => {
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      
+      toast.success("로그아웃되었습니다");
+      navigate("/auth/login");
+    } catch (error) {
+      console.error("로그아웃 오류:", error);
+      toast.error("로그아웃 중 오류가 발생했습니다");
+    }
+  };
+
+  const displayName = user?.email?.split("@")[0] || "사용자";
+  const roleLabel = role === "master" ? "관리자" : role === "agency_owner" ? "에이전시 오너" : "스태프";
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 border-b border-border bg-background transition-colors duration-300">
@@ -49,20 +71,38 @@ export function Header() {
               <Button variant="ghost" className="gap-2">
                 <Avatar className="h-9 w-9">
                   <AvatarFallback className="bg-primary text-primary-foreground text-sm">
-                    관
+                    {displayName.charAt(0).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
-                <span className="hidden md:inline text-[15px]">관리자</span>
+                <div className="hidden flex-col items-start md:flex">
+                  <span className="text-[15px] font-medium">{displayName}</span>
+                  <span className="text-xs text-muted-foreground">{roleLabel}</span>
+                </div>
                 <ChevronDown className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56 bg-popover">
-              <DropdownMenuLabel>내 계정</DropdownMenuLabel>
+              <DropdownMenuLabel>
+                <div className="flex flex-col">
+                  <span className="font-medium">{user?.email}</span>
+                  <span className="text-xs text-muted-foreground">{roleLabel}</span>
+                </div>
+              </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>프로필</DropdownMenuItem>
-              <DropdownMenuItem>설정</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate("/admin/account")}>
+                프로필
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate("/admin/settings")}>
+                설정
+              </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="text-destructive">로그아웃</DropdownMenuItem>
+              <DropdownMenuItem 
+                className="text-destructive focus:text-destructive"
+                onClick={handleLogout}
+              >
+                <LogOut className="mr-2 h-4 w-4" />
+                로그아웃
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>

@@ -76,29 +76,14 @@ export default function Login() {
         throw new Error("로그인에 실패했습니다");
       }
 
-      // Refresh user context to get role
-      await refreshContext();
-
       setFormState(UIState.SUCCESS);
       toast.success(PD_MESSAGES.success.loginSuccess);
       announce(PD_MESSAGES.success.loginSuccess);
 
-      // Get user role from user_roles table
-      const { data: roleData } = await supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", data.user.id)
-        .single();
+      // Refresh user context to get role and navigate
+      await refreshContext();
 
-      // Navigate based on role
-      setTimeout(() => {
-        const userRole = roleData?.role || "staff";
-        if (userRole === "master") {
-          navigate("/admin/dashboard");
-        } else {
-          navigate("/agency/profile");
-        }
-      }, 500);
+      // Navigation will be handled by useEffect once role is loaded
     } catch (error: any) {
       console.error("로그인 오류:", error);
       setFormState(UIState.ERROR);

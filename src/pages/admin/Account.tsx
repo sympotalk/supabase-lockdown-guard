@@ -15,6 +15,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { Building2, Users, Link2, Copy, Plus } from "lucide-react";
+import { useUser } from "@/context/UserContext";
 import {
   Dialog,
   DialogContent,
@@ -78,6 +79,7 @@ const mockInvites = [
 ];
 
 export default function Account() {
+  const { user, role } = useUser();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [newAgencyName, setNewAgencyName] = useState("");
 
@@ -173,15 +175,21 @@ export default function Account() {
               </div>
               <div className="space-y-2">
                 <Label>조직명</Label>
-                <p className="text-sm">{mockAccount.name}</p>
+                <p className="text-sm">SympoHub</p>
               </div>
               <div className="space-y-2">
                 <Label>이메일</Label>
-                <p className="text-sm text-muted-foreground">{mockAccount.email}</p>
+                <p className="text-sm text-muted-foreground">{user?.email || "admin@sympohub.com"}</p>
+              </div>
+              <div className="space-y-2">
+                <Label>사용자 ID</Label>
+                <p className="text-xs text-muted-foreground font-mono">{user?.id || "-"}</p>
               </div>
               <div className="space-y-2">
                 <Label>가입일</Label>
-                <p className="text-sm text-muted-foreground">{mockAccount.createdAt}</p>
+                <p className="text-sm text-muted-foreground">
+                  {user?.created_at ? new Date(user.created_at).toLocaleDateString("ko-KR") : "2024-01-15"}
+                </p>
               </div>
             </CardContent>
           </Card>
