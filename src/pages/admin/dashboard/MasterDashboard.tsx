@@ -125,16 +125,16 @@ export default function MasterDashboard() {
   );
 
   return (
-    <div className="p-6">
+    <div className="space-y-6">
       {/* Header */}
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">SympoHub Master Dashboard</h1>
+          <h1 className="text-2xl font-bold text-foreground">에이전시 관리</h1>
           <p className="text-sm text-muted-foreground mt-1">
             전체 에이전시 현황을 관리하고 초대 및 접근 권한을 제어합니다.
           </p>
         </div>
-        <Button onClick={() => navigate("/admin/account")} className="rounded-lg">
+        <Button onClick={() => navigate("/master/agencies")} className="rounded-lg">
           <Plus className="h-4 w-4 mr-2" />
           새 에이전시 등록
         </Button>
@@ -169,7 +169,7 @@ export default function MasterDashboard() {
               {searchTerm ? "검색 결과가 없습니다." : "등록된 에이전시가 없습니다."}
             </p>
             {!searchTerm && (
-              <Button variant="outline" onClick={() => navigate("/admin/account")}>
+              <Button variant="outline" onClick={() => navigate("/master/agencies")}>
                 새 에이전시 등록
               </Button>
             )}

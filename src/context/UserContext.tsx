@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import type { Session, User } from "@supabase/supabase-js";
 import type { AppRole } from "@/lib/useRoleGuard";
 import SessionSyncManager from "@/components/auth/SessionSyncManager";
@@ -27,6 +27,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const location = useLocation();
 
   const setAgencyScope = (scope: string | null) => {
     setAgencyScopeState(scope);
@@ -112,6 +113,15 @@ export function UserProvider({ children }: { children: ReactNode }) {
       setLoading(false);
     }
   };
+
+  // Auto-clear agency scope when navigating to master routes
+  useEffect(() => {
+    if (location.pathname.startsWith("/master")) {
+      console.log("[UserContext] Master route detected, clearing agencyScope");
+      setAgencyScopeState(null);
+      localStorage.removeItem("agency_scope");
+    }
+  }, [location.pathname]);
 
   useEffect(() => {
     // Initialize auth state

@@ -57,9 +57,10 @@ export function Header() {
   };
 
   const handleExitViewMode = () => {
+    console.log("[Header] Exiting View Mode");
     setAgencyScope(null);
-    navigate("/master-dashboard");
-    toast.success("전체 보기로 돌아갑니다");
+    toast.info("View Mode가 종료되었습니다.");
+    navigate("/master/dashboard");
   };
 
   const displayName = user?.email?.split("@")[0] || "사용자";
@@ -71,8 +72,11 @@ export function Header() {
         <div className="flex items-center gap-3">
           <span className="text-xl font-bold text-primary">SympoHub</span>
           
-          {/* View Mode Badge - only for MASTER with agencyScope */}
-          {role === "master" && agencyScope && agencyName && (
+          {/* View Mode Badge - Only for master with active scope in /admin routes */}
+          {role === "master" && 
+           agencyScope && 
+           agencyName && 
+           window.location.pathname.startsWith("/admin") && (
             <div className="flex items-center gap-1 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-700 rounded-full px-3 py-1">
               <span className="text-sm font-medium">{agencyName}</span>
               <span className="text-xs opacity-70">(View Mode)</span>

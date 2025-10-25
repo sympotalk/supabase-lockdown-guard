@@ -6,11 +6,15 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { UserProvider } from "@/context/UserContext";
 import { AppDataProvider } from "@/contexts/AppDataContext";
 import { ProtectedRoute } from "@/components/routing/ProtectedRoute";
+import { MasterLayout } from "@/components/layout/MasterLayout";
+import { AdminLayout } from "@/components/layout/AdminLayout";
 import Index from "./pages/Index";
 import Login from "./pages/auth/Login";
 import Signup from "./pages/auth/Signup";
 import Dashboard from "./pages/admin/Dashboard";
 import MasterDashboard from "./pages/admin/dashboard/MasterDashboard";
+import MasterAgencies from "./pages/master/Agencies";
+import MasterLogs from "./pages/master/Logs";
 import Events from "./pages/admin/Events";
 import EventOverview from "./pages/admin/EventOverview";
 import Participants from "./pages/admin/Participants";
@@ -41,118 +45,58 @@ const App = () => (
             <Route path="/auth/login" element={<Login />} />
             <Route path="/signup/:inviteId" element={<Signup />} />
 
-            {/* Admin routes - Master only */}
+            {/* Master-only routes */}
             <Route
-              path="/master-dashboard"
+              path="/master/*"
               element={
                 <ProtectedRoute requiredRole="master">
-                  <MasterDashboard />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/admin/dashboard"
-              element={
-                <ProtectedRoute requiredRole="master">
-                  <Dashboard />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/admin/events"
-              element={
-                <ProtectedRoute requiredRole="master">
-                  <Events />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/admin/events/:eventId/overview"
-              element={
-                <ProtectedRoute requiredRole="master">
-                  <EventOverview />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/admin/participants"
-              element={
-                <ProtectedRoute requiredRole="master">
-                  <Participants />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/admin/rooming"
-              element={
-                <ProtectedRoute requiredRole="master">
-                  <Rooming />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/admin/messages"
-              element={
-                <ProtectedRoute requiredRole="master">
-                  <Messages />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/admin/forms"
-              element={
-                <ProtectedRoute requiredRole="master">
-                  <Forms />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/admin/account"
-              element={
-                <ProtectedRoute requiredRole="master">
-                  <Account />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/admin/settings"
-              element={
-                <ProtectedRoute requiredRole="master">
-                  <AdminSettings />
+                  <MasterLayout>
+                    <Routes>
+                      <Route path="dashboard" element={<MasterDashboard />} />
+                      <Route path="agencies" element={<MasterAgencies />} />
+                      <Route path="logs" element={<MasterLogs />} />
+                    </Routes>
+                  </MasterLayout>
                 </ProtectedRoute>
               }
             />
 
-            {/* Agency routes - Staff, Admin, Agency Owner */}
+            {/* Legacy redirect */}
+            <Route path="/master-dashboard" element={<Navigate to="/master/dashboard" replace />} />
+
+            {/* Agency routes - accessible by master in view mode OR agency users */}
             <Route
-              path="/agency/profile"
+              path="/admin/*"
               element={
-                <ProtectedRoute allowedRoles={["staff", "admin", "agency_owner"]}>
-                  <AgencyProfile />
+                <ProtectedRoute allowedRoles={["master", "agency_owner", "admin", "staff"]}>
+                  <AdminLayout>
+                    <Routes>
+                      <Route path="dashboard" element={<Dashboard />} />
+                      <Route path="events" element={<Events />} />
+                      <Route path="events/:eventId/overview" element={<EventOverview />} />
+                      <Route path="participants" element={<Participants />} />
+                      <Route path="rooming" element={<Rooming />} />
+                      <Route path="messages" element={<Messages />} />
+                      <Route path="forms" element={<Forms />} />
+                      <Route path="account" element={<Account />} />
+                      <Route path="settings" element={<AdminSettings />} />
+                    </Routes>
+                  </AdminLayout>
                 </ProtectedRoute>
               }
             />
+
+            {/* Agency user-specific routes */}
             <Route
-              path="/agency/settings"
+              path="/agency/*"
               element={
                 <ProtectedRoute allowedRoles={["staff", "admin", "agency_owner"]}>
-                  <AgencySettings />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/agency/notifications"
-              element={
-                <ProtectedRoute allowedRoles={["staff", "admin", "agency_owner"]}>
-                  <AgencyNotifications />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/agency/security"
-              element={
-                <ProtectedRoute allowedRoles={["staff", "admin", "agency_owner"]}>
-                  <AgencySecurity />
+                  <Routes>
+                    <Route path="profile" element={<AgencyProfile />} />
+                    <Route path="settings" element={<AgencySettings />} />
+                    <Route path="notifications" element={<AgencyNotifications />} />
+                    <Route path="security" element={<AgencySecurity />} />
+                  </Routes>
                 </ProtectedRoute>
               }
             />
