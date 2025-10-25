@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -15,6 +16,7 @@ interface CreateEventModalProps {
 
 export default function CreateEventModal({ open, onOpenChange }: CreateEventModalProps) {
   const { refresh } = useAppData();
+  const navigate = useNavigate();
   const [form, setForm] = useState({
     name: "",
     start_date: "",
@@ -179,6 +181,9 @@ export default function CreateEventModal({ open, onOpenChange }: CreateEventModa
       toast.success("행사 및 호텔 구성이 저장되었습니다");
       await refresh();
       onOpenChange(false);
+      
+      // Navigate to event overview
+      navigate(`/admin/events/${newEvent.id}/overview`);
       
       // Reset form
       setForm({ name: "", start_date: "", end_date: "", location: "" });

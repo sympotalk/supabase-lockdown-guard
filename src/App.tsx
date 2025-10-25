@@ -11,6 +11,7 @@ import Login from "./pages/auth/Login";
 import Signup from "./pages/auth/Signup";
 import Dashboard from "./pages/admin/Dashboard";
 import Events from "./pages/admin/Events";
+import EventOverview from "./pages/admin/EventOverview";
 import Participants from "./pages/admin/Participants";
 import Rooming from "./pages/admin/Rooming";
 import Messages from "./pages/admin/Messages";
@@ -53,6 +54,14 @@ const App = () => (
               element={
                 <ProtectedRoute requiredRole="master">
                   <Events />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/events/:eventId/overview"
+              element={
+                <ProtectedRoute requiredRole="master">
+                  <EventOverview />
                 </ProtectedRoute>
               }
             />
