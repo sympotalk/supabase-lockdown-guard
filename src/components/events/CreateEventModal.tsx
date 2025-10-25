@@ -372,7 +372,7 @@ export default function CreateEventModal({ open, onOpenChange }: CreateEventModa
             </div>
             <div>
               <Label>일정</Label>
-              <DateRangePicker value={dateRange} onChange={setDateRange} />
+              <DateRangePicker value={dateRange} onChange={(v) => setDateRange(v)} />
             </div>
           </div>
 

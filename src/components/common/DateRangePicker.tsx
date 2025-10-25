@@ -1,83 +1,73 @@
-import { useState, useEffect } from "react";
+"use client";
+
+import { useState } from "react";
 import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import { CalendarIcon } from "lucide-react";
-import { format } from "date-fns";
-import { cn } from "@/lib/utils";
 import type { DateRange } from "react-day-picker";
 
 type Props = {
   value?: DateRange;
-  onChange: (value: DateRange) => void;
+  onChange?: (v: DateRange) => void;
+  resetOnOpen?: boolean; // 모달을 닫았다가 열 때 초기화하려면 true로
 };
 
-export default function DateRangePicker({ value, onChange }: Props) {
+export function DateRangePicker({ value, onChange, resetOnOpen = false }: Props) {
   const [open, setOpen] = useState(false);
-  const [tempRange, setTempRange] = useState<DateRange>({ from: undefined, to: undefined });
+  const [range, setRange] = useState<DateRange>(value ?? { from: undefined, to: undefined });
 
-  useEffect(() => {
-    if (value) {
-      setTempRange(value);
-    }
-  }, [value]);
+  // Popover 열 때 초기화 옵션
+  const handleOpenChange = (next: boolean) => {
+    if (next && resetOnOpen) setRange({ from: undefined, to: undefined });
+    setOpen(next);
+  };
 
-  const handleSelect = (range: DateRange | undefined) => {
-    if (!range) return;
-    
-    setTempRange(range);
-    onChange(range);
-    
-    // Auto-close after selecting both dates
-    if (range.from && range.to) {
-      setTimeout(() => {
-        setOpen(false);
-      }, 300);
+  const handleSelect = (next?: DateRange) => {
+    // react-day-picker가 넘겨주는 next는 {from? , to?}
+    setRange(next ?? { from: undefined, to: undefined });
+
+    // 둘 다 선택된 경우에만 닫기
+    if (next?.from && next?.to) {
+      onChange?.(next);
+      // 약간의 딜레이 후 닫으면 포커스 점프 덜함
+      setTimeout(() => setOpen(false), 80);
+    } else {
+      // 시작일만 선택된 상태에서는 닫지 않음(두 번째 클릭 대기)
+      setOpen(true);
     }
   };
 
-  const handleOpenChange = (newOpen: boolean) => {
-    setOpen(newOpen);
-    if (newOpen) {
-      setTempRange(value || { from: undefined, to: undefined });
-    }
-  };
+  const label = range?.from
+    ? range.to
+      ? `${range.from.toLocaleDateString()} ~ ${range.to.toLocaleDateString()}`
+      : range.from.toLocaleDateString()
+    : "날짜 선택";
 
   return (
     <Popover open={open} onOpenChange={handleOpenChange}>
       <PopoverTrigger asChild>
         <Button
           variant="outline"
-          className={cn(
-            "w-full justify-start text-left font-normal hover:border-primary focus:border-primary",
-            !tempRange?.from && "text-muted-foreground"
-          )}
+          className="w-full justify-start text-left font-normal hover:border-blue-500 focus:border-blue-500"
+          onClick={() => handleOpenChange(true)}
         >
-          <CalendarIcon className="mr-2 h-4 w-4 text-primary" />
-          {tempRange?.from ? (
-            tempRange.to ? (
-              <>
-                {format(tempRange.from, "yyyy-MM-dd")} ~ {format(tempRange.to, "yyyy-MM-dd")}
-              </>
-            ) : (
-              format(tempRange.from, "yyyy-MM-dd")
-            )
-          ) : (
-            <span>날짜 선택</span>
-          )}
+          <CalendarIcon className="mr-2 h-4 w-4 text-blue-600" />
+          {label}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-auto p-2 shadow-lg border rounded-xl bg-background" align="start">
+
+      <PopoverContent className="p-2 shadow-lg border rounded-xl bg-white w-auto" align="start">
         <Calendar
           mode="range"
-          selected={tempRange}
+          selected={range}
           onSelect={handleSelect}
-          initialFocus
           numberOfMonths={2}
-          defaultMonth={tempRange?.from || new Date()}
-          className="pointer-events-auto rounded-md border-none"
+          defaultMonth={range?.from ?? new Date()}
         />
       </PopoverContent>
     </Popover>
   );
 }
+
+export default DateRangePicker;
