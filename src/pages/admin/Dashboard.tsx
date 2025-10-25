@@ -12,9 +12,12 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { StatusBadge } from "@/components/ui/status-badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
 import { subscribeToTable } from "@/lib/realtimeBridge";
 import { useEffect, useState } from "react";
+import { useRoleGuard } from "@/lib/useRoleGuard";
+import MasterDashboard from "./dashboard/MasterDashboard";
 
 type EventStatus = "active" | "pending" | "completed";
 
@@ -27,9 +30,31 @@ interface Event {
 }
 
 export default function Dashboard() {
+  const { userRole, loading: roleLoading } = useRoleGuard();
   const [events, setEvents] = useState<Event[]>([]);
   const [totalEvents, setTotalEvents] = useState(0);
   const [totalParticipants, setTotalParticipants] = useState(0);
+
+  // If user is MASTER, show Master Dashboard
+  if (roleLoading) {
+    return (
+      <div className="p-6">
+        <Skeleton className="h-12 w-64 mb-6" />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <Skeleton className="h-32" />
+          <Skeleton className="h-32" />
+          <Skeleton className="h-32" />
+        </div>
+      </div>
+    );
+  }
+
+  if (userRole === "master") {
+    console.log("[UI] Dashboard loaded as: MASTER");
+    return <MasterDashboard />;
+  }
+
+  console.log("[UI] Dashboard loaded as:", userRole || "AGENCY");
 
   useEffect(() => {
     // Fetch initial data
