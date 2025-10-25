@@ -1,54 +1,31 @@
 import { NavLink } from "react-router-dom";
-import {
-  LayoutDashboard,
-  Calendar,
-  Users,
-  Hotel,
-  MessageSquare,
-  FileText,
-  Building2,
-} from "lucide-react";
+import { User, Settings, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 const menuItems = [
   {
-    title: "대시보드",
-    icon: LayoutDashboard,
-    url: "/admin/dashboard",
+    title: "프로필",
+    icon: User,
+    url: "/agency/profile",
   },
   {
-    title: "행사 관리",
-    icon: Calendar,
-    url: "/admin/events",
-  },
-  {
-    title: "참가자 관리",
-    icon: Users,
-    url: "/admin/participants",
-  },
-  {
-    title: "숙박 및 룸핑",
-    icon: Hotel,
-    url: "/admin/rooming",
-  },
-  {
-    title: "문자·알림 발송",
-    icon: MessageSquare,
-    url: "/admin/messages",
-  },
-  {
-    title: "설문·초청장",
-    icon: FileText,
-    url: "/admin/forms",
-  },
-  {
-    title: "계정 관리",
-    icon: Building2,
-    url: "/admin/account",
+    title: "설정",
+    icon: Settings,
+    url: "/agency/settings",
   },
 ];
 
-export function Sidebar() {
+export function AgencySidebar() {
+  const handleLogout = () => {
+    toast.success("로그아웃되었습니다");
+    // Navigate to login or home
+    setTimeout(() => {
+      window.location.href = "/admin/dashboard";
+    }, 1000);
+  };
+
   return (
     <aside className="fixed left-0 top-16 z-40 h-[calc(100vh-4rem)] w-60 border-r border-border bg-sidebar-background">
       <nav className="flex flex-col gap-1 p-3">
@@ -76,6 +53,17 @@ export function Sidebar() {
             )}
           </NavLink>
         ))}
+        
+        <div className="mt-4 border-t border-border pt-4">
+          <Button
+            variant="ghost"
+            className="w-full justify-start gap-3 text-[15px] font-medium text-sidebar-foreground hover:bg-muted hover:text-sidebar-foreground"
+            onClick={handleLogout}
+          >
+            <LogOut className="h-5 w-5" />
+            로그아웃
+          </Button>
+        </div>
       </nav>
     </aside>
   );

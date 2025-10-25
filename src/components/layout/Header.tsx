@@ -10,20 +10,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { supabase } from "@/integrations/supabase/client";
-import { clearAgencyContext } from "@/lib/agencyContext";
-import { useNavigate } from "react-router-dom";
 
 export function Header() {
   const { theme, setTheme } = useTheme();
-  const navigate = useNavigate();
-
-  const handleLogout = async () => {
-    console.log("[RLS] Logging out and clearing agency context");
-    clearAgencyContext();
-    await supabase.auth.signOut();
-    navigate("/");
-  };
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 border-b border-border bg-background transition-colors duration-300">
@@ -73,9 +62,7 @@ export function Header() {
               <DropdownMenuItem>프로필</DropdownMenuItem>
               <DropdownMenuItem>설정</DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleLogout} className="text-destructive cursor-pointer">
-                로그아웃
-              </DropdownMenuItem>
+              <DropdownMenuItem className="text-destructive">로그아웃</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
