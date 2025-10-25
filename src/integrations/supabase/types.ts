@@ -4757,6 +4757,7 @@ export type Database = {
       }
     }
     Functions: {
+      assign_master_role: { Args: { user_email: string }; Returns: Json }
       create_event_with_hotel:
         | {
             Args: {
