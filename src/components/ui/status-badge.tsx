@@ -34,7 +34,11 @@ const statusConfig = {
 };
 
 export function StatusBadge({ status, className }: StatusBadgeProps) {
-  const config = statusConfig[status];
+  // ✅ 안전한 fallback 처리 추가
+  const config = statusConfig[status] || {
+    label: "알수없음",
+    className: "bg-gray-100 text-gray-700 hover:bg-gray-200",
+  };
 
   return (
     <Badge
