@@ -10,6 +10,7 @@ import Index from "./pages/Index";
 import Login from "./pages/auth/Login";
 import Signup from "./pages/auth/Signup";
 import Dashboard from "./pages/admin/Dashboard";
+import MasterDashboard from "./pages/admin/dashboard/MasterDashboard";
 import Events from "./pages/admin/Events";
 import EventOverview from "./pages/admin/EventOverview";
 import Participants from "./pages/admin/Participants";
@@ -41,6 +42,14 @@ const App = () => (
             <Route path="/signup/:inviteId" element={<Signup />} />
 
             {/* Admin routes - Master only */}
+            <Route
+              path="/master-dashboard"
+              element={
+                <ProtectedRoute requiredRole="master">
+                  <MasterDashboard />
+                </ProtectedRoute>
+              }
+            />
             <Route
               path="/admin/dashboard"
               element={

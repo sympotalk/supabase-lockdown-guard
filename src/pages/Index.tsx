@@ -12,9 +12,9 @@ const Index = () => {
       if (userId && role) {
         // Redirect to appropriate dashboard based on role
         if (role === "master") {
-          navigate("/admin/dashboard", { replace: true });
+          navigate("/master-dashboard", { replace: true });
         } else {
-          navigate("/agency/profile", { replace: true });
+          navigate("/admin/events", { replace: true });
         }
       } else {
         // Not logged in, redirect to login

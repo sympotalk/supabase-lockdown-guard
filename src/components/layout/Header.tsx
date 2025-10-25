@@ -1,4 +1,5 @@
-import { Bell, Settings, ChevronDown, Moon, Sun, LogOut } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Bell, Settings, ChevronDown, Moon, Sun, LogOut, X } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -18,7 +19,29 @@ import {
 export function Header() {
   const { theme, setTheme } = useTheme();
   const navigate = useNavigate();
-  const { user, role } = useUser();
+  const { user, role, agencyScope, setAgencyScope } = useUser();
+  const [agencyName, setAgencyName] = useState<string | null>(null);
+
+  // Fetch agency name when viewing as agency
+  useEffect(() => {
+    const fetchAgencyName = async () => {
+      if (role === "master" && agencyScope) {
+        const { data } = await supabase
+          .from("agencies")
+          .select("name")
+          .eq("id", agencyScope)
+          .single();
+        
+        if (data) {
+          setAgencyName(data.name);
+        }
+      } else {
+        setAgencyName(null);
+      }
+    };
+
+    fetchAgencyName();
+  }, [role, agencyScope]);
 
   const handleLogout = async () => {
     try {
@@ -33,12 +56,43 @@ export function Header() {
     }
   };
 
+  const handleExitViewMode = () => {
+    setAgencyScope(null);
+    navigate("/master-dashboard");
+    toast.success("전체 보기로 돌아갑니다");
+  };
+
   const displayName = user?.email?.split("@")[0] || "사용자";
   const roleLabel = role === "master" ? "관리자" : role === "agency_owner" ? "에이전시 오너" : "스태프";
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 border-b border-border bg-background transition-colors duration-300">
-      <div className="flex h-16 items-center px-6">
+    <>
+      {/* View Mode Banner */}
+      {role === "master" && agencyScope && agencyName && (
+        <div className="fixed top-0 left-0 right-0 z-50 bg-blue-50 dark:bg-blue-950 border-b border-blue-200 dark:border-blue-800">
+          <div className="flex h-10 items-center justify-center px-6 text-sm">
+            <span className="font-medium text-blue-700 dark:text-blue-300">
+              현재 보기 중: {agencyName} (View Mode)
+            </span>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="ml-4 h-6 px-2 text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900"
+              onClick={handleExitViewMode}
+            >
+              <X className="h-3 w-3 mr-1" />
+              전체 보기로 돌아가기
+            </Button>
+          </div>
+        </div>
+      )}
+
+      <header 
+        className={`fixed left-0 right-0 z-40 border-b border-border bg-background transition-colors duration-300 ${
+          role === "master" && agencyScope ? "top-10" : "top-0"
+        }`}
+      >
+        <div className="flex h-16 items-center px-6">
         <div className="flex items-center gap-2">
           <span className="text-xl font-bold text-primary">SympoHub</span>
         </div>
@@ -107,6 +161,7 @@ export function Header() {
           </DropdownMenu>
         </div>
       </div>
-    </header>
+      </header>
+    </>
   );
 }

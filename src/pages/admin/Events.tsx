@@ -1,6 +1,8 @@
 // Phase 3.7.X-FULL — Event List Dynamic Integration
 // Phase 3.7.X-FULL.POLICY-FIX — Agency Data Scope Enforcement
+// Phase 3.8-MASTER.UI — Master Dashboard View as Agency Mode
 import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Plus, Search, Filter, MoreHorizontal } from "lucide-react";
 import { AdminLayout } from "@/components/layout/AdminLayout";
 import { Button } from "@/components/ui/button";
@@ -44,12 +46,22 @@ interface Event {
 }
 
 export default function Events() {
-  const { role, agencyScope } = useUser();
+  const { role, agencyScope, setAgencyScope } = useUser();
+  const [searchParams] = useSearchParams();
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
+
+  // Sync URL agency parameter with UserContext
+  useEffect(() => {
+    const agencyParam = searchParams.get("agency");
+    if (agencyParam && agencyParam !== agencyScope) {
+      console.log("[RLS] Syncing agency scope from URL:", agencyParam);
+      setAgencyScope(agencyParam);
+    }
+  }, [searchParams, agencyScope, setAgencyScope]);
 
   const loadEvents = async () => {
     setLoading(true);

@@ -1,8 +1,12 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { useUser } from "@/context/UserContext";
 import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Building2, Calendar, Users, FileText } from "lucide-react";
+import { Building2, Calendar, Users, FileText, Plus } from "lucide-react";
+import { toast } from "sonner";
 
 interface AgencySummary {
   agency_id: string;
@@ -16,6 +20,8 @@ interface AgencySummary {
 }
 
 export default function MasterDashboard() {
+  const navigate = useNavigate();
+  const { setAgencyScope } = useUser();
   const [agencies, setAgencies] = useState<AgencySummary[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -41,11 +47,11 @@ export default function MasterDashboard() {
     fetchAgencies();
   }, []);
 
-  const handleAgencyClick = (agencyId: string, agencyName: string) => {
-    const previousContext = localStorage.getItem("agency_context");
-    localStorage.setItem("agency_context", agencyId);
-    console.log(`[RLS] Master switching: ${previousContext || "MASTER"} → ${agencyId} (${agencyName})`);
-    window.location.href = `/admin/dashboard?asAgency=${agencyId}`;
+  const handleAgencyClick = async (agencyId: string, agencyName: string) => {
+    console.log(`[RLS] Master viewing agency: ${agencyId} (${agencyName})`);
+    setAgencyScope(agencyId);
+    toast.success(`${agencyName} 에이전시 보기 모드로 전환되었습니다`);
+    navigate(`/admin/events?agency=${agencyId}`);
   };
 
   if (loading) {
@@ -65,13 +71,19 @@ export default function MasterDashboard() {
     <div className="p-6">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-3xl font-bold">마스터 대시보드</h1>
+          <h1 className="text-3xl font-bold">SympoHub Master Dashboard</h1>
           <p className="text-muted-foreground mt-1">
-            전체 에이전시 현황을 확인하고 관리하세요
+            전체 에이전시 현황 및 진입 관리
           </p>
         </div>
-        <div className="text-sm text-muted-foreground">
-          총 {agencies.length}개 에이전시
+        <div className="flex items-center gap-4">
+          <div className="text-sm text-muted-foreground">
+            총 {agencies.length}개 에이전시
+          </div>
+          <Button onClick={() => navigate("/admin/account")}>
+            <Plus className="h-4 w-4 mr-2" />
+            새 에이전시 등록
+          </Button>
         </div>
       </div>
 
@@ -88,7 +100,7 @@ export default function MasterDashboard() {
           {agencies.map((agency) => (
             <Card
               key={agency.agency_id}
-              className="p-6 hover:bg-accent hover:shadow-lg transition-all cursor-pointer border-2 hover:border-primary"
+              className="rounded-xl shadow-md p-5 border border-gray-100 hover:ring-2 hover:ring-blue-300 transition cursor-pointer"
               onClick={() => handleAgencyClick(agency.agency_id, agency.agency_name)}
             >
               <div className="flex items-start justify-between mb-4">

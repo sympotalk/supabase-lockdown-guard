@@ -35,9 +35,9 @@ export const ProtectedRoute = ({ children, requiredRole, allowedRoles }: Protect
   if (!hasPermission) {
     // Redirect to appropriate dashboard based on role
     if (role === "master") {
-      return <Navigate to="/admin/dashboard" replace />;
+      return <Navigate to="/master-dashboard" replace />;
     } else {
-      return <Navigate to="/agency/profile" replace />;
+      return <Navigate to="/admin/events" replace />;
     }
   }
 
