@@ -189,6 +189,73 @@ export type Database = {
         }
         Relationships: []
       }
+      agency_keys: {
+        Row: {
+          agency_id: string
+          api_key: string
+          created_at: string
+          id: string
+          is_active: boolean
+        }
+        Insert: {
+          agency_id: string
+          api_key: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+        }
+        Update: {
+          agency_id?: string
+          api_key?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agency_keys_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agencies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agency_keys_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agency_performance_summary"
+            referencedColumns: ["agency_id"]
+          },
+          {
+            foreignKeyName: "agency_keys_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agency_summary"
+            referencedColumns: ["agency_id"]
+          },
+          {
+            foreignKeyName: "agency_keys_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "dashboard_metrics"
+            referencedColumns: ["agency_id"]
+          },
+          {
+            foreignKeyName: "agency_keys_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "master_agency_overview"
+            referencedColumns: ["agency_id"]
+          },
+          {
+            foreignKeyName: "agency_keys_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "v_master_operations"
+            referencedColumns: ["agency_id"]
+          },
+        ]
+      }
       agency_managers: {
         Row: {
           agency_id: string
@@ -5570,6 +5637,28 @@ export type Database = {
           _user: string
         }
         Returns: undefined
+      }
+      master_post_announcement: {
+        Args: { p_agency: string; p_body: string; p_title: string }
+        Returns: undefined
+      }
+      master_revoke_invite: { Args: { p_token: string }; Returns: undefined }
+      master_rotate_api_key: {
+        Args: { p_agency: string }
+        Returns: {
+          api_key: string
+        }[]
+      }
+      master_set_role: {
+        Args: { p_role: string; p_user: string }
+        Returns: undefined
+      }
+      master_toggle_agency_active: {
+        Args: { p_agency: string }
+        Returns: {
+          agency_id: string
+          is_active: boolean
+        }[]
       }
       normalize_korean: { Args: { text_input: string }; Returns: string }
       normalize_role_type: { Args: { input_role: string }; Returns: string }

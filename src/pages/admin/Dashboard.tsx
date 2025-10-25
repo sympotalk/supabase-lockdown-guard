@@ -8,6 +8,7 @@ import { useUser } from "@/context/UserContext";
 import { Spinner } from "@/components/pd/Spinner";
 import AgencySwitcher from "@/components/dashboard/AgencySwitcher";
 import MasterOverviewPanel from "@/components/dashboard/MasterOverviewPanel";
+import MasterActionPanel from "@/components/dashboard/MasterActionPanel";
 import {
   Table,
   TableBody,
@@ -71,7 +72,10 @@ export default function Dashboard() {
       <div className="space-y-8">
         {/* Master Overview Panel - Only for masters with multiple agencies */}
         {role === "master" && agencyList.length > 0 && (
-          <MasterOverviewPanel />
+          <>
+            <MasterOverviewPanel />
+            <MasterActionPanel />
+          </>
         )}
 
         {/* Individual Agency Dashboard - Always shown */}
