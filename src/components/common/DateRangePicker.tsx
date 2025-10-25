@@ -37,9 +37,8 @@ export default function DateRangePicker({ value, onChange }: Props) {
 
   const handleOpenChange = (newOpen: boolean) => {
     setOpen(newOpen);
-    if (!newOpen) {
-      setHasStartDate(false);
-    }
+    // Reset state when opening or closing
+    setHasStartDate(false);
   };
 
   return (

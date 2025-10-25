@@ -24,8 +24,8 @@ export default function CreateEventModal({ open, onOpenChange }: CreateEventModa
   const { user } = useUser();
   const [eventName, setEventName] = useState("");
   const [dateRange, setDateRange] = useState<DateRange>({
-    from: new Date(),
-    to: new Date(Date.now() + 86400000 * 2),
+    from: undefined,
+    to: undefined,
   });
   const [agencies, setAgencies] = useState<any[]>([]);
   const [selectedAgencyId, setSelectedAgencyId] = useState<string>("");
@@ -40,6 +40,21 @@ export default function CreateEventModal({ open, onOpenChange }: CreateEventModa
   const [customRooms, setCustomRooms] = useState<any[]>([]);
   const [roomConfig, setRoomConfig] = useState<Record<string, { credit: number; stock: number }>>({});
   const [loading, setLoading] = useState(false);
+
+  // Reset all state when modal opens
+  useEffect(() => {
+    if (open) {
+      setEventName("");
+      setDateRange({ from: undefined, to: undefined });
+      setHotelSearch("");
+      setSelectedHotel(null);
+      setRoomTypes([]);
+      setCheckedRooms({});
+      setCustomRooms([]);
+      setRoomConfig({});
+      setActiveIndex(0);
+    }
+  }, [open]);
 
   // Load session and check role
   useEffect(() => {
