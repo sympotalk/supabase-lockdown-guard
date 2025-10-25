@@ -2714,6 +2714,7 @@ export type Database = {
           id: string
           is_active: boolean | null
           updated_at: string | null
+          user_id: string
         }
         Insert: {
           avatar_url?: string | null
@@ -2723,6 +2724,7 @@ export type Database = {
           id: string
           is_active?: boolean | null
           updated_at?: string | null
+          user_id: string
         }
         Update: {
           avatar_url?: string | null
@@ -2732,6 +2734,7 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           updated_at?: string | null
+          user_id?: string
         }
         Relationships: []
       }
