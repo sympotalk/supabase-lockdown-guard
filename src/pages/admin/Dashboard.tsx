@@ -4,8 +4,10 @@ import { StatCard } from "@/components/ui/stat-card";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAppData } from "@/contexts/AppDataContext";
+import { useUser } from "@/context/UserContext";
 import { Spinner } from "@/components/pd/Spinner";
 import AgencySwitcher from "@/components/dashboard/AgencySwitcher";
+import MasterOverviewPanel from "@/components/dashboard/MasterOverviewPanel";
 import {
   Table,
   TableBody,
@@ -48,7 +50,8 @@ const recentEvents = [
 ];
 
 export default function Dashboard() {
-  const { agency, metrics, loading, refresh } = useAppData();
+  const { agency, metrics, loading, refresh, agencyList } = useAppData();
+  const { role } = useUser();
 
   if (loading) {
     return (
@@ -66,6 +69,12 @@ export default function Dashboard() {
   return (
     <AdminLayout>
       <div className="space-y-8">
+        {/* Master Overview Panel - Only for masters with multiple agencies */}
+        {role === "master" && agencyList.length > 0 && (
+          <MasterOverviewPanel />
+        )}
+
+        {/* Individual Agency Dashboard - Always shown */}
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold">
