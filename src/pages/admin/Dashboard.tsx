@@ -12,39 +12,86 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { StatusBadge } from "@/components/ui/status-badge";
+import { supabase } from "@/integrations/supabase/client";
+import { subscribeToTable } from "@/lib/realtimeBridge";
+import { useEffect, useState } from "react";
 
-const recentEvents = [
-  {
-    id: 1,
-    name: "2025 글로벌 테크 컨퍼런스",
-    date: "2025-03-15",
-    participants: 245,
-    status: "active" as const,
-  },
-  {
-    id: 2,
-    name: "스타트업 네트워킹 데이",
-    date: "2025-03-20",
-    participants: 180,
-    status: "pending" as const,
-  },
-  {
-    id: 3,
-    name: "AI 혁신 포럼",
-    date: "2025-04-05",
-    participants: 320,
-    status: "active" as const,
-  },
-  {
-    id: 4,
-    name: "디자인 씽킹 워크샵",
-    date: "2025-04-12",
-    participants: 95,
-    status: "completed" as const,
-  },
-];
+type EventStatus = "active" | "pending" | "completed";
+
+interface Event {
+  id: string;
+  name: string;
+  start_date: string;
+  status: string;
+  participant_count?: number;
+}
 
 export default function Dashboard() {
+  const [events, setEvents] = useState<Event[]>([]);
+  const [totalEvents, setTotalEvents] = useState(0);
+  const [totalParticipants, setTotalParticipants] = useState(0);
+
+  useEffect(() => {
+    // Fetch initial data
+    const fetchData = async () => {
+      const { data: eventsData, error: eventsError } = await supabase
+        .from("events")
+        .select("id, name, start_date, status")
+        .order("start_date", { ascending: false })
+        .limit(5);
+
+      if (eventsError) {
+        console.error("[Data] Events error:", eventsError);
+      } else {
+        console.log("[Data] Events:", eventsData?.length || 0, "rows fetched");
+        setEvents(eventsData || []);
+        setTotalEvents(eventsData?.length || 0);
+      }
+
+      const { count: participantsCount, error: participantsError } = await supabase
+        .from("participants")
+        .select("*", { count: "exact", head: true });
+
+      if (participantsError) {
+        console.error("[Data] Participants error:", participantsError);
+      } else {
+        console.log("[Data] Participants:", participantsCount || 0, "rows");
+        setTotalParticipants(participantsCount || 0);
+      }
+    };
+
+    fetchData();
+
+    // Subscribe to realtime updates
+    const unsubscribeEvents = subscribeToTable("events", (payload) => {
+      console.log("[Realtime] Events updated:", payload);
+      fetchData();
+    });
+
+    const unsubscribeParticipants = subscribeToTable("participants", (payload) => {
+      console.log("[Realtime] Participants updated:", payload);
+      fetchData();
+    });
+
+    const unsubscribeForms = subscribeToTable("forms", (payload) => {
+      console.log("[Realtime] Forms updated:", payload);
+    });
+
+    return () => {
+      unsubscribeEvents();
+      unsubscribeParticipants();
+      unsubscribeForms();
+    };
+  }, []);
+
+  const mapStatus = (status: string): EventStatus => {
+    const statusMap: Record<string, EventStatus> = {
+      "예정": "pending",
+      "진행중": "active",
+      "완료": "completed",
+    };
+    return statusMap[status] || "pending";
+  };
   return (
     <AdminLayout>
       <div className="space-y-8">
@@ -64,24 +111,21 @@ export default function Dashboard() {
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           <StatCard
             title="전체 행사"
-            value={24}
-            description="이번 달 진행 중"
+            value={totalEvents}
+            description="등록된 행사"
             icon={Calendar}
-            trend={{ value: "12%", isPositive: true }}
           />
           <StatCard
             title="총 참가자"
-            value="3,847"
+            value={totalParticipants.toLocaleString()}
             description="전체 등록 인원"
             icon={Users}
-            trend={{ value: "8.2%", isPositive: true }}
           />
           <StatCard
-            title="숙박 이용률"
-            value="87%"
-            description="객실 배정 완료"
+            title="데이터 연동"
+            value="활성"
+            description="Supabase 실시간 연결"
             icon={Hotel}
-            trend={{ value: "5.1%", isPositive: true }}
           />
         </div>
 
@@ -105,16 +149,24 @@ export default function Dashboard() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {recentEvents.map((event) => (
-                      <TableRow key={event.id} className="hover:bg-muted/50">
-                        <TableCell className="font-medium">{event.name}</TableCell>
-                        <TableCell>{event.date}</TableCell>
-                        <TableCell>{event.participants}명</TableCell>
-                        <TableCell>
-                          <StatusBadge status={event.status} />
+                    {events.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={4} className="text-center text-muted-foreground">
+                          등록된 행사가 없습니다
                         </TableCell>
                       </TableRow>
-                    ))}
+                    ) : (
+                      events.map((event) => (
+                        <TableRow key={event.id} className="hover:bg-muted/50">
+                          <TableCell className="font-medium">{event.name}</TableCell>
+                          <TableCell>{event.start_date}</TableCell>
+                          <TableCell>{event.participant_count || 0}명</TableCell>
+                          <TableCell>
+                            <StatusBadge status={mapStatus(event.status)} />
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
                   </TableBody>
                 </Table>
               </div>
