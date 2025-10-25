@@ -10,62 +10,82 @@ import type { DateRange } from "react-day-picker";
 type Props = {
   value?: DateRange;
   onChange?: (v: DateRange) => void;
-  resetOnOpen?: boolean; // 모달을 닫았다가 열 때 초기화하려면 true로
 };
 
-export function DateRangePicker({ value, onChange, resetOnOpen = false }: Props) {
-  const [open, setOpen] = useState(false);
+export function DateRangePicker({ value, onChange }: Props) {
+  const [isOpen, setIsOpen] = useState(false);
   const [range, setRange] = useState<DateRange>(value ?? { from: undefined, to: undefined });
 
-  // Popover 열 때 초기화 옵션
-  const handleOpenChange = (next: boolean) => {
-    if (next && resetOnOpen) setRange({ from: undefined, to: undefined });
-    setOpen(next);
-  };
-
+  // 날짜 선택 로직
   const handleSelect = (next?: DateRange) => {
-    // react-day-picker가 넘겨주는 next는 {from? , to?}
-    setRange(next ?? { from: undefined, to: undefined });
+    if (!next) return;
+    setRange(next);
 
-    // 둘 다 선택된 경우에만 닫기
-    if (next?.from && next?.to) {
+    // 두 날짜가 모두 잡힌 경우에만 닫기
+    if (next.from && next.to) {
       onChange?.(next);
-      // 약간의 딜레이 후 닫으면 포커스 점프 덜함
-      setTimeout(() => setOpen(false), 80);
+      // 자동 닫힘을 강제로 제어 (focus out 무시)
+      setTimeout(() => setIsOpen(false), 150);
     } else {
-      // 시작일만 선택된 상태에서는 닫지 않음(두 번째 클릭 대기)
-      setOpen(true);
+      // 한 날짜만 선택한 경우는 열린 상태 유지
+      setIsOpen(true);
     }
   };
 
-  const label = range?.from
-    ? range.to
+  const handleOpen = (next: boolean) => {
+    // react-day-picker 내부 focus로 인한 자동 닫힘 방지
+    // 강제적으로 state로 제어
+    setIsOpen(next);
+  };
+
+  const displayText = range?.from
+    ? range?.to
       ? `${range.from.toLocaleDateString()} ~ ${range.to.toLocaleDateString()}`
       : range.from.toLocaleDateString()
     : "날짜 선택";
 
   return (
-    <Popover open={open} onOpenChange={handleOpenChange}>
+    <Popover open={isOpen} onOpenChange={handleOpen}>
       <PopoverTrigger asChild>
         <Button
           variant="outline"
           className="w-full justify-start text-left font-normal hover:border-blue-500 focus:border-blue-500"
-          onClick={() => handleOpenChange(true)}
+          onClick={() => handleOpen(!isOpen)}
         >
           <CalendarIcon className="mr-2 h-4 w-4 text-blue-600" />
-          {label}
+          {displayText}
         </Button>
       </PopoverTrigger>
 
-      <PopoverContent className="p-2 shadow-lg border rounded-xl bg-white w-auto" align="start">
-        <Calendar
-          mode="range"
-          selected={range}
-          onSelect={handleSelect}
-          numberOfMonths={2}
-          defaultMonth={range?.from ?? new Date()}
-        />
-      </PopoverContent>
+      {/* focus 이벤트로 닫히지 않도록 포커스 트랩 */}
+      {isOpen && (
+        <PopoverContent
+          align="start"
+          side="bottom"
+          className="p-2 shadow-lg border rounded-xl bg-white w-auto"
+          onEscapeKeyDown={(e) => e.preventDefault()}
+          onInteractOutside={(e) => e.preventDefault()} // 외부 클릭해도 닫히지 않음
+        >
+          <Calendar
+            mode="range"
+            numberOfMonths={2}
+            selected={range}
+            onSelect={handleSelect}
+            defaultMonth={range?.from ?? new Date()}
+            className="rounded-md border-none"
+          />
+          <div className="flex justify-end mt-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-xs text-gray-600"
+              onClick={() => setIsOpen(false)}
+            >
+              닫기
+            </Button>
+          </div>
+        </PopoverContent>
+      )}
     </Popover>
   );
 }
