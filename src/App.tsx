@@ -12,7 +12,7 @@ import Index from "./pages/Index";
 import Login from "./pages/auth/Login";
 import Signup from "./pages/auth/Signup";
 import Dashboard from "./pages/admin/Dashboard";
-import MasterDashboard from "./pages/admin/dashboard/MasterDashboard";
+import MasterDashboard from "./pages/master/Dashboard";
 import MasterAgencies from "./pages/master/Agencies";
 import MasterLogs from "./pages/master/Logs";
 import Events from "./pages/admin/Events";
