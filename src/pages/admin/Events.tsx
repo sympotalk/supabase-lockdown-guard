@@ -1,8 +1,10 @@
+import { useState } from "react";
 import { Plus, Search, Filter, MoreHorizontal } from "lucide-react";
 import { AdminLayout } from "@/components/layout/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
+import CreateEventModal from "@/components/events/CreateEventModal";
 import {
   Table,
   TableBody,
@@ -55,6 +57,8 @@ const events = [
 ];
 
 export default function Events() {
+  const [createModalOpen, setCreateModalOpen] = useState(false);
+
   return (
     <AdminLayout>
       <div className="space-y-6">
@@ -65,11 +69,13 @@ export default function Events() {
               모든 행사를 관리하고 새로운 행사를 등록하세요
             </p>
           </div>
-          <Button size="lg" className="gap-2">
+          <Button size="lg" className="gap-2" onClick={() => setCreateModalOpen(true)}>
             <Plus className="h-5 w-5" />
             새 행사 등록
           </Button>
         </div>
+
+        <CreateEventModal open={createModalOpen} onOpenChange={setCreateModalOpen} />
 
         <Card className="transition-shadow hover:shadow-lg">
           <CardContent className="p-6">

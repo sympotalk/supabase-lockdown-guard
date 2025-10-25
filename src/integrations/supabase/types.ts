@@ -1125,33 +1125,90 @@ export type Database = {
       }
       event_room_refs: {
         Row: {
+          agency_id: string | null
           created_at: string | null
+          credit: number | null
           event_id: string
+          hotel_id: string | null
           id: string
           is_active: boolean | null
+          local_type_id: string | null
           room_credit: string | null
           room_type_id: string
+          stock: number | null
           updated_at: string | null
         }
         Insert: {
+          agency_id?: string | null
           created_at?: string | null
+          credit?: number | null
           event_id: string
+          hotel_id?: string | null
           id?: string
           is_active?: boolean | null
+          local_type_id?: string | null
           room_credit?: string | null
           room_type_id: string
+          stock?: number | null
           updated_at?: string | null
         }
         Update: {
+          agency_id?: string | null
           created_at?: string | null
+          credit?: number | null
           event_id?: string
+          hotel_id?: string | null
           id?: string
           is_active?: boolean | null
+          local_type_id?: string | null
           room_credit?: string | null
           room_type_id?: string
+          stock?: number | null
           updated_at?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "event_room_refs_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agencies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_room_refs_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agency_performance_summary"
+            referencedColumns: ["agency_id"]
+          },
+          {
+            foreignKeyName: "event_room_refs_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agency_summary"
+            referencedColumns: ["agency_id"]
+          },
+          {
+            foreignKeyName: "event_room_refs_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "dashboard_metrics"
+            referencedColumns: ["agency_id"]
+          },
+          {
+            foreignKeyName: "event_room_refs_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "master_agency_overview"
+            referencedColumns: ["agency_id"]
+          },
+          {
+            foreignKeyName: "event_room_refs_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "v_master_operations"
+            referencedColumns: ["agency_id"]
+          },
           {
             foreignKeyName: "event_room_refs_event_id_fkey"
             columns: ["event_id"]
@@ -1165,6 +1222,20 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "v_insights_dashboard"
             referencedColumns: ["event_id"]
+          },
+          {
+            foreignKeyName: "event_room_refs_hotel_id_fkey"
+            columns: ["hotel_id"]
+            isOneToOne: false
+            referencedRelation: "hotels"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_room_refs_local_type_id_fkey"
+            columns: ["local_type_id"]
+            isOneToOne: false
+            referencedRelation: "room_types_local"
+            referencedColumns: ["id"]
           },
           {
             foreignKeyName: "event_room_refs_room_type_id_fkey"
