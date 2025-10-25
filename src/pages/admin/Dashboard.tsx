@@ -1,8 +1,10 @@
-import { Calendar, Users, Hotel, TrendingUp } from "lucide-react";
+import { Calendar, Users, Hotel, TrendingUp, RefreshCw, Activity } from "lucide-react";
 import { AdminLayout } from "@/components/layout/AdminLayout";
 import { StatCard } from "@/components/ui/stat-card";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useAppData } from "@/contexts/AppDataContext";
+import { Spinner } from "@/components/pd/Spinner";
 import {
   Table,
   TableBody,
@@ -45,43 +47,68 @@ const recentEvents = [
 ];
 
 export default function Dashboard() {
+  const { agency, metrics, loading, refresh } = useAppData();
+
+  if (loading) {
+    return (
+      <AdminLayout>
+        <div className="flex min-h-[60vh] items-center justify-center">
+          <div className="flex flex-col items-center gap-4">
+            <Spinner size="lg" />
+            <p className="text-sm text-muted-foreground">대시보드 로딩 중...</p>
+          </div>
+        </div>
+      </AdminLayout>
+    );
+  }
+
   return (
     <AdminLayout>
       <div className="space-y-8">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold">대시보드</h1>
+            <h1 className="text-3xl font-bold">
+              {agency?.name || "SympoHub"} 대시보드
+            </h1>
             <p className="mt-2 text-muted-foreground">
-              SympoHub 행사 관리 플랫폼에 오신 것을 환영합니다
+              {agency?.code ? `에이전시 코드: ${agency.code}` : "행사 관리 플랫폼에 오신 것을 환영합니다"}
             </p>
           </div>
-          <Button size="lg" className="gap-2">
-            <Calendar className="h-5 w-5" />
-            새 행사 등록
-          </Button>
+          <div className="flex gap-2">
+            <Button 
+              variant="outline" 
+              size="lg" 
+              className="gap-2"
+              onClick={refresh}
+            >
+              <RefreshCw className="h-5 w-5" />
+              새로고침
+            </Button>
+            <Button size="lg" className="gap-2">
+              <Calendar className="h-5 w-5" />
+              새 행사 등록
+            </Button>
+          </div>
         </div>
 
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           <StatCard
             title="전체 행사"
-            value={24}
-            description="이번 달 진행 중"
+            value={metrics.events}
+            description="등록된 행사"
             icon={Calendar}
-            trend={{ value: "12%", isPositive: true }}
           />
           <StatCard
             title="총 참가자"
-            value="3,847"
+            value={metrics.participants.toLocaleString()}
             description="전체 등록 인원"
             icon={Users}
-            trend={{ value: "8.2%", isPositive: true }}
           />
           <StatCard
-            title="숙박 이용률"
-            value="87%"
-            description="객실 배정 완료"
-            icon={Hotel}
-            trend={{ value: "5.1%", isPositive: true }}
+            title="활동 로그"
+            value={metrics.activities.toLocaleString()}
+            description="최근 활동 기록"
+            icon={Activity}
           />
         </div>
 
