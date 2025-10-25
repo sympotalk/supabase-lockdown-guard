@@ -70,7 +70,7 @@ export default function DualDatePicker({ value, onChange }: Props) {
     <div className="flex gap-3 w-full">
       {/* 시작일 */}
       <div className="flex-1">
-        <div className="text-xs text-muted-foreground font-medium pl-1 mb-1">시작일</div>
+        <div className="text-xs text-blue-700 font-medium pl-1 mb-1">시작일</div>
         <Popover open={open === "start"} onOpenChange={ignoreOpenChange}>
           <PopoverTrigger asChild>
             <Button
@@ -104,7 +104,7 @@ export default function DualDatePicker({ value, onChange }: Props) {
 
       {/* 종료일 */}
       <div className="flex-1">
-        <div className="text-xs text-muted-foreground font-medium pl-1 mb-1">종료일</div>
+        <div className="text-xs text-blue-700 font-medium pl-1 mb-1">종료일</div>
         <Popover open={open === "end"} onOpenChange={ignoreOpenChange}>
           <PopoverTrigger asChild>
             <Button

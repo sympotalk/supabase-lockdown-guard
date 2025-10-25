@@ -176,7 +176,9 @@ export default function CreateEventModal({ open, onOpenChange }: CreateEventModa
     });
     setCheckedRooms(init);
     
-    toast.success(`${hotel.name} 선택됨`);
+    toast.success(`✓ ${hotel.name} 선택됨`, {
+      duration: 2000,
+    });
     
     // Smart focus: scroll to selected hotel
     setTimeout(() => {
@@ -305,7 +307,9 @@ export default function CreateEventModal({ open, onOpenChange }: CreateEventModa
         }
       }
 
-      toast.success("행사 및 호텔 구성이 저장되었습니다");
+      toast.success("행사 및 호텔 구성이 저장되었습니다", {
+        duration: 2000,
+      });
       await refresh();
       onOpenChange(false);
       
@@ -331,18 +335,18 @@ export default function CreateEventModal({ open, onOpenChange }: CreateEventModa
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>새 행사 생성</DialogTitle>
+      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto animate-fade-in">
+        <DialogHeader className="border-b pb-4 bg-blue-50/50 -mx-6 -mt-6 px-6 pt-6 mb-2 rounded-t-xl">
+          <DialogTitle className="text-blue-700 text-xl">새 행사 생성</DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-6">
+        <div className="space-y-6 px-1">
           {/* Agency Selection - Master Only */}
           {isMaster && (
-            <div className="p-4 bg-muted rounded-lg space-y-3">
+            <div className="p-4 bg-blue-50/50 rounded-xl space-y-3 border border-blue-100">
               <div className="flex items-center gap-2">
-                <Building className="h-4 w-4 text-primary" />
-                <Label className="text-base font-semibold">에이전시 선택</Label>
+                <Building className="h-4 w-4 text-blue-600" />
+                <Label className="text-base font-semibold text-blue-700">에이전시 선택</Label>
               </div>
               <Select value={selectedAgencyId} onValueChange={setSelectedAgencyId}>
                 <SelectTrigger>
@@ -361,16 +365,17 @@ export default function CreateEventModal({ open, onOpenChange }: CreateEventModa
 
           {/* Basic Event Info */}
           <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label>행사명</Label>
+            <div className="space-y-2">
+              <Label className="text-sm font-medium text-gray-700">행사명</Label>
               <Input
                 value={eventName}
                 onChange={(e) => setEventName(e.target.value)}
                 placeholder="행사명을 입력하세요"
+                className="transition-all duration-200"
               />
             </div>
-            <div>
-              <Label>일정</Label>
+            <div className="space-y-2">
+              <Label className="text-sm font-medium text-gray-700">일정</Label>
               <DualDatePicker
                 value={{ start: dateRange.from, end: dateRange.to }}
                 onChange={(v) => setDateRange({ from: v.from, to: v.to })}
@@ -379,8 +384,9 @@ export default function CreateEventModal({ open, onOpenChange }: CreateEventModa
           </div>
 
           {/* Hotel Selection */}
-          <div className="space-y-3 pt-4 border-t">
-            <Label className="text-base font-semibold">호텔 선택</Label>
+          <div className="space-y-3 pt-2">
+            <div className="h-px bg-gradient-to-r from-transparent via-border to-transparent mb-4" />
+            <Label className="text-base font-semibold text-blue-700">호텔 선택</Label>
             <Input
               value={hotelSearch}
               onChange={(e) => setHotelSearch(e.target.value)}
@@ -391,18 +397,18 @@ export default function CreateEventModal({ open, onOpenChange }: CreateEventModa
             {hotels.length > 0 && (
               <div
                 ref={listRef}
-                className="border rounded-xl max-h-44 overflow-auto"
+                className="border border-blue-200 rounded-xl max-h-44 overflow-auto bg-white shadow-sm animate-fade-in"
               >
                 {hotels.map((h, i) => (
                   <div
                     key={h.id}
                     data-hotel-id={h.id}
                     onClick={() => selectHotel(h)}
-                    className={`p-3 cursor-pointer flex justify-between items-center rounded-md transition-all border-b last:border-b-0 ${
-                      i === activeIndex ? "bg-accent" : "hover:bg-muted/50"
-                    } ${selectedHotel?.id === h.id ? "bg-primary/10 ring-2 ring-primary/30" : ""}`}
+                    className={`p-3 cursor-pointer flex justify-between items-center transition-all duration-150 border-b last:border-b-0 ${
+                      i === activeIndex ? "bg-blue-50" : "hover:bg-blue-50/50"
+                    } ${selectedHotel?.id === h.id ? "bg-blue-100 ring-2 ring-blue-500/30 font-medium" : ""}`}
                   >
-                    <span className="font-medium">{h.name}</span>
+                    <span className={selectedHotel?.id === h.id ? "text-blue-700" : ""}>{h.name}</span>
                     <span className="text-xs text-muted-foreground">
                       {h.brand && `${h.brand} • `}{h.city}
                     </span>
@@ -412,28 +418,31 @@ export default function CreateEventModal({ open, onOpenChange }: CreateEventModa
             )}
             
             {selectedHotel && (
-              <div className="text-xs text-muted-foreground">
-                {selectedHotel.name} 선택됨 — 다시 클릭하면 해제
+              <div className="text-xs text-blue-600 bg-blue-50 px-3 py-2 rounded-lg border border-blue-200">
+                ✓ {selectedHotel.name} 선택됨 — 다시 클릭하면 해제
               </div>
             )}
 
             {selectedHotel && (
-              <div className="border rounded-2xl p-4 space-y-4">
-                <div className="font-medium">{selectedHotel.name} — 표준 객실 타입</div>
+              <div className="border border-blue-200 rounded-2xl p-5 space-y-4 bg-gradient-to-br from-blue-50/30 to-white animate-fade-in shadow-sm">
+                <div className="font-semibold text-blue-700 flex items-center gap-2">
+                  <Building className="h-4 w-4" />
+                  {selectedHotel.name} — 표준 객실 타입
+                </div>
 
                 {/* Standard Room Types - Checkbox Selection */}
                 {roomTypes.length > 0 && (
-                  <div className="space-y-2">
+                  <div className="space-y-2.5">
                     {roomTypes.map((rt) => (
-                      <div key={rt.id} className="flex items-center justify-between gap-3">
-                        <label className="flex items-center gap-2 flex-1 cursor-pointer group">
+                      <div key={rt.id} className="flex items-center justify-between gap-3 p-2 rounded-lg hover:bg-blue-50/50 transition-colors duration-150">
+                        <label className="flex items-center gap-3 flex-1 cursor-pointer group">
                           <input
                             type="checkbox"
                             checked={checkedRooms[rt.id] || false}
                             onChange={(e) => toggleRoom(rt.id, e.target.checked)}
                             className="peer hidden"
                           />
-                          <div className="w-5 h-5 border-2 border-input rounded-[4px] flex items-center justify-center transition-all duration-150 ease-in-out peer-checked:border-primary peer-checked:bg-primary group-hover:border-primary/60">
+                          <div className="w-5 h-5 border-2 border-gray-300 rounded flex items-center justify-center transition-all duration-150 ease-in-out peer-checked:border-blue-600 peer-checked:bg-blue-600 group-hover:border-blue-500 group-hover:shadow-sm">
                             <svg
                               xmlns="http://www.w3.org/2000/svg"
                               viewBox="0 0 24 24"
@@ -447,13 +456,13 @@ export default function CreateEventModal({ open, onOpenChange }: CreateEventModa
                               <polyline points="20 6 9 17 4 12" />
                             </svg>
                           </div>
-                          <span className="text-[15px] select-none">{rt.type_name}</span>
+                          <span className="text-[15px] select-none font-medium">{rt.type_name}</span>
                         </label>
                         <div className="flex items-center gap-2">
                           <Input
                             type="number"
                             placeholder="룸크레딧"
-                            className="w-28 h-8"
+                            className="w-28 h-9 text-sm"
                             disabled={!checkedRooms[rt.id]}
                             value={roomConfig[rt.id]?.credit || ""}
                             onChange={(e) => handleConfigChange(rt.id, "credit", e.target.value)}
@@ -461,7 +470,7 @@ export default function CreateEventModal({ open, onOpenChange }: CreateEventModa
                           <Input
                             type="number"
                             placeholder="객실 수량"
-                            className="w-24 h-8"
+                            className="w-24 h-9 text-sm"
                             disabled={!checkedRooms[rt.id]}
                             value={roomConfig[rt.id]?.stock || ""}
                             onChange={(e) => handleConfigChange(rt.id, "stock", e.target.value)}
@@ -473,27 +482,27 @@ export default function CreateEventModal({ open, onOpenChange }: CreateEventModa
                 )}
 
                 {/* Custom Room Types */}
-                <div className="space-y-2 pt-4 border-t">
-                  <Label className="text-sm font-semibold">커스텀 객실 타입</Label>
+                <div className="space-y-3 pt-4 border-t border-blue-100">
+                  <Label className="text-sm font-semibold text-blue-700">커스텀 객실 타입</Label>
                   {customRooms.map((cr) => (
-                    <div key={cr.id} className="flex items-center gap-3">
+                    <div key={cr.id} className="flex items-center gap-3 p-2 rounded-lg bg-white border border-blue-100">
                       <Input
                         placeholder="객실명"
-                        className="flex-1 h-8"
+                        className="flex-1 h-9"
                         value={cr.type_name}
                         onChange={(e) => updateCustomRoom(cr.id, "type_name", e.target.value)}
                       />
                       <Input
                         type="number"
                         placeholder="룸크레딧"
-                        className="w-28 h-8"
+                        className="w-28 h-9"
                         value={roomConfig[cr.id]?.credit || ""}
                         onChange={(e) => handleConfigChange(cr.id, "credit", e.target.value)}
                       />
                       <Input
                         type="number"
                         placeholder="객실 수량"
-                        className="w-24 h-8"
+                        className="w-24 h-9"
                         value={roomConfig[cr.id]?.stock || ""}
                         onChange={(e) => handleConfigChange(cr.id, "stock", e.target.value)}
                       />
@@ -501,7 +510,7 @@ export default function CreateEventModal({ open, onOpenChange }: CreateEventModa
                         variant="ghost"
                         size="icon"
                         onClick={() => removeCustomRoom(cr.id)}
-                        className="h-8 w-8"
+                        className="h-9 w-9 hover:bg-red-50 hover:text-red-600 transition-colors"
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
@@ -512,7 +521,7 @@ export default function CreateEventModal({ open, onOpenChange }: CreateEventModa
                     variant="outline"
                     size="sm"
                     onClick={addCustomRoom}
-                    className="w-full"
+                    className="w-full border-blue-300 text-blue-700 hover:bg-blue-50 hover:border-blue-500 transition-all duration-200"
                   >
                     <Plus className="h-4 w-4 mr-2" />
                     커스텀 객실 추가
@@ -524,10 +533,18 @@ export default function CreateEventModal({ open, onOpenChange }: CreateEventModa
 
           {/* Action Buttons */}
           <div className="flex justify-end gap-3 pt-4 border-t">
-            <Button variant="outline" onClick={() => onOpenChange(false)}>
+            <Button 
+              variant="outline" 
+              onClick={() => onOpenChange(false)}
+              className="px-6 hover:bg-gray-50"
+            >
               취소
             </Button>
-            <Button onClick={handleCreate} disabled={loading}>
+            <Button 
+              onClick={handleCreate} 
+              disabled={loading}
+              className="px-6 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-md hover:shadow-lg transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+            >
               {loading ? "생성 중..." : "행사 생성"}
             </Button>
           </div>

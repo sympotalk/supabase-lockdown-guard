@@ -2,7 +2,14 @@
 :root {
   --background: 0 0% 100%;
   --foreground: 222.2 84% 4.9%;
-  --primary: 226 100% 55%;
+  
+  /* SympoBlue System */
+  --sympoblue: 217 91% 60%;
+  --sympoblue-hover: 217 91% 65%;
+  --sympoblue-light: 217 91% 95%;
+  
+  --primary: 217 91% 60%;
+  --primary-hover: 217 91% 65%;
   --primary-foreground: 210 40% 98%;
   --secondary: 210 40% 96.1%;
   --secondary-foreground: 222.2 47.4% 11.2%;
@@ -14,10 +21,19 @@
   --destructive-foreground: 210 40% 98%;
   --border: 214.3 31.8% 91.4%;
   --input: 214.3 31.8% 91.4%;
-  --ring: 226 100% 55%;
+  --ring: 217 91% 60%;
+  
+  /* Radius tokens */
   --radius: 12px;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  
+  /* Shadow tokens */
   --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
   --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
 }
 
 /* 다크모드 */
