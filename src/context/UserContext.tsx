@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import type { Session, User } from "@supabase/supabase-js";
 import type { AppRole } from "@/lib/useRoleGuard";
+import SessionSyncManager from "@/components/auth/SessionSyncManager";
 
 interface UserContextType {
   role: AppRole | null;
@@ -155,6 +156,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
         refreshContext,
       }}
     >
+      <SessionSyncManager />
       {children}
     </UserContext.Provider>
   );
