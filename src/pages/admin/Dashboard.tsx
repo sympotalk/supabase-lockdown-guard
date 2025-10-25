@@ -65,12 +65,36 @@ export default function Dashboard() {
     // Subscribe to realtime updates
     const unsubscribeEvents = subscribeToTable("events", (payload) => {
       console.log("[Realtime] Events updated:", payload);
-      fetchData();
+      setEvents((prev) => {
+        const updated = [...prev];
+        if (payload.eventType === "INSERT") {
+          updated.unshift(payload.new);
+          setTotalEvents((count) => count + 1);
+        } else if (payload.eventType === "UPDATE") {
+          const idx = updated.findIndex((e) => e.id === payload.new.id);
+          if (idx !== -1) updated[idx] = payload.new;
+        } else if (payload.eventType === "DELETE") {
+          setTotalEvents((count) => count - 1);
+          return updated.filter((e) => e.id !== payload.old.id);
+        }
+        const result = updated.slice(0, 5);
+        console.log("[UI] Events list refreshed:", result.length, "items");
+        return result;
+      });
     });
 
     const unsubscribeParticipants = subscribeToTable("participants", (payload) => {
       console.log("[Realtime] Participants updated:", payload);
-      fetchData();
+      setTotalParticipants((count) => {
+        const newCount =
+          payload.eventType === "INSERT"
+            ? count + 1
+            : payload.eventType === "DELETE"
+            ? count - 1
+            : count;
+        console.log("[UI] Participants count updated:", newCount);
+        return newCount;
+      });
     });
 
     const unsubscribeForms = subscribeToTable("forms", (payload) => {
