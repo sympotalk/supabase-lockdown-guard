@@ -16,8 +16,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
 import { subscribeToTable } from "@/lib/realtimeBridge";
 import { useEffect, useState } from "react";
-import { useRoleGuard } from "@/lib/useRoleGuard";
-import { notifyRoleChange } from "@/lib/roleLogger";
+import { useUser } from "@/context/UserContext";
+import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import MasterDashboard from "./dashboard/MasterDashboard";
 
 type EventStatus = "active" | "pending" | "completed";
@@ -31,28 +31,27 @@ interface Event {
 }
 
 export default function Dashboard() {
-  const { userRole, loading: roleLoading } = useRoleGuard();
+  const { role, agencyScope, loading: userLoading } = useUser();
   const [events, setEvents] = useState<Event[]>([]);
   const [totalEvents, setTotalEvents] = useState(0);
   const [totalParticipants, setTotalParticipants] = useState(0);
 
-  const isMaster = userRole === "master";
+  const isMaster = role === "master";
 
   useEffect(() => {
     // Only fetch data for agency users, not master users
-    if (isMaster || roleLoading) {
+    if (isMaster || userLoading || !agencyScope) {
       return;
     }
 
-    const agencyContext = localStorage.getItem("agency_context");
-    notifyRoleChange(agencyContext);
-    console.log("[UI] Dashboard loaded as:", userRole || "AGENCY");
+    console.log("[UI] Dashboard loaded for agency:", agencyScope);
 
-    // Fetch initial data
+    // Fetch initial data filtered by agency_scope
     const fetchData = async () => {
       const { data: eventsData, error: eventsError } = await supabase
         .from("events")
         .select("id, name, start_date, status")
+        .eq("agency_id", agencyScope)
         .order("start_date", { ascending: false })
         .limit(5);
 
@@ -66,7 +65,8 @@ export default function Dashboard() {
 
       const { count: participantsCount, error: participantsError } = await supabase
         .from("participants")
-        .select("*", { count: "exact", head: true });
+        .select("*", { count: "exact", head: true })
+        .eq("agency_id", agencyScope);
 
       if (participantsError) {
         console.error("[Data] Participants error:", participantsError);
@@ -122,7 +122,7 @@ export default function Dashboard() {
       unsubscribeParticipants();
       unsubscribeForms();
     };
-  }, [isMaster, roleLoading, userRole]);
+  }, [isMaster, userLoading, agencyScope]);
 
   const mapStatus = (status: string): EventStatus => {
     const statusMap: Record<string, EventStatus> = {
@@ -134,7 +134,7 @@ export default function Dashboard() {
   };
 
   // Conditional rendering based on role
-  if (roleLoading) {
+  if (userLoading) {
     return (
       <AdminLayout>
         <div className="p-6">
@@ -161,6 +161,8 @@ export default function Dashboard() {
   return (
     <AdminLayout>
       <div className="space-y-8">
+        <DashboardHeader />
+        
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold">대시보드</h1>
