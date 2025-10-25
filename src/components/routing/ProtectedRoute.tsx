@@ -9,7 +9,7 @@ interface ProtectedRouteProps {
 }
 
 export const ProtectedRoute = ({ children, requiredRole, allowedRoles }: ProtectedRouteProps) => {
-  const { role, loading, userId } = useUser();
+  const { role, loading, userId, agencyScope } = useUser();
 
   if (loading) {
     return (

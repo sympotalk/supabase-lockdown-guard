@@ -7,17 +7,21 @@ import { RealtimeChannel } from "@supabase/supabase-js";
 type AppData = {
   profile: { user_id: string; role: string; agency_id: string | null } | null;
   agency: { id: string; name: string; code: string | null } | null;
+  agencyList: Array<{ id: string; name: string }>;
   metrics: { events: number; participants: number; activities: number };
   loading: boolean;
   refresh: () => Promise<void>;
+  setActiveAgency: (agency: { id: string; name: string; code?: string | null } | null) => void;
 };
 
 const AppDataContext = createContext<AppData>({
   profile: null,
   agency: null,
+  agencyList: [],
   metrics: { events: 0, participants: 0, activities: 0 },
   loading: true,
   refresh: async () => {},
+  setActiveAgency: () => {},
 });
 
 export const AppDataProvider = ({ children }: { children: ReactNode }) => {
@@ -25,6 +29,8 @@ export const AppDataProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<AppData["profile"]>(null);
   const [agency, setAgency] = useState<AppData["agency"]>(null);
+  const [agencyList, setAgencyList] = useState<Array<{ id: string; name: string }>>([]);
+  const [activeAgency, setActiveAgencyState] = useState<AppData["agency"]>(null);
   const [metrics, setMetrics] = useState<AppData["metrics"]>({ 
     events: 0, 
     participants: 0, 
@@ -54,7 +60,41 @@ export const AppDataProvider = ({ children }: { children: ReactNode }) => {
 
       setProfile(userRole ?? null);
 
-      // 2) Load agency if agency_id exists
+      // 2) Load agency list for master users
+      if (userRole?.role === 'master') {
+        const { data: managersList, error: managersError } = await supabase
+          .from("agency_managers")
+          .select("agency_id, agencies(id, name, code)")
+          .eq("master_id", userId);
+
+        if (managersError) {
+          console.error("[AppData] Agency managers load error:", managersError);
+        }
+
+        const agencies = managersList?.map(m => ({
+          id: m.agency_id,
+          name: (m.agencies as any)?.name || 'Unknown',
+          code: (m.agencies as any)?.code || null
+        })) || [];
+
+        setAgencyList(agencies);
+
+        // Set active agency from agencyScope or first in list
+        if (agencyScope) {
+          const scopedAgency = agencies.find(a => a.id === agencyScope);
+          if (scopedAgency) {
+            setActiveAgencyState(scopedAgency);
+            setAgency(scopedAgency);
+          }
+        } else if (!activeAgency && agencies.length > 0) {
+          setActiveAgencyState(agencies[0]);
+          setAgency(agencies[0]);
+        }
+      } else {
+        setAgencyList([]);
+      }
+
+      // 3) Load agency if agency_id exists (for non-master users)
       if (userRole?.agency_id || agencyScope) {
         const targetAgencyId = agencyScope || userRole.agency_id;
         const { data: agencyData, error: agencyError } = await supabase
@@ -66,12 +106,16 @@ export const AppDataProvider = ({ children }: { children: ReactNode }) => {
         if (agencyError) {
           console.error("[AppData] Agency load error:", agencyError);
         }
-        setAgency(agencyData ?? null);
-      } else {
+        
+        const loadedAgency = agencyData ?? null;
+        setAgency(loadedAgency);
+        setActiveAgencyState(loadedAgency);
+      } else if (userRole?.role !== 'master') {
         setAgency(null);
+        setActiveAgencyState(null);
       }
 
-      // 3) Load dashboard metrics
+      // 4) Load dashboard metrics
       const targetAgencyId = agencyScope || userRole?.agency_id;
       
       if (targetAgencyId) {
@@ -134,6 +178,8 @@ export const AppDataProvider = ({ children }: { children: ReactNode }) => {
     if (!userId) {
       setProfile(null);
       setAgency(null);
+      setAgencyList([]);
+      setActiveAgencyState(null);
       setMetrics({ events: 0, participants: 0, activities: 0 });
       setLoading(false);
       return;
@@ -142,11 +188,18 @@ export const AppDataProvider = ({ children }: { children: ReactNode }) => {
     refresh();
   }, [userId, agencyScope, authLoading]);
 
+  // Refresh metrics when active agency changes
+  useEffect(() => {
+    if (activeAgency && userId && !loading) {
+      refresh();
+    }
+  }, [activeAgency?.id]);
+
   // Realtime subscriptions with retry logic
   useEffect(() => {
     if (!userId || loading) return;
 
-    const targetAgencyId = agencyScope || profile?.agency_id;
+    const targetAgencyId = activeAgency?.id || agencyScope || profile?.agency_id;
     if (!targetAgencyId) return;
 
     // Clean up existing channel
@@ -222,11 +275,24 @@ export const AppDataProvider = ({ children }: { children: ReactNode }) => {
         supabase.removeChannel(channel);
       }
     };
-  }, [userId, profile?.agency_id, agencyScope, loading]);
+  }, [userId, activeAgency?.id, profile?.agency_id, agencyScope, loading]);
+
+  const setActiveAgency = (newAgency: { id: string; name: string; code?: string | null } | null) => {
+    setActiveAgencyState(newAgency as { id: string; name: string; code: string | null } | null);
+    setAgency(newAgency as { id: string; name: string; code: string | null } | null);
+  };
 
   const value = useMemo(
-    () => ({ profile, agency, metrics, loading, refresh }),
-    [profile, agency, metrics, loading]
+    () => ({ 
+      profile, 
+      agency: activeAgency, 
+      agencyList, 
+      metrics, 
+      loading, 
+      refresh,
+      setActiveAgency 
+    }),
+    [profile, activeAgency, agencyList, metrics, loading]
   );
 
   return (

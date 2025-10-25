@@ -182,6 +182,63 @@ export type Database = {
         }
         Relationships: []
       }
+      agency_managers: {
+        Row: {
+          agency_id: string
+          created_at: string | null
+          id: string
+          master_id: string
+        }
+        Insert: {
+          agency_id: string
+          created_at?: string | null
+          id?: string
+          master_id: string
+        }
+        Update: {
+          agency_id?: string
+          created_at?: string | null
+          id?: string
+          master_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agency_managers_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agencies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agency_managers_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agency_performance_summary"
+            referencedColumns: ["agency_id"]
+          },
+          {
+            foreignKeyName: "agency_managers_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agency_summary"
+            referencedColumns: ["agency_id"]
+          },
+          {
+            foreignKeyName: "agency_managers_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "dashboard_metrics"
+            referencedColumns: ["agency_id"]
+          },
+          {
+            foreignKeyName: "agency_managers_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "v_master_operations"
+            referencedColumns: ["agency_id"]
+          },
+        ]
+      }
       agency_members: {
         Row: {
           agency_id: string

@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAppData } from "@/contexts/AppDataContext";
 import { Spinner } from "@/components/pd/Spinner";
+import AgencySwitcher from "@/components/dashboard/AgencySwitcher";
 import {
   Table,
   TableBody,
@@ -74,7 +75,8 @@ export default function Dashboard() {
               {agency?.code ? `에이전시 코드: ${agency.code}` : "행사 관리 플랫폼에 오신 것을 환영합니다"}
             </p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-3 items-center">
+            <AgencySwitcher />
             <Button 
               variant="outline" 
               size="lg" 
