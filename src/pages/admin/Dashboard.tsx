@@ -9,6 +9,7 @@ import { Spinner } from "@/components/pd/Spinner";
 import AgencySwitcher from "@/components/dashboard/AgencySwitcher";
 import MasterOverviewPanel from "@/components/dashboard/MasterOverviewPanel";
 import MasterActionPanel from "@/components/dashboard/MasterActionPanel";
+import AgencyActivityLog from "@/components/dashboard/AgencyActivityLog";
 import {
   Table,
   TableBody,
@@ -183,6 +184,9 @@ export default function Dashboard() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Activity Log Section */}
+        <AgencyActivityLog />
       </div>
     </AdminLayout>
   );
