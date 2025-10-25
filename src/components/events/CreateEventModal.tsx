@@ -307,7 +307,8 @@ export default function CreateEventModal({ open, onOpenChange }: CreateEventModa
         }
       }
 
-      toast.success("행사 및 호텔 구성이 저장되었습니다", {
+      toast.success("✅ 새 행사가 등록되었습니다.", {
+        description: `${eventName} 행사가 성공적으로 생성되었습니다.`,
         duration: 2000,
       });
       await refresh();

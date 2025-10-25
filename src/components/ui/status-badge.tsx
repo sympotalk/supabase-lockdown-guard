@@ -9,19 +9,19 @@ interface StatusBadgeProps {
 const statusConfig = {
   active: {
     label: "진행중",
-    className: "bg-primary/10 text-primary hover:bg-primary/20",
+    className: "bg-blue-100 text-blue-700 hover:bg-blue-200",
   },
   pending: {
-    label: "대기중",
-    className: "bg-warning/10 text-warning hover:bg-warning/20",
+    label: "대기",
+    className: "bg-orange-100 text-orange-700 hover:bg-orange-200",
   },
   completed: {
     label: "완료",
-    className: "bg-success/10 text-success hover:bg-success/20",
+    className: "bg-green-100 text-green-700 hover:bg-green-200",
   },
   cancelled: {
-    label: "취소됨",
-    className: "bg-destructive/10 text-destructive hover:bg-destructive/20",
+    label: "취소",
+    className: "bg-gray-100 text-gray-700 hover:bg-gray-200",
   },
   confirmed: {
     label: "확정",
