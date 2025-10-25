@@ -14,22 +14,7 @@ import { announce } from "@/components/pd/LiveRegion";
 import { PD_MESSAGES } from "@/lib/pd/messages";
 import { slideInLeft, slideInLeftConfig, fadeIn, fadeInConfig } from "@/lib/pd/motion";
 import { UIState } from "@/lib/pd/state";
-
-// Mock Data
-const mockInviteData: Record<string, any> = {
-  "AG-2025-XK7M": {
-    agencyName: "테스트 에이전시",
-    masterName: "SympoHub 본사",
-    expiresAt: "2025-12-31",
-    status: "active",
-  },
-  "AG-2025-P9QR": {
-    agencyName: "신규 파트너사",
-    masterName: "SympoHub 본사",
-    expiresAt: "2025-12-31",
-    status: "used",
-  },
-};
+import { supabase } from "@/integrations/supabase/client";
 
 export default function Signup() {
   const { inviteId } = useParams<{ inviteId: string }>();
@@ -54,28 +39,47 @@ export default function Signup() {
   const [passwordMismatch, setPasswordMismatch] = useState(false);
 
   useEffect(() => {
-    // Mock invite validation
+    // Validate invite from Supabase
     const validateInvite = async () => {
+      if (!inviteId) {
+        setIsLoading(false);
+        return;
+      }
+
       setIsLoading(true);
       
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      try {
+        const { data, error } = await supabase
+          .from("account_provisioning")
+          .select("*, agencies(name)")
+          .eq("invite_token", inviteId)
+          .eq("is_used", false)
+          .eq("is_active", true)
+          .gt("expires_at", new Date().toISOString())
+          .single();
 
-      if (inviteId && mockInviteData[inviteId]) {
-        const data = mockInviteData[inviteId];
-        if (data.status === "active") {
-          setInviteData(data);
-          setInviteValid(true);
+        if (error || !data) {
+          toast.error("유효하지 않거나 만료된 초대 링크입니다");
+          announce("유효하지 않거나 만료된 초대 링크입니다");
+          setInviteValid(false);
         } else {
-          toast.error("이미 사용된 초대 코드입니다");
-          announce("이미 사용된 초대 코드입니다");
+          setInviteData({
+            agencyName: data.agencies?.name || "알 수 없음",
+            agencyId: data.agency_id,
+            role: data.role,
+            email: data.email,
+            expiresAt: new Date(data.expires_at).toLocaleDateString("ko-KR"),
+          });
+          setFormData(prev => ({ ...prev, email: data.email || "" }));
+          setInviteValid(true);
         }
-      } else {
-        toast.error("유효하지 않은 초대 코드입니다");
-        announce("유효하지 않은 초대 코드입니다");
+      } catch (error) {
+        console.error("초대 검증 오류:", error);
+        toast.error("초대 링크 확인 중 오류가 발생했습니다");
+        setInviteValid(false);
+      } finally {
+        setIsLoading(false);
       }
-      
-      setIsLoading(false);
     };
 
     validateInvite();
@@ -124,7 +128,6 @@ export default function Signup() {
       toast.error(PD_MESSAGES.error.validationError);
       announce(PD_MESSAGES.error.validationError);
       
-      // 첫 번째 에러 필드로 포커스 이동
       const firstErrorField = Object.keys(errors)[0];
       document.getElementById(firstErrorField)?.focus();
       return;
@@ -133,21 +136,59 @@ export default function Signup() {
     setFormState(UIState.LOADING);
 
     try {
-      // Simulate registration
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      // 1. Supabase Auth signUp
+      const { data: authData, error: signUpError } = await supabase.auth.signUp({
+        email: formData.email,
+        password: formData.password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/`,
+          data: {
+            full_name: formData.name,
+            phone: formData.phone,
+          },
+        },
+      });
+
+      if (signUpError) {
+        throw new Error(signUpError.message);
+      }
+
+      if (!authData.user) {
+        throw new Error("회원가입에 실패했습니다");
+      }
+
+      // 2. Activate account using RPC (creates profile and links to agency)
+      const { data: activateData, error: activateError } = await supabase.rpc(
+        "rpc_activate_account",
+        { token: inviteId }
+      );
+
+      const activateResult = activateData as any;
+
+      if (activateError || activateResult?.status === "error") {
+        throw new Error(activateResult?.message || "계정 활성화에 실패했습니다");
+      }
 
       setFormState(UIState.SUCCESS);
       toast.success(PD_MESSAGES.success.signupComplete);
       announce(PD_MESSAGES.success.signupComplete);
 
-      // Navigate to login or dashboard
+      // Navigate based on role
       setTimeout(() => {
-        navigate("/admin/dashboard");
+        const role = activateResult?.role || "staff";
+        if (role === "master") {
+          navigate("/admin/dashboard");
+        } else {
+          navigate("/agency/profile");
+        }
       }, 1200);
-    } catch (error) {
+    } catch (error: any) {
+      console.error("가입 오류:", error);
       setFormState(UIState.ERROR);
-      toast.error(PD_MESSAGES.error.networkError);
-      announce(PD_MESSAGES.error.networkError);
+      
+      const errorMessage = error.message || PD_MESSAGES.error.networkError;
+      toast.error(errorMessage);
+      announce(errorMessage);
     }
   };
 
