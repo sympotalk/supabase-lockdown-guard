@@ -27,10 +27,10 @@ export default function DualDatePicker({ value, onChange }: Props) {
   }, [open, dates.start, dates.end]);
   // ─────────────────────────────────────────────
 
-  const fmtLabel = (d?: Date) =>
+  const fmt = (kind: "start" | "end", d?: Date) =>
     d
       ? d.toLocaleDateString("ko-KR", { year: "numeric", month: "2-digit", day: "2-digit", weekday: "short" })
-      : "날짜 선택";
+      : (kind === "start" ? "시작일" : "종료일");
 
   // 시작일 선택
   const selectStart = (date?: Date) => {
@@ -77,9 +77,10 @@ export default function DualDatePicker({ value, onChange }: Props) {
               variant="outline"
               className="w-full justify-start font-normal px-5 h-[44px] hover:border-blue-500 focus-visible:ring-1 focus-visible:ring-blue-300 transition-all duration-200"
               onClick={() => setOpen("start")}
+              aria-label="시작일 선택"
             >
               <CalendarIcon className="mr-2 h-4 w-4 text-blue-500" />
-              {fmtLabel(dates.start)}
+              {fmt("start", dates.start)}
             </Button>
           </PopoverTrigger>
           {open === "start" && (
@@ -112,9 +113,10 @@ export default function DualDatePicker({ value, onChange }: Props) {
               className="w-full justify-start font-normal px-5 h-[44px] hover:border-blue-500 focus-visible:ring-1 focus-visible:ring-blue-300 transition-all duration-200 disabled:opacity-50"
               onClick={() => setOpen("end")}
               disabled={!dates.start}
+              aria-label="종료일 선택"
             >
               <CalendarIcon className="mr-2 h-4 w-4 text-blue-500" />
-              {fmtLabel(dates.end)}
+              {fmt("end", dates.end)}
             </Button>
           </PopoverTrigger>
           {open === "end" && (
