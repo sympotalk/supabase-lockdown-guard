@@ -1,4 +1,5 @@
-import { Plus, Search, Filter, Phone, MessageSquare, User, BedDouble, RefreshCw } from "lucide-react";
+// Phase 3.8-A — Participants Scope Sync
+import { Plus, Search, Filter, Phone, MessageSquare, User, BedDouble, RefreshCw, X } from "lucide-react";
 import { AdminLayout } from "@/components/layout/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,23 +14,120 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { useUnifiedParticipant } from "@/hooks/useUnifiedParticipant";
-import { useAppData } from "@/contexts/AppDataContext";
-import { Spinner } from "@/components/pd/Spinner";
-import { useState } from "react";
+import { useUser } from "@/context/UserContext";
+import { LoadingSkeleton } from "@/components/pd/LoadingSkeleton";
+import { useState, useEffect } from "react";
+import { useSearchParams, useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export default function Participants() {
-  const { agency } = useAppData();
-  const [selectedEventId] = useState<string | null>(null); // TODO: Add event selector
-  const { data: participants, loading, refresh } = useUnifiedParticipant(selectedEventId);
+  const navigate = useNavigate();
+  const { role, agencyScope, setAgencyScope } = useUser();
+  const [searchParams] = useSearchParams();
+  const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [agencyName, setAgencyName] = useState<string | null>(null);
+  const [events, setEvents] = useState<Array<{id: string; name: string}>>([]);
+
+  // Sync URL agency parameter with UserContext
+  useEffect(() => {
+    const agencyParam = searchParams.get("agency");
+    if (agencyParam && agencyParam !== agencyScope) {
+      console.log("[RLS] Syncing participants view to agency:", agencyParam);
+      setAgencyScope(agencyParam);
+    }
+  }, [searchParams, agencyScope, setAgencyScope]);
+
+  // Fetch agency name for View Mode banner
+  useEffect(() => {
+    const fetchAgencyName = async () => {
+      if (role === "master" && agencyScope) {
+        const { data } = await supabase
+          .from("agencies")
+          .select("name")
+          .eq("id", agencyScope)
+          .single();
+        setAgencyName(data?.name || null);
+      } else {
+        setAgencyName(null);
+      }
+    };
+    fetchAgencyName();
+  }, [role, agencyScope]);
+
+  // Load events filtered by agency scope
+  useEffect(() => {
+    const loadEvents = async () => {
+      if (!agencyScope) {
+        setEvents([]);
+        return;
+      }
+      
+      const { data } = await supabase
+        .from("events")
+        .select("id, name")
+        .eq("is_active", true)
+        .eq("agency_id", agencyScope)
+        .order("created_at", { ascending: false });
+      
+      setEvents(data || []);
+    };
+    loadEvents();
+  }, [agencyScope]);
+
+  const { data: participants, loading, refresh } = useUnifiedParticipant(selectedEventId, agencyScope);
+
+  // Exit View Mode handler
+  const handleExitViewMode = () => {
+    setAgencyScope(null);
+    navigate("/master-dashboard");
+    toast.success("전체 보기로 돌아갑니다.");
+  };
+
+  // Empty state for master without agency selection
+  if (role === "master" && !agencyScope) {
+    return (
+      <AdminLayout>
+        <div className="flex flex-col items-center justify-center h-96 text-gray-500">
+          <p className="text-lg mb-4">먼저 에이전시를 선택하세요.</p>
+          <Button onClick={() => navigate("/master-dashboard")}>
+            마스터 대시보드로 이동
+          </Button>
+        </div>
+      </AdminLayout>
+    );
+  }
+
   return (
     <AdminLayout>
       <div className="space-y-6">
+        {/* View Mode Banner */}
+        {role === "master" && agencyScope && agencyName && (
+          <div className="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded-lg flex justify-between items-center">
+            <span className="font-medium">현재 보기 중: {agencyName} (View Mode)</span>
+            <button
+              onClick={handleExitViewMode}
+              className="text-sm text-blue-600 hover:text-blue-800 underline font-medium flex items-center gap-1"
+            >
+              <X className="h-4 w-4" />
+              전체 보기로 돌아가기
+            </button>
+          </div>
+        )}
+
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold">참가자 관리</h1>
             <p className="mt-2 text-muted-foreground">
-              {agency?.name || "에이전시"} 행사 참가자 정보를 관리하고 숙박 정보를 확인하세요
+              {agencyName || "에이전시"} 행사 참가자 정보를 관리하고 숙박 정보를 확인하세요
             </p>
           </div>
           <div className="flex gap-3">
@@ -42,6 +140,23 @@ export default function Participants() {
               참가자 추가
             </Button>
           </div>
+        </div>
+
+        {/* Event Selector */}
+        <div className="flex items-center gap-3">
+          <Select value={selectedEventId || ""} onValueChange={(value) => setSelectedEventId(value || null)}>
+            <SelectTrigger className="w-[300px]">
+              <SelectValue placeholder="행사를 선택하세요" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="">전체 참가자</SelectItem>
+              {events.map((event) => (
+                <SelectItem key={event.id} value={event.id}>
+                  {event.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         <div className="flex gap-6">
@@ -65,8 +180,10 @@ export default function Participants() {
                 </div>
 
                 {loading ? (
-                  <div className="flex items-center justify-center py-12">
-                    <Spinner size="lg" />
+                  <LoadingSkeleton type="table" count={8} />
+                ) : participants.length === 0 ? (
+                  <div className="text-center text-gray-500 py-12">
+                    등록된 참가자가 없습니다. 행사를 선택하고 참가자를 추가해주세요.
                   </div>
                 ) : (
                   <div className="overflow-hidden rounded-lg border border-border">
@@ -84,14 +201,7 @@ export default function Participants() {
                           </TableRow>
                         </TableHeader>
                         <TableBody>
-                          {participants.length === 0 ? (
-                            <TableRow>
-                              <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
-                                등록된 참가자가 없습니다. 행사를 선택하고 참가자를 추가해주세요.
-                              </TableCell>
-                            </TableRow>
-                          ) : (
-                            participants
+                          {participants
                               .filter(p => 
                                 !searchQuery || 
                                 p.participant_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -160,8 +270,7 @@ export default function Participants() {
                                     </Badge>
                                   </TableCell>
                                 </TableRow>
-                              ))
-                          )}
+                              ))}
                         </TableBody>
                       </Table>
                     </div>

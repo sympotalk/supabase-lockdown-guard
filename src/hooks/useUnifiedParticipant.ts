@@ -24,12 +24,12 @@ export type UnifiedParticipant = {
   last_success_sent: string | null;
 };
 
-export function useUnifiedParticipant(eventId: string | null | undefined) {
+export function useUnifiedParticipant(eventId: string | null | undefined, agencyId: string | null | undefined) {
   const [data, setData] = useState<UnifiedParticipant[]>([]);
   const [loading, setLoading] = useState(true);
 
   const load = async () => {
-    if (!eventId) {
+    if (!eventId && !agencyId) {
       setData([]);
       setLoading(false);
       return;
@@ -38,11 +38,22 @@ export function useUnifiedParticipant(eventId: string | null | undefined) {
     setLoading(true);
     try {
       // Direct query from participants table with related data
-      const { data: fallbackData, error: fallbackError } = await supabase
+      let query = supabase
         .from('participants')
         .select('*')
-        .eq('event_id', eventId)
         .order('name', { ascending: true });
+
+      // Filter by event if provided
+      if (eventId) {
+        query = query.eq('event_id', eventId);
+      }
+
+      // Filter by agency if provided
+      if (agencyId) {
+        query = query.eq('agency_id', agencyId);
+      }
+      
+      const { data: fallbackData, error: fallbackError } = await query;
       
       if (fallbackError) throw fallbackError;
       
@@ -81,14 +92,21 @@ export function useUnifiedParticipant(eventId: string | null | undefined) {
   useEffect(() => {
     load();
 
-    if (!eventId) return;
+    if (!eventId && !agencyId) return;
 
     // Real-time subscriptions for all related tables
+    const channelName = eventId ? `unified_bridge_${eventId}` : `unified_bridge_agency_${agencyId}`;
     const channel = supabase
-      .channel(`unified_bridge_${eventId}`)
+      .channel(channelName)
       .on(
         "postgres_changes",
-        { event: "*", schema: "public", table: "participants", filter: `event_id=eq.${eventId}` },
+        { 
+          event: "*", 
+          schema: "public", 
+          table: "participants",
+          ...(eventId && { filter: `event_id=eq.${eventId}` }),
+          ...(agencyId && !eventId && { filter: `agency_id=eq.${agencyId}` })
+        },
         () => {
           console.log("[Realtime] Participants changed, refreshing...");
           load();
@@ -115,7 +133,7 @@ export function useUnifiedParticipant(eventId: string | null | undefined) {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [eventId]);
+  }, [eventId, agencyId]);
 
   return { data, loading, refresh: load };
 }
