@@ -1,4 +1,4 @@
-import { Plus, Search, Filter, Phone, MessageSquare, User } from "lucide-react";
+import { Plus, Search, Filter, Phone, MessageSquare, User, BedDouble, RefreshCw } from "lucide-react";
 import { AdminLayout } from "@/components/layout/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,44 +12,16 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-
-const participants = [
-  {
-    id: 1,
-    type: "일반",
-    name: "김철수",
-    company: "테크기업 A",
-    phone: "010-1234-5678",
-    roomType: "디럭스 더블",
-    roomCredit: "1박",
-    meal: "조식, 중식",
-    requests: ["금연", "높은 층"],
-  },
-  {
-    id: 2,
-    type: "VIP",
-    name: "이영희",
-    company: "스타트업 B",
-    phone: "010-2345-6789",
-    roomType: "스위트",
-    roomCredit: "2박",
-    meal: "조식, 중식, 석식",
-    requests: ["바다 전망"],
-  },
-  {
-    id: 3,
-    type: "일반",
-    name: "박지민",
-    company: "기업 C",
-    phone: "010-3456-7890",
-    roomType: "스탠다드",
-    roomCredit: "1박",
-    meal: "조식",
-    requests: [],
-  },
-];
+import { useUnifiedParticipant } from "@/hooks/useUnifiedParticipant";
+import { useAppData } from "@/contexts/AppDataContext";
+import { Spinner } from "@/components/pd/Spinner";
+import { useState } from "react";
 
 export default function Participants() {
+  const { agency } = useAppData();
+  const [selectedEventId] = useState<string | null>(null); // TODO: Add event selector
+  const { data: participants, loading, refresh } = useUnifiedParticipant(selectedEventId);
+  const [searchQuery, setSearchQuery] = useState("");
   return (
     <AdminLayout>
       <div className="space-y-6">
@@ -57,13 +29,19 @@ export default function Participants() {
           <div>
             <h1 className="text-3xl font-bold">참가자 관리</h1>
             <p className="mt-2 text-muted-foreground">
-              행사 참가자 정보를 관리하고 숙박 정보를 확인하세요
+              {agency?.name || "에이전시"} 행사 참가자 정보를 관리하고 숙박 정보를 확인하세요
             </p>
           </div>
-          <Button size="lg" className="gap-2">
-            <Plus className="h-5 w-5" />
-            참가자 추가
-          </Button>
+          <div className="flex gap-3">
+            <Button variant="outline" size="lg" className="gap-2" onClick={refresh}>
+              <RefreshCw className="h-5 w-5" />
+              새로고침
+            </Button>
+            <Button size="lg" className="gap-2">
+              <Plus className="h-5 w-5" />
+              참가자 추가
+            </Button>
+          </div>
         </div>
 
         <div className="flex gap-6">
@@ -73,7 +51,12 @@ export default function Participants() {
                 <div className="mb-6 flex items-center gap-3">
                   <div className="relative flex-1">
                     <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                    <Input placeholder="이름 또는 소속으로 검색..." className="pl-10 h-10" />
+                    <Input 
+                      placeholder="이름 또는 소속으로 검색..." 
+                      className="pl-10 h-10"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                    />
                   </div>
                   <Button variant="outline" className="gap-2">
                     <Filter className="h-4 w-4" />
@@ -81,59 +64,109 @@ export default function Participants() {
                   </Button>
                 </div>
 
-                <div className="overflow-hidden rounded-lg border border-border">
-                  <div className="overflow-x-auto">
-                    <Table>
-                      <TableHeader>
-                        <TableRow className="bg-muted hover:bg-muted">
-                          <TableHead className="font-semibold">No</TableHead>
-                          <TableHead className="font-semibold">구분</TableHead>
-                          <TableHead className="font-semibold">성명</TableHead>
-                          <TableHead className="font-semibold">소속</TableHead>
-                          <TableHead className="font-semibold">연락처</TableHead>
-                          <TableHead className="font-semibold">객실타입</TableHead>
-                          <TableHead className="font-semibold">룸크레딧</TableHead>
-                          <TableHead className="font-semibold">식사</TableHead>
-                          <TableHead className="font-semibold">요청사항</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {participants.map((participant) => (
-                          <TableRow key={participant.id} className="cursor-pointer hover:bg-muted/50 transition-colors">
-                            <TableCell className="font-medium">{participant.id}</TableCell>
-                            <TableCell>
-                              <Badge
-                                variant={participant.type === "VIP" ? "default" : "secondary"}
-                                className={
-                                  participant.type === "VIP"
-                                    ? "rounded-xl bg-warning/10 text-warning border-0"
-                                    : "rounded-xl border-0"
-                                }
-                              >
-                                {participant.type}
-                              </Badge>
-                            </TableCell>
-                            <TableCell className="font-semibold">{participant.name}</TableCell>
-                            <TableCell>{participant.company}</TableCell>
-                            <TableCell>{participant.phone}</TableCell>
-                            <TableCell>{participant.roomType}</TableCell>
-                            <TableCell>{participant.roomCredit}</TableCell>
-                            <TableCell>{participant.meal}</TableCell>
-                            <TableCell>
-                              <div className="flex flex-wrap gap-1">
-                                {participant.requests.map((req, idx) => (
-                                  <Badge key={idx} variant="outline" className="rounded-xl text-xs">
-                                    {req}
-                                  </Badge>
-                                ))}
-                              </div>
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
+                {loading ? (
+                  <div className="flex items-center justify-center py-12">
+                    <Spinner size="lg" />
                   </div>
-                </div>
+                ) : (
+                  <div className="overflow-hidden rounded-lg border border-border">
+                    <div className="overflow-x-auto">
+                      <Table>
+                        <TableHeader>
+                          <TableRow className="bg-muted hover:bg-muted">
+                            <TableHead className="font-semibold">성명</TableHead>
+                            <TableHead className="font-semibold">소속</TableHead>
+                            <TableHead className="font-semibold">연락처</TableHead>
+                            <TableHead className="font-semibold">숙박정보</TableHead>
+                            <TableHead className="font-semibold">객실타입</TableHead>
+                            <TableHead className="font-semibold">메시지 상태</TableHead>
+                            <TableHead className="font-semibold">상태</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {participants.length === 0 ? (
+                            <TableRow>
+                              <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                                등록된 참가자가 없습니다. 행사를 선택하고 참가자를 추가해주세요.
+                              </TableCell>
+                            </TableRow>
+                          ) : (
+                            participants
+                              .filter(p => 
+                                !searchQuery || 
+                                p.participant_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                                p.company_name?.toLowerCase().includes(searchQuery.toLowerCase())
+                              )
+                              .map((participant, idx) => (
+                                <TableRow key={participant.participant_id} className="cursor-pointer hover:bg-muted/50 transition-colors">
+                                  <TableCell className="font-semibold">{participant.participant_name}</TableCell>
+                                  <TableCell>{participant.company_name || "-"}</TableCell>
+                                  <TableCell>{participant.participant_phone || "-"}</TableCell>
+                                  <TableCell>
+                                    <div className="flex items-center gap-1 text-sm">
+                                      {participant.hotel_name ? (
+                                        <>
+                                          <BedDouble className="h-3 w-3 text-primary" />
+                                          <span>{participant.hotel_name}</span>
+                                          {participant.room_number && (
+                                            <span className="text-muted-foreground">({participant.room_number})</span>
+                                          )}
+                                        </>
+                                      ) : (
+                                        <span className="text-muted-foreground">미배정</span>
+                                      )}
+                                    </div>
+                                  </TableCell>
+                                  <TableCell>
+                                    {participant.room_type ? (
+                                      <Badge variant="secondary" className="rounded-xl">
+                                        {participant.room_type}
+                                      </Badge>
+                                    ) : (
+                                      <span className="text-muted-foreground text-sm">-</span>
+                                    )}
+                                  </TableCell>
+                                  <TableCell>
+                                    <div className="flex items-center gap-1 text-sm">
+                                      <MessageSquare className="h-3 w-3" />
+                                      <Badge 
+                                        variant={
+                                          participant.message_status === 'sent' ? 'default' :
+                                          participant.message_status === 'failed' ? 'destructive' :
+                                          'outline'
+                                        }
+                                        className="rounded-xl text-xs"
+                                      >
+                                        {participant.message_status === 'sent' ? '발송완료' :
+                                         participant.message_status === 'failed' ? '실패' :
+                                         participant.message_status === 'pending' ? '대기중' :
+                                         '미발송'}
+                                      </Badge>
+                                      {participant.message_count > 0 && (
+                                        <span className="text-muted-foreground">({participant.message_count})</span>
+                                      )}
+                                    </div>
+                                  </TableCell>
+                                  <TableCell>
+                                    <Badge
+                                      variant={participant.role_badge === "VIP" ? "default" : "secondary"}
+                                      className={
+                                        participant.role_badge === "VIP"
+                                          ? "rounded-xl bg-warning/10 text-warning border-0"
+                                          : "rounded-xl border-0"
+                                      }
+                                    >
+                                      {participant.status || "일반"}
+                                    </Badge>
+                                  </TableCell>
+                                </TableRow>
+                              ))
+                          )}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
