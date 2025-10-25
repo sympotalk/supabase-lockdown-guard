@@ -163,6 +163,12 @@ export default function CreateEventModal({ open, onOpenChange }: CreateEventModa
     setCheckedRooms(init);
     
     toast.success(`${hotel.name} 선택됨`);
+    
+    // Smart focus: scroll to selected hotel
+    setTimeout(() => {
+      const el = document.querySelector(`[data-hotel-id="${hotel.id}"]`);
+      el?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 100);
   };
 
   const addCustomRoom = () => {
@@ -373,10 +379,11 @@ export default function CreateEventModal({ open, onOpenChange }: CreateEventModa
                 {hotels.map((h, i) => (
                   <div
                     key={h.id}
+                    data-hotel-id={h.id}
                     onClick={() => selectHotel(h)}
-                    className={`p-3 cursor-pointer flex justify-between border-b last:border-b-0 ${
-                      i === activeIndex ? "bg-accent" : ""
-                    } ${selectedHotel?.id === h.id ? "bg-primary/10" : ""}`}
+                    className={`p-3 cursor-pointer flex justify-between items-center rounded-md transition-all border-b last:border-b-0 ${
+                      i === activeIndex ? "bg-accent" : "hover:bg-muted/50"
+                    } ${selectedHotel?.id === h.id ? "bg-primary/10 ring-2 ring-primary/30" : ""}`}
                   >
                     <span className="font-medium">{h.name}</span>
                     <span className="text-xs text-muted-foreground">
@@ -402,26 +409,28 @@ export default function CreateEventModal({ open, onOpenChange }: CreateEventModa
                   <div className="space-y-2">
                     {roomTypes.map((rt) => (
                       <div key={rt.id} className="flex items-center justify-between gap-3">
-                        <label className="flex items-center gap-2 flex-1 cursor-pointer">
+                        <label className="flex items-center gap-2 flex-1 cursor-pointer group">
                           <input
                             type="checkbox"
                             checked={checkedRooms[rt.id] || false}
                             onChange={(e) => toggleRoom(rt.id, e.target.checked)}
                             className="peer hidden"
                           />
-                          <div className="w-5 h-5 rounded-md border-2 border-input flex items-center justify-center peer-checked:bg-primary peer-checked:border-primary transition-all">
+                          <div className="w-5 h-5 border-2 border-input rounded-[4px] flex items-center justify-center transition-all duration-150 ease-in-out peer-checked:border-primary peer-checked:bg-primary group-hover:border-primary/60">
                             <svg
                               xmlns="http://www.w3.org/2000/svg"
-                              className="w-3.5 h-3.5 text-primary-foreground opacity-0 peer-checked:opacity-100 transition-opacity"
-                              fill="none"
                               viewBox="0 0 24 24"
-                              stroke="currentColor"
+                              fill="none"
+                              stroke="white"
                               strokeWidth="3"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              className="w-3.5 h-3.5 scale-0 peer-checked:scale-100 transition-transform duration-150"
                             >
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                              <polyline points="20 6 9 17 4 12" />
                             </svg>
                           </div>
-                          <span className="text-sm">{rt.type_name}</span>
+                          <span className="text-[15px] select-none">{rt.type_name}</span>
                         </label>
                         <div className="flex items-center gap-2">
                           <Input
