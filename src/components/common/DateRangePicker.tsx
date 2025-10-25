@@ -14,19 +14,36 @@ type Props = {
 
 export default function DateRangePicker({ value, onChange }: Props) {
   const [open, setOpen] = useState(false);
+  const [hasStartDate, setHasStartDate] = useState(false);
 
   const handleSelect = (range: DateRange | undefined) => {
     if (range) {
       onChange(range);
-      // Auto-close when both dates are selected
-      if (range.from && range.to) {
-        setOpen(false);
+      
+      // Track first click (start date)
+      if (range.from && !hasStartDate) {
+        setHasStartDate(true);
+      }
+      
+      // Auto-close only when both dates are selected (second click)
+      if (range.from && range.to && hasStartDate) {
+        setTimeout(() => {
+          setOpen(false);
+          setHasStartDate(false);
+        }, 200);
       }
     }
   };
 
+  const handleOpenChange = (newOpen: boolean) => {
+    setOpen(newOpen);
+    if (!newOpen) {
+      setHasStartDate(false);
+    }
+  };
+
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover open={open} onOpenChange={handleOpenChange}>
       <PopoverTrigger asChild>
         <Button
           variant="outline"

@@ -6,7 +6,6 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { Plus, Trash2, Building } from "lucide-react";
 import { useAppData } from "@/contexts/AppDataContext";
@@ -403,11 +402,25 @@ export default function CreateEventModal({ open, onOpenChange }: CreateEventModa
                   <div className="space-y-2">
                     {roomTypes.map((rt) => (
                       <div key={rt.id} className="flex items-center justify-between gap-3">
-                        <label className="flex items-center gap-2 flex-1">
-                          <Checkbox
+                        <label className="flex items-center gap-2 flex-1 cursor-pointer">
+                          <input
+                            type="checkbox"
                             checked={checkedRooms[rt.id] || false}
-                            onCheckedChange={(checked) => toggleRoom(rt.id, checked as boolean)}
+                            onChange={(e) => toggleRoom(rt.id, e.target.checked)}
+                            className="peer hidden"
                           />
+                          <div className="w-5 h-5 rounded-md border-2 border-input flex items-center justify-center peer-checked:bg-primary peer-checked:border-primary transition-all">
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              className="w-3.5 h-3.5 text-primary-foreground opacity-0 peer-checked:opacity-100 transition-opacity"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                              strokeWidth="3"
+                            >
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                            </svg>
+                          </div>
                           <span className="text-sm">{rt.type_name}</span>
                         </label>
                         <div className="flex items-center gap-2">
