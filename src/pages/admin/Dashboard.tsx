@@ -17,6 +17,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { subscribeToTable } from "@/lib/realtimeBridge";
 import { useEffect, useState } from "react";
 import { useRoleGuard } from "@/lib/useRoleGuard";
+import { notifyRoleChange } from "@/lib/roleLogger";
 import MasterDashboard from "./dashboard/MasterDashboard";
 
 type EventStatus = "active" | "pending" | "completed";
@@ -43,6 +44,8 @@ export default function Dashboard() {
       return;
     }
 
+    const agencyContext = localStorage.getItem("agency_context");
+    notifyRoleChange(agencyContext);
     console.log("[UI] Dashboard loaded as:", userRole || "AGENCY");
 
     // Fetch initial data

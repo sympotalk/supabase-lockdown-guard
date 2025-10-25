@@ -42,7 +42,9 @@ export default function MasterDashboard() {
   }, []);
 
   const handleAgencyClick = (agencyId: string, agencyName: string) => {
-    console.log("[RLS] Master switching to agency context:", agencyId);
+    const previousContext = localStorage.getItem("agency_context");
+    localStorage.setItem("agency_context", agencyId);
+    console.log(`[RLS] Master switching: ${previousContext || "MASTER"} → ${agencyId} (${agencyName})`);
     window.location.href = `/admin/dashboard?asAgency=${agencyId}`;
   };
 
