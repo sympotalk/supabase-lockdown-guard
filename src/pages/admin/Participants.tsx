@@ -41,7 +41,7 @@ export default function Participants() {
     fetchParticipants();
 
     // Subscribe to realtime updates
-    const unsubscribe = subscribeToTable("participants", (payload) => {
+    const unsubscribeParticipants = subscribeToTable("participants", (payload) => {
       console.log("[Realtime] Participants change:", payload);
       
       setParticipants((prev) => {
@@ -65,8 +65,20 @@ export default function Participants() {
       });
     });
 
+    // Subscribe to participants_log for status change tracking
+    const unsubscribeLog = subscribeToTable("participants_log", (payload) => {
+      console.log("[Realtime] Log entry:", payload.new);
+      if (payload.new) {
+        const log = payload.new as any;
+        console.log(
+          `[UI] Status changed: ${log.old_status} → ${log.new_status} by ${log.changed_by || "system"}`
+        );
+      }
+    });
+
     return () => {
-      unsubscribe();
+      unsubscribeParticipants();
+      unsubscribeLog();
     };
   }, []);
 

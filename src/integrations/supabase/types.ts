@@ -2394,28 +2394,40 @@ export type Database = {
       }
       participants_log: {
         Row: {
+          action: string | null
           changed_at: string | null
           changed_by: string | null
           event_id: string | null
           id: number
+          metadata: Json | null
+          new_status: string | null
+          old_status: string | null
           operation: string
           participant_id: string
           snapshot: Json
         }
         Insert: {
+          action?: string | null
           changed_at?: string | null
           changed_by?: string | null
           event_id?: string | null
           id?: never
+          metadata?: Json | null
+          new_status?: string | null
+          old_status?: string | null
           operation: string
           participant_id: string
           snapshot: Json
         }
         Update: {
+          action?: string | null
           changed_at?: string | null
           changed_by?: string | null
           event_id?: string | null
           id?: never
+          metadata?: Json | null
+          new_status?: string | null
+          old_status?: string | null
           operation?: string
           participant_id?: string
           snapshot?: Json

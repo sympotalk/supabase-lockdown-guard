@@ -73,6 +73,7 @@ export function ParticipantModal({ participantId, open, onOpenChange }: Particip
   const handleStatusChange = async (newStatus: string) => {
     if (!participantId) return;
 
+    const oldStatus = participant?.status;
     setStatusUpdating(true);
     try {
       const { error } = await supabase
@@ -85,12 +86,13 @@ export function ParticipantModal({ participantId, open, onOpenChange }: Particip
 
       if (error) throw error;
 
-      console.log("[Update] Participant status updated:", newStatus);
+      console.log(`[Update] Participant status updated: ${oldStatus} → ${newStatus}`);
+      console.log("[Update] Status change will be automatically logged by trigger");
       setParticipant(prev => prev ? { ...prev, status: newStatus } : null);
       
       toast({
         title: "상태 변경 완료",
-        description: `참가자 상태가 "${newStatus}"로 변경되었습니다.`,
+        description: `참가자 상태가 "${oldStatus || '미정'}"에서 "${newStatus}"로 변경되었습니다.`,
       });
     } catch (error) {
       console.error("[Error] Failed to update status:", error);
