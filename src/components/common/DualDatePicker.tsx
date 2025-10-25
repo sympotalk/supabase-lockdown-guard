@@ -70,12 +70,12 @@ export default function DualDatePicker({ value, onChange }: Props) {
     <div className="flex gap-3 w-full">
       {/* 시작일 */}
       <div className="flex-1">
-        <div className="text-xs text-blue-700 font-medium pl-1 mb-1">시작일</div>
+        <div className="text-xs text-gray-500 font-medium pl-1 -mb-1">시작일</div>
         <Popover open={open === "start"} onOpenChange={ignoreOpenChange}>
           <PopoverTrigger asChild>
             <Button
               variant="outline"
-              className="w-full justify-start font-normal px-5 py-[10px] hover:border-blue-500 focus-visible:ring-1 focus-visible:ring-blue-300 transition-all duration-200"
+              className="w-full justify-start font-normal px-5 h-[44px] hover:border-blue-500 focus-visible:ring-1 focus-visible:ring-blue-300 transition-all duration-200"
               onClick={() => setOpen("start")}
             >
               <CalendarIcon className="mr-2 h-4 w-4 text-blue-500" />
@@ -104,12 +104,12 @@ export default function DualDatePicker({ value, onChange }: Props) {
 
       {/* 종료일 */}
       <div className="flex-1">
-        <div className="text-xs text-blue-700 font-medium pl-1 mb-1">종료일</div>
+        <div className="text-xs text-gray-500 font-medium pl-1 -mb-1">종료일</div>
         <Popover open={open === "end"} onOpenChange={ignoreOpenChange}>
           <PopoverTrigger asChild>
             <Button
               variant="outline"
-              className="w-full justify-start font-normal px-5 py-[10px] hover:border-blue-500 focus-visible:ring-1 focus-visible:ring-blue-300 transition-all duration-200 disabled:opacity-50"
+              className="w-full justify-start font-normal px-5 h-[44px] hover:border-blue-500 focus-visible:ring-1 focus-visible:ring-blue-300 transition-all duration-200 disabled:opacity-50"
               onClick={() => setOpen("end")}
               disabled={!dates.start}
             >

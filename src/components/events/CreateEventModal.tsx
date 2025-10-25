@@ -364,17 +364,17 @@ export default function CreateEventModal({ open, onOpenChange }: CreateEventModa
           )}
 
           {/* Basic Event Info */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-5 items-center">
             <div className="space-y-2">
               <Label className="text-sm font-medium text-gray-700">행사명</Label>
               <Input
                 value={eventName}
                 onChange={(e) => setEventName(e.target.value)}
                 placeholder="행사명을 입력하세요"
-                className="transition-all duration-200"
+                className="transition-all duration-200 h-[44px]"
               />
             </div>
-            <div className="space-y-2">
+            <div className="space-y-2 pt-[2px]">
               <Label className="text-sm font-medium text-gray-700">일정</Label>
               <DualDatePicker
                 value={{ start: dateRange.from, end: dateRange.to }}
