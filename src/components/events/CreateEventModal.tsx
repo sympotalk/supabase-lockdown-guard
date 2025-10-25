@@ -5,9 +5,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Search, Plus, Trash2 } from "lucide-react";
+import { Search, Plus, Trash2, Building } from "lucide-react";
 import { useAppData } from "@/contexts/AppDataContext";
+import { useUser } from "@/context/UserContext";
 
 interface CreateEventModalProps {
   open: boolean;
@@ -17,12 +19,16 @@ interface CreateEventModalProps {
 export default function CreateEventModal({ open, onOpenChange }: CreateEventModalProps) {
   const { refresh } = useAppData();
   const navigate = useNavigate();
+  const { user } = useUser();
   const [form, setForm] = useState({
     name: "",
     start_date: "",
     end_date: "",
     location: "",
   });
+  const [agencies, setAgencies] = useState<any[]>([]);
+  const [selectedAgencyId, setSelectedAgencyId] = useState<string>("");
+  const [isMaster, setIsMaster] = useState(false);
   const [hotelSearch, setHotelSearch] = useState("");
   const [hotels, setHotels] = useState<any[]>([]);
   const [selectedHotel, setSelectedHotel] = useState<any>(null);
@@ -30,6 +36,40 @@ export default function CreateEventModal({ open, onOpenChange }: CreateEventModa
   const [customRooms, setCustomRooms] = useState<any[]>([]);
   const [roomConfig, setRoomConfig] = useState<Record<string, { credit: number; stock: number }>>({});
   const [loading, setLoading] = useState(false);
+
+  // Load session and check role
+  useEffect(() => {
+    const loadUserRole = async () => {
+      const { data: session } = await supabase.auth.getSession();
+      const role = session?.session?.user?.user_metadata?.role;
+      const isMasterUser = role === "master";
+      setIsMaster(isMasterUser);
+
+      if (isMasterUser) {
+        // Load all agencies for Master
+        const { data: agenciesList } = await supabase
+          .from("agencies")
+          .select("id, name")
+          .eq("is_active", true)
+          .order("name");
+        setAgencies(agenciesList || []);
+      } else {
+        // Get agency_id from agency_members for non-master users
+        const userId = session?.session?.user?.id;
+        if (userId) {
+          const { data: memberData } = await supabase
+            .from("agency_members")
+            .select("agency_id")
+            .eq("user_id", userId)
+            .single();
+          if (memberData?.agency_id) {
+            setSelectedAgencyId(memberData.agency_id);
+          }
+        }
+      }
+    };
+    loadUserRole();
+  }, []);
 
   useEffect(() => {
     if (hotelSearch.length > 1) {
@@ -96,6 +136,10 @@ export default function CreateEventModal({ open, onOpenChange }: CreateEventModa
       return toast.error("행사명, 시작일, 종료일을 입력해주세요");
     }
 
+    if (!selectedAgencyId) {
+      return toast.error("에이전시를 선택해주세요");
+    }
+
     if (!selectedHotel) {
       return toast.error("호텔을 선택해주세요");
     }
@@ -104,20 +148,6 @@ export default function CreateEventModal({ open, onOpenChange }: CreateEventModa
     try {
       const { data: session } = await supabase.auth.getSession();
       const userId = session?.session?.user?.id;
-      
-      // Get agency_id from agency_members
-      const { data: memberData } = await supabase
-        .from("agency_members")
-        .select("agency_id")
-        .eq("user_id", userId)
-        .single();
-
-      const agencyId = memberData?.agency_id;
-
-      if (!agencyId) {
-        toast.error("에이전시 정보를 찾을 수 없습니다");
-        return;
-      }
 
       // Create event
       const { data: newEvent, error: eventError } = await supabase
@@ -127,7 +157,7 @@ export default function CreateEventModal({ open, onOpenChange }: CreateEventModa
           start_date: form.start_date,
           end_date: form.end_date,
           location: form.location,
-          agency_id: agencyId,
+          agency_id: selectedAgencyId,
           created_by: userId,
         })
         .select()
@@ -142,7 +172,7 @@ export default function CreateEventModal({ open, onOpenChange }: CreateEventModa
           const { data: localRoom, error: localError } = await supabase
             .from("room_types_local")
             .insert({
-              agency_id: agencyId,
+              agency_id: selectedAgencyId,
               hotel_id: selectedHotel.id,
               type_name: cr.type_name,
               capacity: cr.capacity,
@@ -187,6 +217,7 @@ export default function CreateEventModal({ open, onOpenChange }: CreateEventModa
       
       // Reset form
       setForm({ name: "", start_date: "", end_date: "", location: "" });
+      setSelectedAgencyId(isMaster ? "" : selectedAgencyId);
       setSelectedHotel(null);
       setRoomTypes([]);
       setCustomRooms([]);
@@ -207,6 +238,28 @@ export default function CreateEventModal({ open, onOpenChange }: CreateEventModa
         </DialogHeader>
 
         <div className="space-y-6">
+          {/* Agency Selection - Master Only */}
+          {isMaster && (
+            <div className="p-4 bg-muted rounded-lg space-y-3">
+              <div className="flex items-center gap-2">
+                <Building className="h-4 w-4 text-primary" />
+                <Label className="text-base font-semibold">에이전시 선택</Label>
+              </div>
+              <Select value={selectedAgencyId} onValueChange={setSelectedAgencyId}>
+                <SelectTrigger>
+                  <SelectValue placeholder="에이전시를 선택하세요" />
+                </SelectTrigger>
+                <SelectContent>
+                  {agencies.map((agency) => (
+                    <SelectItem key={agency.id} value={agency.id}>
+                      {agency.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
           {/* Basic Event Info */}
           <div className="space-y-4">
             <div>
