@@ -1,4 +1,5 @@
 // Phase 3.7.X-FULL — Event List Dynamic Integration
+// Phase 3.7.X-FULL.POLICY-FIX — Agency Data Scope Enforcement
 import { useEffect, useState } from "react";
 import { Plus, Search, Filter, MoreHorizontal } from "lucide-react";
 import { AdminLayout } from "@/components/layout/AdminLayout";
@@ -6,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import CreateEventModal from "@/components/events/CreateEventModal";
+import { useUser } from "@/context/UserContext";
 import {
   Table,
   TableBody,
@@ -42,6 +44,7 @@ interface Event {
 }
 
 export default function Events() {
+  const { role, agencyScope } = useUser();
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
@@ -51,12 +54,20 @@ export default function Events() {
   const loadEvents = async () => {
     setLoading(true);
     try {
-      // Fetch events from Supabase
-      const { data: eventsData, error: eventsError } = await supabase
+      // Build query with agency scope filter
+      let query = supabase
         .from("events")
-        .select("id, name, start_date, end_date, location, status")
-        .eq("is_active", true)
-        .order("start_date", { ascending: true });
+        .select("id, name, start_date, end_date, location, status, agency_id")
+        .eq("is_active", true);
+
+      // Apply agency scope filter (non-masters or masters with specific agency scope)
+      if (role !== "master" || agencyScope) {
+        if (agencyScope) {
+          query = query.eq("agency_id", agencyScope);
+        }
+      }
+
+      const { data: eventsData, error: eventsError } = await query.order("start_date", { ascending: true });
 
       if (eventsError) throw eventsError;
 
