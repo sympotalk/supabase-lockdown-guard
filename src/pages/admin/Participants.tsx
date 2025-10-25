@@ -34,7 +34,6 @@ export default function Participants() {
   const [searchParams] = useSearchParams();
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const [agencyName, setAgencyName] = useState<string | null>(null);
   const [events, setEvents] = useState<Array<{id: string; name: string}>>([]);
 
   // Sync URL agency parameter with UserContext
@@ -45,23 +44,6 @@ export default function Participants() {
       setAgencyScope(agencyParam);
     }
   }, [searchParams, agencyScope, setAgencyScope]);
-
-  // Fetch agency name for View Mode banner
-  useEffect(() => {
-    const fetchAgencyName = async () => {
-      if (role === "master" && agencyScope) {
-        const { data } = await supabase
-          .from("agencies")
-          .select("name")
-          .eq("id", agencyScope)
-          .single();
-        setAgencyName(data?.name || null);
-      } else {
-        setAgencyName(null);
-      }
-    };
-    fetchAgencyName();
-  }, [role, agencyScope]);
 
   // Load events filtered by agency scope
   useEffect(() => {
@@ -85,13 +67,6 @@ export default function Participants() {
 
   const { data: participants, loading, refresh } = useUnifiedParticipant(selectedEventId, agencyScope);
 
-  // Exit View Mode handler
-  const handleExitViewMode = () => {
-    setAgencyScope(null);
-    navigate("/master-dashboard");
-    toast.success("전체 보기로 돌아갑니다.");
-  };
-
   // Empty state for master without agency selection
   if (role === "master" && !agencyScope) {
     return (
@@ -109,25 +84,11 @@ export default function Participants() {
   return (
     <AdminLayout>
       <div className="space-y-6">
-        {/* View Mode Banner */}
-        {role === "master" && agencyScope && agencyName && (
-          <div className="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded-lg flex justify-between items-center">
-            <span className="font-medium">현재 보기 중: {agencyName} (View Mode)</span>
-            <button
-              onClick={handleExitViewMode}
-              className="text-sm text-blue-600 hover:text-blue-800 underline font-medium flex items-center gap-1"
-            >
-              <X className="h-4 w-4" />
-              전체 보기로 돌아가기
-            </button>
-          </div>
-        )}
-
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold">참가자 관리</h1>
             <p className="mt-2 text-muted-foreground">
-              {agencyName || "에이전시"} 행사 참가자 정보를 관리하고 숙박 정보를 확인하세요
+              행사 참가자 정보를 관리하고 숙박 정보를 확인하세요
             </p>
           </div>
           <div className="flex gap-3">

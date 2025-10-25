@@ -30,12 +30,15 @@ export function useUnifiedParticipant(eventId: string | null | undefined, agency
 
   const load = async () => {
     if (!eventId && !agencyId) {
+      console.warn("[useUnifiedParticipant] Skipped loading — no eventId or agencyId provided");
       setData([]);
       setLoading(false);
       return;
     }
 
     setLoading(true);
+    console.log("[useUnifiedParticipant] Loading participants with:", { eventId, agencyId });
+    
     try {
       // Direct query from participants table with related data
       let query = supabase
@@ -82,7 +85,7 @@ export function useUnifiedParticipant(eventId: string | null | undefined, agency
       
       setData(mappedData);
     } catch (error: any) {
-      console.error("Failed to load unified participants:", error);
+      console.error("[useUnifiedParticipant] Failed to load participants:", error);
       toast.error("참가자 데이터 로드 실패");
     } finally {
       setLoading(false);
@@ -92,10 +95,17 @@ export function useUnifiedParticipant(eventId: string | null | undefined, agency
   useEffect(() => {
     load();
 
-    if (!eventId && !agencyId) return;
+    // Prevent realtime subscription if no scope
+    if (!eventId && !agencyId) {
+      console.warn("[useUnifiedParticipant] Realtime subscription skipped — no scope");
+      return;
+    }
 
     // Real-time subscriptions for all related tables
     const channelName = eventId ? `unified_bridge_${eventId}` : `unified_bridge_agency_${agencyId}`;
+    
+    console.log("[useUnifiedParticipant] Setting up realtime channel:", channelName);
+    
     const channel = supabase
       .channel(channelName)
       .on(
@@ -107,30 +117,33 @@ export function useUnifiedParticipant(eventId: string | null | undefined, agency
           ...(eventId && { filter: `event_id=eq.${eventId}` }),
           ...(agencyId && !eventId && { filter: `agency_id=eq.${agencyId}` })
         },
-        () => {
-          console.log("[Realtime] Participants changed, refreshing...");
+        (payload) => {
+          console.log("[Realtime] Participants changed →", payload.eventType);
           load();
         }
       )
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "rooming" },
-        () => {
-          console.log("[Realtime] Rooming changed, refreshing...");
+        (payload) => {
+          console.log("[Realtime] Rooming changed →", payload.eventType);
           load();
         }
       )
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "messages" },
-        () => {
-          console.log("[Realtime] Messages changed, refreshing...");
+        (payload) => {
+          console.log("[Realtime] Messages changed →", payload.eventType);
           load();
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log("[useUnifiedParticipant] Subscription status:", status);
+      });
 
     return () => {
+      console.log("[useUnifiedParticipant] Cleaning up channel:", channelName);
       supabase.removeChannel(channel);
     };
   }, [eventId, agencyId]);

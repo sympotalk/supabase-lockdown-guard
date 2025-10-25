@@ -66,35 +66,26 @@ export function Header() {
   const roleLabel = role === "master" ? "관리자" : role === "agency_owner" ? "에이전시 오너" : "스태프";
 
   return (
-    <>
-      {/* View Mode Banner */}
-      {role === "master" && agencyScope && agencyName && (
-        <div className="fixed top-0 left-0 right-0 z-50 bg-blue-50 dark:bg-blue-950 border-b border-blue-200 dark:border-blue-800">
-          <div className="flex h-10 items-center justify-center px-6 text-sm">
-            <span className="font-medium text-blue-700 dark:text-blue-300">
-              현재 보기 중: {agencyName} (View Mode)
-            </span>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="ml-4 h-6 px-2 text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900"
-              onClick={handleExitViewMode}
-            >
-              <X className="h-3 w-3 mr-1" />
-              전체 보기로 돌아가기
-            </Button>
-          </div>
-        </div>
-      )}
-
-      <header 
-        className={`fixed left-0 right-0 z-40 border-b border-border bg-background transition-colors duration-300 ${
-          role === "master" && agencyScope ? "top-10" : "top-0"
-        }`}
-      >
-        <div className="flex h-16 items-center px-6">
-        <div className="flex items-center gap-2">
+    <header className="fixed top-0 left-0 right-0 z-40 border-b border-border bg-background transition-colors duration-300">
+      <div className="flex h-16 items-center px-6">
+        <div className="flex items-center gap-3">
           <span className="text-xl font-bold text-primary">SympoHub</span>
+          
+          {/* View Mode Badge - only for MASTER with agencyScope */}
+          {role === "master" && agencyScope && agencyName && (
+            <div className="flex items-center gap-1 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-700 rounded-full px-3 py-1">
+              <span className="text-sm font-medium">{agencyName}</span>
+              <span className="text-xs opacity-70">(View Mode)</span>
+              <button
+                onClick={handleExitViewMode}
+                className="ml-1 hover:text-blue-900 dark:hover:text-blue-100 transition-colors"
+                title="전체 보기로 돌아가기"
+                aria-label="Exit view mode"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            </div>
+          )}
         </div>
 
         <div className="ml-auto flex items-center gap-3">
@@ -162,6 +153,5 @@ export function Header() {
         </div>
       </div>
       </header>
-    </>
   );
 }
