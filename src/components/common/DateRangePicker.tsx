@@ -14,31 +14,50 @@ type Props = {
 
 export default function DateRangePicker({ value, onChange }: Props) {
   const [open, setOpen] = useState(false);
-  const [hasStartDate, setHasStartDate] = useState(false);
+  const [tempRange, setTempRange] = useState<DateRange>({ from: undefined, to: undefined });
 
   const handleSelect = (range: DateRange | undefined) => {
-    if (range) {
-      onChange(range);
+    if (!range?.from) return;
+
+    const clickedDate = range.from;
+
+    // No dates selected → set as start date
+    if (!tempRange.from && !tempRange.to) {
+      setTempRange({ from: clickedDate, to: undefined });
+      onChange({ from: clickedDate, to: undefined });
+      return;
+    }
+
+    // Only start date exists → set end date with auto-swap
+    if (tempRange.from && !tempRange.to) {
+      const newRange = clickedDate < tempRange.from
+        ? { from: clickedDate, to: tempRange.from }
+        : { from: tempRange.from, to: clickedDate };
       
-      // Track first click (start date)
-      if (range.from && !hasStartDate) {
-        setHasStartDate(true);
-      }
+      setTempRange(newRange);
+      onChange(newRange);
       
-      // Auto-close only when both dates are selected (second click)
-      if (range.from && range.to && hasStartDate) {
-        setTimeout(() => {
-          setOpen(false);
-          setHasStartDate(false);
-        }, 200);
-      }
+      // Auto-close after selecting end date
+      setTimeout(() => {
+        setOpen(false);
+      }, 300);
+      return;
+    }
+
+    // Both dates already selected → start new selection
+    if (tempRange.from && tempRange.to) {
+      setTempRange({ from: clickedDate, to: undefined });
+      onChange({ from: clickedDate, to: undefined });
+      return;
     }
   };
 
   const handleOpenChange = (newOpen: boolean) => {
     setOpen(newOpen);
-    // Reset state when opening or closing
-    setHasStartDate(false);
+    if (newOpen) {
+      // Reset temp state when opening
+      setTempRange({ from: value?.from, to: value?.to });
+    }
   };
 
   return (
