@@ -55,6 +55,50 @@ export function UploadParticipantsModal({
     }
   }, [open, activeEventId, onOpenChange, toast]);
 
+  // [LOCKED][71-I.QA3-FIX.R4] AI Column Mapping Layer for flexible Excel formats
+  const normalizeColumns = (record: any): any => {
+    const columnMap: Record<string, string> = {
+      "고객 성명": "name",
+      "성명": "name",
+      "이름": "name",
+      "name": "name",
+      "Name": "name",
+      "거래처명": "organization",
+      "소속": "organization",
+      "회사": "organization",
+      "company": "organization",
+      "organization": "organization",
+      "고객 연락처": "phone",
+      "연락처": "phone",
+      "전화번호": "phone",
+      "phone": "phone",
+      "Phone": "phone",
+      "이메일": "email",
+      "email": "email",
+      "Email": "email",
+      "메모": "memo",
+      "memo": "memo",
+      "팀명": "team_name",
+      "팀": "team_name",
+      "team": "team_name",
+      "담당자 성명": "manager_name",
+      "담당자": "manager_name",
+      "담당자명": "manager_name",
+      "담당자 연락처": "manager_phone",
+      "담당자전화": "manager_phone"
+    };
+
+    const normalized: any = {};
+    
+    Object.entries(record).forEach(([key, value]) => {
+      const trimmedKey = key.trim();
+      const mappedKey = columnMap[trimmedKey] || trimmedKey;
+      normalized[mappedKey] = value;
+    });
+
+    return normalized;
+  };
+
   // [LOCKED][71-I.QA3] Excel parsing with enhanced error guards
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const uploadedFile = e.target.files?.[0];
@@ -80,29 +124,33 @@ export function UploadParticipantsModal({
           return;
         }
 
-        // [71-I.QA3-FIX.R3] Map to existing DB schema (name, organization, phone)
-        const rows = json.map((row: any) => ({
-          name: row['고객 성명'] || row['이름'] || row['name'] || row['Name'] || '',
-          organization: row['거래처명'] || row['소속'] || row['company'] || row['organization'] || '',
-          phone: row['고객 연락처'] || row['전화번호'] || row['phone'] || row['Phone'] || '',
-          email: row['이메일'] || row['email'] || '',
-          memo: row['메모'] || row['memo'] || '',
-          team_name: row['팀명'] || row['team'] || '',
-          manager_name: row['담당자 성명'] || row['담당자'] || '',
-          manager_phone: row['담당자 연락처'] || ''
-        })).filter(row => row.name); // Only keep rows with names
+        // [71-I.QA3-FIX.R4] Apply AI column mapping to normalize Excel headers
+        const rows = json.map((row: any) => {
+          const normalized = normalizeColumns(row);
+          return {
+            name: normalized.name || '',
+            organization: normalized.organization || '',
+            phone: normalized.phone || '',
+            email: normalized.email || '',
+            memo: normalized.memo || '',
+            team_name: normalized.team_name || '',
+            manager_name: normalized.manager_name || '',
+            manager_phone: normalized.manager_phone || ''
+          };
+        }).filter(row => row.name); // Only keep rows with names
 
         if (rows.length === 0) {
-          console.warn("[71-I.QA3-FIX.R3] No valid participant rows detected.");
+          console.warn("[71-I.QA3-FIX.R4] No valid participant rows detected.");
           toast({
             title: "업로드 불가",
-            description: "'고객 성명' 컬럼이 비어 있습니다.",
+            description: "'고객 성명' 또는 '이름' 컬럼이 비어 있습니다.",
             variant: "destructive"
           });
           return;
         }
         setParsedRows(rows);
-        console.info(`[71-I.QA3-FIX.R3] Parsed ${rows.length} participants from Excel`);
+        console.info(`[71-I.QA3-FIX.R4] AI Mapped ${rows.length} participants from Excel`);
+        console.log("[71-I.QA3-FIX.R4] Sample mapped data:", rows[0]);
         toast({
           title: "파일 분석 완료",
           description: `${rows.length}명의 참가자 데이터 확인됨.`
@@ -156,7 +204,7 @@ export function UploadParticipantsModal({
         console.error("[71-I.QA3-FIX.R3] RPC upload error →", error);
         throw error;
       }
-      console.log("[71-I.QA3-FIX.R3] RPC response →", data);
+      console.log("[71-I.QA3-FIX.R4] RPC response →", data);
       const result = data as {
         inserted: number;
       };
@@ -166,10 +214,10 @@ export function UploadParticipantsModal({
         description: `${eventName}에 ${result.inserted}명의 참가자를 반영했습니다.`
       });
 
-      // [71-I.QA3-FIX.R3] Invalidate SWR cache for participants
+      // [71-I.QA3-FIX.R4] Invalidate SWR cache for participants
       if (agencyScope) {
         mutate(`participants_${agencyScope}_${activeEventId}`);
-        console.info("[71-I.QA3-FIX.R3] SWR cache invalidated:", `participants_${agencyScope}_${activeEventId}`);
+        console.info("[71-I.QA3-FIX.R4] SWR cache invalidated:", `participants_${agencyScope}_${activeEventId}`);
       }
       mutate('event_progress_view');
 
@@ -178,7 +226,7 @@ export function UploadParticipantsModal({
       setParsedRows([]);
       onOpenChange(false);
     } catch (error: any) {
-      console.error("[71-I.QA3-FIX.R3] Upload failed →", error);
+      console.error("[71-I.QA3-FIX.R4] Upload failed →", error);
       toast({
         title: "업로드 실패",
         description: error.message ?? "알 수 없는 오류입니다.",
@@ -198,7 +246,7 @@ export function UploadParticipantsModal({
         </DialogHeader>
 
         <div className="space-y-6 py-4">
-          {/* [LOCKED][71-I.QA3-FIX.R3] Event auto-detected from route - no manual selection */}
+          {/* [LOCKED][71-I.QA3-FIX.R4] Event auto-detected from route - no manual selection */}
           <div className="space-y-2">
             
           </div>
@@ -222,10 +270,11 @@ export function UploadParticipantsModal({
           <div className="flex gap-2 p-3 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-900">
             <AlertCircle className="h-5 w-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
             <div className="text-sm text-blue-800 dark:text-blue-300">
-              <p className="font-medium mb-1">Excel 파일 형식 안내</p>
+              <p className="font-medium mb-1">Excel 파일 형식 안내 (AI 자동 매핑)</p>
               <ul className="list-disc list-inside space-y-0.5 text-xs">
-                <li>필수 컬럼: 고객 성명</li>
-                <li>선택 컬럼: 거래처명, 고객 연락처, 이메일, 팀명, 담당자 성명, 담당자 연락처, 메모</li>
+                <li>필수: 고객 성명 / 이름 / name</li>
+                <li>선택: 거래처명/소속, 연락처/전화번호, 이메일, 팀명, 담당자 성명/담당자, 담당자 연락처, 메모</li>
+                <li>AI가 컬럼명을 자동으로 인식합니다</li>
               </ul>
             </div>
           </div>
