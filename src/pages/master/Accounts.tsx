@@ -21,7 +21,7 @@ interface AgencyUser {
   id: string;
   email: string;
   role: string;
-  agency_name: string;
+  agency: string;
   agency_id: string;
   is_active: boolean;
   last_sign_in_at: string | null;
@@ -75,7 +75,7 @@ export default function Accounts() {
           id: u.user_id,
           email: authUser?.email || "Unknown",
           role: u.role,
-          agency_name: u.agencies?.name || "Unknown",
+          agency: u.agencies?.name || "Unknown",
           agency_id: u.agency_id,
           is_active: u.agencies?.is_active || false,
           last_sign_in_at: authUser?.last_sign_in_at || null,
@@ -84,10 +84,10 @@ export default function Accounts() {
 
       setUsers(enrichedUsers);
     } catch (error) {
-      errorSys("Error loading account data:", error);
+      errorSys("계정 데이터 로드 실패:", error);
       toast({
         title: "오류",
-        description: "계정 데이터를 불러오는데 실패했습니다.",
+        description: "계정 데이터를 불러오는 중 오류가 발생했습니다.",
         variant: "destructive",
       });
     }
@@ -226,7 +226,7 @@ export default function Accounts() {
                         </div>
                       </TableCell>
                       <TableCell>{getRoleBadge(user.role)}</TableCell>
-                      <TableCell className="text-[14px]">{user.agency_name}</TableCell>
+                      <TableCell className="text-[14px]">{user.agency}</TableCell>
                       <TableCell>
                         <Badge variant={user.is_active ? "default" : "secondary"}>
                           {user.is_active ? "활성" : "비활성"}

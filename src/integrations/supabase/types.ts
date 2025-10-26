@@ -2712,6 +2712,36 @@ export type Database = {
           },
         ]
       }
+      master_users: {
+        Row: {
+          active: boolean | null
+          agency: string | null
+          created_at: string | null
+          email: string | null
+          id: string
+          last_login: string | null
+          role: string | null
+        }
+        Insert: {
+          active?: boolean | null
+          agency?: string | null
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          last_login?: string | null
+          role?: string | null
+        }
+        Update: {
+          active?: boolean | null
+          agency?: string | null
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          last_login?: string | null
+          role?: string | null
+        }
+        Relationships: []
+      }
       message_logs: {
         Row: {
           agency_id: string | null
@@ -6070,6 +6100,15 @@ export type Database = {
           manager_count: number | null
           ongoing_events: number | null
           total_events: number | null
+        }
+        Relationships: []
+      }
+      v_master_users: {
+        Row: {
+          active: boolean | null
+          agency: string | null
+          id: string | null
+          role: Database["public"]["Enums"]["app_role"] | null
         }
         Relationships: []
       }
