@@ -26,6 +26,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { ModuleInsightBar } from "@/components/common/ModuleInsightBar";
 
 export default function Participants() {
   const navigate = useNavigate();
@@ -80,6 +81,7 @@ export default function Participants() {
 
   return (
     <div className="space-y-6">
+        <ModuleInsightBar module="participants" />
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold">참가자 관리</h1>

@@ -11,6 +11,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { ModuleInsightBar } from "@/components/common/ModuleInsightBar";
 
 const hotels = [
   {
@@ -72,6 +73,7 @@ const roomAssignments = [
 export default function Rooming() {
   return (
     <div className="space-y-6">
+        <ModuleInsightBar module="rooming" />
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold">숙박 및 룸핑 관리</h1>

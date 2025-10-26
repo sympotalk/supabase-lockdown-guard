@@ -13,6 +13,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { ModuleInsightBar } from "@/components/common/ModuleInsightBar";
 
 const messageTemplates = [
   {
@@ -65,6 +66,7 @@ const messageLogs = [
 export default function Messages() {
   return (
     <div className="space-y-6">
+        <ModuleInsightBar module="messages" />
         <div>
           <h1 className="text-3xl font-bold">문자·알림 발송</h1>
           <p className="mt-2 text-muted-foreground">

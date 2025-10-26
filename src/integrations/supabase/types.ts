@@ -2856,6 +2856,79 @@ export type Database = {
           },
         ]
       }
+      module_insights: {
+        Row: {
+          agency_id: string | null
+          created_at: string | null
+          detail: Json | null
+          id: string
+          level: string
+          module: string
+          title: string
+        }
+        Insert: {
+          agency_id?: string | null
+          created_at?: string | null
+          detail?: Json | null
+          id?: string
+          level: string
+          module: string
+          title: string
+        }
+        Update: {
+          agency_id?: string | null
+          created_at?: string | null
+          detail?: Json | null
+          id?: string
+          level?: string
+          module?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "module_insights_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agencies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "module_insights_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agency_performance_summary"
+            referencedColumns: ["agency_id"]
+          },
+          {
+            foreignKeyName: "module_insights_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agency_summary"
+            referencedColumns: ["agency_id"]
+          },
+          {
+            foreignKeyName: "module_insights_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "dashboard_metrics"
+            referencedColumns: ["agency_id"]
+          },
+          {
+            foreignKeyName: "module_insights_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "master_agency_overview"
+            referencedColumns: ["agency_id"]
+          },
+          {
+            foreignKeyName: "module_insights_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "v_master_operations"
+            referencedColumns: ["agency_id"]
+          },
+        ]
+      }
       participant_insights: {
         Row: {
           agency_id: string | null
@@ -6042,6 +6115,10 @@ export type Database = {
           p_contact_name: string
           p_name: string
         }
+        Returns: Json
+      }
+      rpc_generate_module_insights: {
+        Args: { p_agency_id?: string; p_module: string }
         Returns: Json
       }
       rpc_get_hotel_room_types: {
