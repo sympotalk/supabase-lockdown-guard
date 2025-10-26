@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { mutate } from "swr";
 import * as XLSX from "xlsx";
 
+// [LOCKED][71-D.FIXFLOW.R2] Select guard added to prevent null/empty ID issues
 interface UploadParticipantsModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -122,16 +123,18 @@ export function UploadParticipantsModal({ open, onOpenChange, events }: UploadPa
           {/* Event Selection */}
           <div className="space-y-2">
             <Label htmlFor="event-select">행사 선택 *</Label>
-            <Select value={selectedEventId} onValueChange={setSelectedEventId}>
+            <Select value={selectedEventId || undefined} onValueChange={setSelectedEventId}>
               <SelectTrigger id="event-select">
                 <SelectValue placeholder="행사를 선택하세요" />
               </SelectTrigger>
               <SelectContent>
-                {events.map((event) => (
-                  <SelectItem key={event.id} value={event.id}>
-                    {event.name}
-                  </SelectItem>
-                ))}
+                {events
+                  .filter((event) => event.id && event.id !== "")
+                  .map((event) => (
+                    <SelectItem key={event.id} value={event.id}>
+                      {event.name}
+                    </SelectItem>
+                  ))}
               </SelectContent>
             </Select>
           </div>
