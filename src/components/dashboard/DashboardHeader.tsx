@@ -12,8 +12,8 @@ import { Building2, ChevronDown } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 interface Agency {
-  id: string;
-  name: string;
+  agency_id: string;
+  agency_name: string;
 }
 
 export function DashboardHeader() {
@@ -26,8 +26,8 @@ export function DashboardHeader() {
       if (role === "master") {
         const { data } = await supabase
           .from("agency_summary")
-          .select("id, name")
-          .order("name");
+          .select("agency_id, agency_name")
+          .order("agency_name");
         
         setAgencies(data || []);
       }
@@ -37,12 +37,12 @@ export function DashboardHeader() {
       if (agencyScope) {
         const { data } = await supabase
           .from("agency_summary")
-          .select("name")
-          .eq("id", agencyScope)
+          .select("agency_name")
+          .eq("agency_id", agencyScope)
           .single();
         
         if (data) {
-          setCurrentAgencyName(data.name);
+          setCurrentAgencyName(data.agency_name);
         }
       }
     };
@@ -52,9 +52,9 @@ export function DashboardHeader() {
   }, [role, agencyScope]);
 
   const handleAgencyChange = (newAgencyId: string) => {
-    const selectedAgency = agencies.find(a => a.id === newAgencyId);
+    const selectedAgency = agencies.find(a => a.agency_id === newAgencyId);
     if (selectedAgency) {
-      console.log(`[UserContext] Agency switched to: ${selectedAgency.name}`);
+      console.log(`[UserContext] Agency switched to: ${selectedAgency.agency_name}`);
       setAgencyScope(newAgencyId);
       window.location.href = `/admin/dashboard?asAgency=${newAgencyId}`;
     }
@@ -94,8 +94,8 @@ export function DashboardHeader() {
             </SelectTrigger>
             <SelectContent>
               {agencies.map((agency) => (
-                <SelectItem key={agency.id} value={agency.id}>
-                  {agency.name}
+                <SelectItem key={agency.agency_id} value={agency.agency_id}>
+                  {agency.agency_name}
                 </SelectItem>
               ))}
             </SelectContent>

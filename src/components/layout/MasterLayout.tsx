@@ -16,7 +16,6 @@ export function MasterLayout() {
     if (location.pathname.startsWith("/master")) {
       console.log("[MasterLayout] Clearing agencyScope for master routes");
       setAgencyScope(null);
-      localStorage.removeItem('agency_scope');
     }
   }, [location.pathname, setAgencyScope]);
 

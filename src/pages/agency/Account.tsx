@@ -85,8 +85,14 @@ export default function AgencyAccount() {
 
       if (!roleData?.agency_id) return;
 
-      // For now, just set empty invites - will implement properly later
-      setInvites([]);
+      // Get invited users for this agency
+      const { data } = await supabase
+        .from("master_users")
+        .select("*")
+        .eq("agency", (await supabase.from("agencies").select("name").eq("id", roleData.agency_id).single()).data?.name)
+        .order("created_at", { ascending: false });
+
+      setInvites((data as any) || []);
     } catch (error) {
       console.error("Failed to load invites:", error);
     }
