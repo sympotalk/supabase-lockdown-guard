@@ -34,8 +34,7 @@ interface UserProfile {
 
 const roleOptions = [
   { value: "master", label: "마스터" },
-  { value: "agency_owner", label: "에이전시 소유자" },
-  { value: "admin", label: "관리자" },
+  { value: "agency_owner", label: "에이전시 오너" },
   { value: "staff", label: "스태프" },
 ];
 
@@ -279,19 +278,11 @@ export default function MasterAccountManager() {
                 </p>
               </div>
               <div className="space-y-2">
-                <h3 className="font-medium">Admin</h3>
-                <p className="text-sm text-muted-foreground">
-                  • 소속 에이전시 이벤트 관리
-                  <br />
-                  • 참가자 및 룸 관리
-                </p>
-              </div>
-              <div className="space-y-2">
                 <h3 className="font-medium">Staff</h3>
                 <p className="text-sm text-muted-foreground">
-                  • 할당된 이벤트 조회
+                  • 모든 기능 사용 (행사·참가자·숙박·메시지·보고서 등)
                   <br />
-                  • 참가자 정보 조회
+                  • 초대 및 계정 생성 불가
                 </p>
               </div>
             </CardContent>

@@ -4,8 +4,8 @@ import { Spinner } from "@/components/pd/Spinner";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
-  requiredRole?: "master" | "agency_owner" | "admin" | "staff";
-  allowedRoles?: Array<"master" | "agency_owner" | "admin" | "staff">;
+  requiredRole?: "master" | "agency_owner" | "staff";
+  allowedRoles?: Array<"master" | "agency_owner" | "staff">;
 }
 
 export const ProtectedRoute = ({ children, requiredRole, allowedRoles }: ProtectedRouteProps) => {

@@ -4,7 +4,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useUser } from "@/context/UserContext";
 import { supabase } from "@/integrations/supabase/client";
 
-export type AppRole = "master" | "agency_owner" | "admin" | "staff";
+export type AppRole = "master" | "agency_owner" | "staff";
 
 /**
  * Simplified Role-based route protection hook

@@ -69,7 +69,7 @@ const App = () => (
 
             {/* Admin routes - accessible by master in view mode OR agency users */}
             <Route path="/admin" element={
-              <ProtectedRoute allowedRoles={["master", "agency_owner", "admin", "staff"]}>
+              <ProtectedRoute allowedRoles={["master", "agency_owner", "staff"]}>
                 <AdminLayout />
               </ProtectedRoute>
             }>
@@ -89,7 +89,7 @@ const App = () => (
             <Route
               path="/agency/*"
               element={
-                <ProtectedRoute allowedRoles={["staff", "admin", "agency_owner"]}>
+                <ProtectedRoute allowedRoles={["staff", "agency_owner"]}>
                   <Routes>
                     <Route path="account" element={<AgencyAccount />} />
                     <Route path="profile" element={<AgencyProfile />} />

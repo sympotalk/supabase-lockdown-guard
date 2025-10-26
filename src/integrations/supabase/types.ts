@@ -6827,16 +6827,27 @@ export type Database = {
       }
       fn_generate_qa_report: { Args: never; Returns: Json }
       fn_healthcheck_all: { Args: never; Returns: Json }
-      fn_manage_user_account: {
-        Args: {
-          p_action: string
-          p_agency_id?: string
-          p_email?: string
-          p_role?: string
-          p_user_id?: string
-        }
-        Returns: Json
-      }
+      fn_manage_user_account:
+        | {
+            Args: {
+              p_action: string
+              p_agency_id?: string
+              p_email?: string
+              p_role?: string
+              p_user_id?: string
+            }
+            Returns: Json
+          }
+        | {
+            Args: {
+              p_action?: string
+              p_agency_id?: string
+              p_email?: string
+              p_role?: string
+              p_user_id?: string
+            }
+            Returns: Json
+          }
       generate_weekly_ops_reports: { Args: never; Returns: undefined }
       get_agencies_by_member: {
         Args: { keyword: string }

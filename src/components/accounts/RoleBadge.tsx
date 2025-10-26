@@ -8,7 +8,6 @@ interface RoleBadgeProps {
 const roleConfig: Record<string, { label: string; color: string }> = {
   master: { label: "Master", color: "hsl(217, 91%, 60%)" }, // #2F73D9 SympoBlue
   agency_owner: { label: "Owner", color: "hsl(159, 56%, 45%)" }, // #2EB67D SympoGreen
-  admin: { label: "Admin", color: "hsl(24, 85%, 50%)" },
   staff: { label: "Staff", color: "hsl(43, 91%, 59%)" }, // #F7B731 SympoAmber
 };
 
