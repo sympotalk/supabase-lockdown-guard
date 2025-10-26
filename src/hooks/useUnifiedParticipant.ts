@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useUser } from "@/context/UserContext";
 
 export type UnifiedParticipant = {
   participant_id: string;
@@ -27,6 +28,7 @@ export type UnifiedParticipant = {
 export function useUnifiedParticipant(eventId: string | null | undefined, agencyId: string | null | undefined) {
   const [data, setData] = useState<UnifiedParticipant[]>([]);
   const [loading, setLoading] = useState(true);
+  const { role, user } = useUser();
 
   const load = async () => {
     // [LOCKED][71-D.FIXFLOW.STABLE] Do not return empty array early - keep loading true
@@ -97,10 +99,27 @@ export function useUnifiedParticipant(eventId: string | null | undefined, agency
   useEffect(() => {
     load();
 
+    // [71-I.QA3] Runtime error guard for QA team logging
+    const errorListener = (event: ErrorEvent) => {
+      if (event.message.includes("xlsx") || event.message.includes("supabase") || event.message.includes("participants")) {
+        console.warn("[71-I.QA3] Runtime error captured:", event.message);
+        // Log to Supabase for QA team review
+        supabase.from("logs").insert({
+          actor_role: role,
+          action: "UPLOAD_RUNTIME_ERROR",
+          payload: { message: event.message, source: event.filename },
+          created_by: user?.id,
+        }).then(({ error }) => {
+          if (error) console.error("[71-I.QA3] Failed to log error:", error);
+        });
+      }
+    };
+    window.addEventListener("error", errorListener);
+
     // Prevent realtime subscription if no scope
     if (!eventId && !agencyId) {
       console.warn("[useUnifiedParticipant] Realtime subscription skipped — no scope");
-      return;
+      return () => window.removeEventListener("error", errorListener);
     }
 
     // Real-time subscriptions for all related tables
@@ -120,7 +139,7 @@ export function useUnifiedParticipant(eventId: string | null | undefined, agency
           ...(agencyId && !eventId && { filter: `agency_id=eq.${agencyId}` })
         },
         (payload) => {
-          console.log("[Realtime] Participants changed →", payload.eventType);
+          console.log("[71-I.QA3.Realtime] Participants changed →", payload.eventType);
           load();
         }
       )
@@ -128,7 +147,7 @@ export function useUnifiedParticipant(eventId: string | null | undefined, agency
         "postgres_changes",
         { event: "*", schema: "public", table: "rooming_participants" },
         (payload) => {
-          console.log("[Realtime] Rooming_participants changed →", payload.eventType);
+          console.log("[71-I.QA3.Realtime] Rooming_participants changed →", payload.eventType);
           load();
         }
       )
@@ -136,7 +155,7 @@ export function useUnifiedParticipant(eventId: string | null | undefined, agency
         "postgres_changes",
         { event: "*", schema: "public", table: "messages" },
         (payload) => {
-          console.log("[Realtime] Messages changed →", payload.eventType);
+          console.log("[71-I.QA3.Realtime] Messages changed →", payload.eventType);
           load();
         }
       )
@@ -146,9 +165,10 @@ export function useUnifiedParticipant(eventId: string | null | undefined, agency
 
     return () => {
       console.log("[useUnifiedParticipant] Cleaning up channel:", channelName);
+      window.removeEventListener("error", errorListener);
       supabase.removeChannel(channel);
     };
-  }, [eventId, agencyId]);
+  }, [eventId, agencyId, role, user?.id]);
 
   return { data, loading, refresh: load };
 }

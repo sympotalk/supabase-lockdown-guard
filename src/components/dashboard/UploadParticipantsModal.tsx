@@ -1,16 +1,16 @@
 import { useState, useEffect } from "react";
+import { useParams } from "react-router-dom";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Upload, FileSpreadsheet, AlertCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { mutate } from "swr";
 import * as XLSX from "xlsx";
+import { useUser } from "@/context/UserContext";
 
-// [LOCKED][71-D.FIXFLOW.R2] Select guard added to prevent null/empty ID issues
-// [LOCKED][71-E.FIXSELECT.STABLE] Do not remove or inline this block without architect/QA approval.
+// [LOCKED][71-I.QA3] Auto-detect event from route, no manual selection
 interface UploadParticipantsModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -19,24 +19,35 @@ interface UploadParticipantsModalProps {
 
 export function UploadParticipantsModal({ open, onOpenChange, events }: UploadParticipantsModalProps) {
   const { toast } = useToast();
-  const [selectedEventId, setSelectedEventId] = useState<string | undefined>(undefined);
+  const { eventId } = useParams<{ eventId: string }>();
+  const { agencyScope } = useUser();
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const [parsedRows, setParsedRows] = useState<any[]>([]);
 
-  // [71-E.FIXSELECT] Debug log
-  useEffect(() => {
-    console.log('[71-E.FIXSELECT] UploadParticipantsModal Select initialized', { value: selectedEventId });
-  }, [selectedEventId]);
+  const activeEventId = eventId ?? "";
 
+  // [71-I.QA3] Validate event context on mount
+  useEffect(() => {
+    if (!activeEventId) {
+      console.error("[71-I.QA3] ⚠️ eventId not found in route");
+      toast({
+        title: "행사 ID 누락",
+        description: "행사 페이지에서만 업로드 가능합니다.",
+        variant: "destructive",
+      });
+      onOpenChange(false);
+    }
+  }, [activeEventId, onOpenChange, toast]);
+
+  // [LOCKED][71-I.QA3] Excel parsing with enhanced error guards
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const uploadedFile = e.target.files?.[0];
     if (!uploadedFile) return;
 
     setFile(uploadedFile);
-
-    // Parse Excel file
     const reader = new FileReader();
+
     reader.onload = (event) => {
       try {
         const data = new Uint8Array(event.target?.result as ArrayBuffer);
@@ -45,8 +56,18 @@ export function UploadParticipantsModal({ open, onOpenChange, events }: UploadPa
         const worksheet = workbook.Sheets[sheetName];
         const json = XLSX.utils.sheet_to_json(worksheet);
 
-        // [71-I] Map to new schema with all 11 columns
-        const rows = json.map((row: any) => ({
+        if (!Array.isArray(json) || json.length === 0) {
+          console.error("[71-I.QA3] Empty file or invalid format");
+          toast({
+            title: "업로드 실패",
+            description: "파일에 참가자 데이터가 없습니다.",
+            variant: "destructive",
+          });
+          return;
+        }
+
+        // Map to new schema with all 11 columns
+        const rows = json.map((row: any, i: number) => ({
           participant_name: row['고객 성명'] || row['이름'] || row['name'] || row['Name'] || '',
           company_name: row['거래처명'] || row['소속'] || row['company'] || '',
           participant_contact: row['고객 연락처'] || row['전화번호'] || row['phone'] || row['Phone'] || '',
@@ -62,15 +83,27 @@ export function UploadParticipantsModal({ open, onOpenChange, events }: UploadPa
           stay_plan: row['숙박예정'] || '',
         })).filter(row => row.participant_name); // Only keep rows with names
 
+        if (rows.length === 0) {
+          console.warn("[71-I.QA3] No valid participant rows detected.");
+          toast({
+            title: "업로드 불가",
+            description: "'고객 성명' 컬럼이 비어 있습니다.",
+            variant: "destructive",
+          });
+          return;
+        }
+
         setParsedRows(rows);
+        console.info(`[71-I.QA3] Parsed ${rows.length} participants from Excel`);
         toast({
           title: "파일 분석 완료",
-          description: `${rows.length}명의 참가자 데이터를 확인했습니다.`,
+          description: `${rows.length}명의 참가자 데이터 확인됨.`,
         });
-      } catch (error) {
+      } catch (err) {
+        console.error("[71-I.QA3] XLSX parse error →", err);
         toast({
           title: "파일 분석 실패",
-          description: "Excel 파일을 읽을 수 없습니다.",
+          description: "Excel 파일이 손상되었거나 형식이 잘못되었습니다.",
           variant: "destructive",
         });
       }
@@ -78,46 +111,57 @@ export function UploadParticipantsModal({ open, onOpenChange, events }: UploadPa
     reader.readAsArrayBuffer(uploadedFile);
   };
 
+  // [LOCKED][71-I.QA3] Upload with realtime refresh and comprehensive error handling
   const handleUpload = async () => {
-    if (!selectedEventId || !parsedRows.length) {
+    if (!parsedRows.length) {
       toast({
         title: "업로드 불가",
-        description: "행사를 선택하고 파일을 업로드해주세요.",
+        description: "분석된 참가자 데이터가 없습니다.",
         variant: "destructive",
       });
       return;
     }
 
     setUploading(true);
+    console.info("[71-I.QA3] Uploading rows:", parsedRows.length, "to event:", activeEventId);
 
     try {
       const { data, error } = await supabase.rpc('fn_bulk_upload_participants', {
-        p_event_id: selectedEventId,
+        p_event_id: activeEventId,
         p_rows: parsedRows,
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error("[71-I.QA3] RPC upload error →", error);
+        throw error;
+      }
 
-      const eventName = events.find(e => e.id === selectedEventId)?.name || '선택한 행사';
+      console.log("[71-I.QA3] RPC response →", data);
+
       const result = data as { inserted: number };
+      const eventName = events.find(e => e.id === activeEventId)?.name || '현재 행사';
       
       toast({
         title: "업로드 완료",
-        description: `${eventName}에 ${result.inserted}명의 참가자를 등록했습니다.`,
+        description: `${eventName}에 ${result.inserted}명의 참가자를 반영했습니다.`,
       });
 
-      // Refresh dashboard data
+      // [71-I.QA3] Invalidate SWR cache for participants
+      if (agencyScope) {
+        mutate(`participants_${agencyScope}_${activeEventId}`);
+        console.info("[71-I.QA3] SWR cache invalidated:", `participants_${agencyScope}_${activeEventId}`);
+      }
       mutate('event_progress_view');
       
       // Reset state
-      setSelectedEventId(undefined);
       setFile(null);
       setParsedRows([]);
       onOpenChange(false);
     } catch (error: any) {
+      console.error("[71-I.QA3] Upload failed →", error);
       toast({
         title: "업로드 실패",
-        description: error.message,
+        description: error.message ?? "알 수 없는 오류입니다.",
         variant: "destructive",
       });
     } finally {
@@ -136,29 +180,14 @@ export function UploadParticipantsModal({ open, onOpenChange, events }: UploadPa
         </DialogHeader>
 
         <div className="space-y-6 py-4">
-          {/* Event Selection */}
+          {/* [LOCKED][71-I.QA3] Event auto-detected from route - no manual selection */}
           <div className="space-y-2">
-            <Label htmlFor="event-select">행사 선택 *</Label>
-            <Select 
-              value={selectedEventId || undefined} 
-              onValueChange={(v) => setSelectedEventId(v || undefined)}
-            >
-              <SelectTrigger id="event-select">
-                <SelectValue placeholder="행사를 선택하세요" />
-              </SelectTrigger>
-              <SelectContent>
-                {events
-                  .filter((event) => 
-                    typeof event.id === "string" && 
-                    event.id.match(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/)
-                  )
-                  .map((event) => (
-                    <SelectItem key={event.id} value={event.id}>
-                      {event.name}
-                    </SelectItem>
-                  ))}
-              </SelectContent>
-            </Select>
+            <div className="flex items-center justify-between">
+              <Label className="text-sm text-muted-foreground">행사</Label>
+              <span className="text-sm font-medium">
+                {events.find(e => e.id === activeEventId)?.name || '현재 행사'}
+              </span>
+            </div>
           </div>
 
           {/* File Upload */}
@@ -214,7 +243,7 @@ export function UploadParticipantsModal({ open, onOpenChange, events }: UploadPa
           <Button
             className="flex-1"
             onClick={handleUpload}
-            disabled={uploading || !selectedEventId || !parsedRows.length}
+            disabled={uploading || !parsedRows.length}
           >
             <Upload className="mr-2 h-4 w-4" />
             {uploading ? "업로드 중..." : "업로드"}
