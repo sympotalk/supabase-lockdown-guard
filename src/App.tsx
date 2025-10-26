@@ -77,7 +77,8 @@ const App = () => (
               <Route path="dashboard" element={<Dashboard />} />
               <Route path="events" element={<Events />} />
               <Route path="events/:eventId/overview" element={<EventOverview />} />
-              <Route path="participants" element={<Participants />} />
+              {/* [LOCKED][71-G.FIX.ROUTING.R1] Redirect old participant route to unified event list */}
+              <Route path="participants" element={<Navigate to="/admin/events" replace />} />
               <Route path="rooming" element={<Rooming />} />
               <Route path="messages" element={<Messages />} />
               <Route path="forms" element={<Forms />} />

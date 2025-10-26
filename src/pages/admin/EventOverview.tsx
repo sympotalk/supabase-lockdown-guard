@@ -1,3 +1,4 @@
+// [LOCKED][71-G.FIX.ROUTING.R1] Master agencyScope fallback on event detail access
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -6,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { ArrowLeft, Building2, Save } from "lucide-react";
+import { useUser } from "@/context/UserContext";
 
 type RoomSummaryRow = {
   event_id: string;
@@ -22,13 +24,27 @@ type RoomSummaryRow = {
 export default function EventOverview() {
   const { eventId } = useParams();
   const navigate = useNavigate();
+  const { role, agencyScope, setAgencyScope } = useUser();
   const [rows, setRows] = useState<RoomSummaryRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<Record<string, { credit: number; stock: number }>>({});
+  const [eventAgencyId, setEventAgencyId] = useState<string | null>(null);
 
   const load = async () => {
     if (!eventId) return;
     setLoading(true);
+    
+    // [LOCKED][71-G.FIX.ROUTING.R1] Fetch event agency_id for master fallback
+    const { data: eventData } = await supabase
+      .from("events")
+      .select("agency_id")
+      .eq("id", eventId)
+      .single();
+    
+    if (eventData?.agency_id) {
+      setEventAgencyId(eventData.agency_id);
+    }
+    
     const { data, error } = await supabase
       .from("v_event_room_summary" as any)
       .select("*")
@@ -41,6 +57,14 @@ export default function EventOverview() {
     }
     setLoading(false);
   };
+
+  // [LOCKED][71-G.FIX.ROUTING.R1] Master fallback → setAgencyScope when accessing event directly
+  useEffect(() => {
+    if (role === "master" && !agencyScope && eventAgencyId) {
+      console.log("[71-G.FIX.ROUTING.R1] Master fallback → setAgencyScope", eventAgencyId);
+      setAgencyScope(eventAgencyId);
+    }
+  }, [role, agencyScope, eventAgencyId, setAgencyScope]);
 
   useEffect(() => {
     load();
