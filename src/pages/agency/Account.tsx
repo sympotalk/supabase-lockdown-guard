@@ -7,9 +7,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { RoleBadge } from "@/components/accounts/RoleBadge";
 import { UserPlus, Users } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { format } from "date-fns";
+import { useUser } from "@/context/UserContext";
 
 // Removed UserProfile interface - using AccountFormData from AccountFormBase
 
@@ -22,10 +24,14 @@ interface InvitedUser {
 }
 
 export default function AgencyAccount() {
+  const { role } = useUser();
   const [profile, setProfile] = useState<AccountFormData>({ email: "" });
   const [invites, setInvites] = useState<InvitedUser[]>([]);
   const [inviteOpen, setInviteOpen] = useState(false);
   const [loading, setLoading] = useState(true);
+  
+  // STAFF and AGENCY_OWNER can invite users
+  const canInvite = role === 'agency_owner' || role === 'staff';
 
   useEffect(() => {
     loadProfile();
@@ -163,16 +169,23 @@ export default function AgencyAccount() {
                   <Users className="h-5 w-5" />
                   팀원 초대
                 </CardTitle>
-                <Button size="sm" onClick={() => setInviteOpen(true)}>
-                  <UserPlus className="h-4 w-4 mr-2" />
-                  초대
-                </Button>
+                {canInvite && (
+                  <Button size="sm" onClick={() => setInviteOpen(true)}>
+                    <UserPlus className="h-4 w-4 mr-2" />
+                    초대
+                  </Button>
+                )}
               </div>
             </CardHeader>
             <CardContent>
               <p className="text-[13px] text-muted-foreground mb-4">
                 에이전시 팀원을 초대하여 함께 작업하세요
               </p>
+              {!canInvite && (
+                <p className="text-[12px] text-muted-foreground/70 italic">
+                  초대 권한이 없습니다. 관리자에게 문의하세요.
+                </p>
+              )}
             </CardContent>
           </Card>
         </div>
@@ -203,7 +216,7 @@ export default function AgencyAccount() {
                       <TableRow key={invite.id}>
                         <TableCell className="text-[13px]">{invite.email}</TableCell>
                         <TableCell>
-                          <Badge variant="outline">{invite.role}</Badge>
+                          <RoleBadge role={invite.role} />
                         </TableCell>
                         <TableCell>
                           <Badge variant={invite.active ? "default" : "secondary"}>

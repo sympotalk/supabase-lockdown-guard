@@ -22,10 +22,10 @@ interface AccountFormBaseProps {
 }
 
 const roleOptions = [
-  { value: "master", label: "마스터" },
-  { value: "agency_owner", label: "에이전시 소유자" },
-  { value: "admin", label: "관리자" },
-  { value: "staff", label: "스태프" },
+  { value: "master", label: "마스터", color: "hsl(217, 91%, 60%)" }, // #2F73D9 SympoBlue
+  { value: "agency_owner", label: "에이전시 소유자", color: "hsl(159, 56%, 45%)" }, // #2EB67D SympoGreen
+  { value: "admin", label: "관리자", color: "hsl(24, 85%, 50%)" },
+  { value: "staff", label: "스태프", color: "hsl(43, 91%, 59%)" }, // #F7B731 SympoAmber
 ];
 
 export function AccountFormBase({ 

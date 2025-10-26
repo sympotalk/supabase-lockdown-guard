@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { RoleBadge } from "@/components/accounts/RoleBadge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Dialog, 
@@ -37,15 +38,6 @@ const roleOptions = [
   { value: "admin", label: "관리자" },
   { value: "staff", label: "스태프" },
 ];
-
-const roleVariant = (role: string) => {
-  switch (role) {
-    case "master": return "default";
-    case "agency_owner": return "secondary";
-    case "admin": return "outline";
-    default: return "outline";
-  }
-};
 
 export default function MasterAccountManager() {
   const [profiles, setProfiles] = useState<UserProfile[]>([]);
@@ -218,9 +210,7 @@ export default function MasterAccountManager() {
                             {profile.email}
                           </TableCell>
                           <TableCell>
-                            <Badge variant={roleVariant(profile.role)}>
-                              {profile.role}
-                            </Badge>
+                            <RoleBadge role={profile.role} />
                           </TableCell>
                           <TableCell className="text-[13px]">
                             {profile.agency_name || "-"}

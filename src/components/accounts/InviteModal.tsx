@@ -57,12 +57,13 @@ export function InviteModal({
     setLoading(true);
 
     try {
-      const rpcName = isMaster ? "invite_master_user" : "invite_agency_user";
-      const params = isMaster
-        ? { p_email: email, p_agency_id: selectedAgencyId }
-        : { p_email: email, p_agency_id: agencyId, p_role: role };
-
-      const { error } = await supabase.rpc(rpcName, params);
+      // Use unified fn_manage_user_account RPC
+      const { error } = await (supabase as any).rpc("fn_manage_user_account", {
+        p_action: "invite",
+        p_email: email,
+        p_role: role,
+        p_agency_id: isMaster ? selectedAgencyId : agencyId,
+      });
 
       if (error) throw error;
 
