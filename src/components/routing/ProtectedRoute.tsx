@@ -1,15 +1,15 @@
 import { Navigate } from "react-router-dom";
-import { useUser } from "@/context/UserContext";
+import { useRole } from "@/hooks/useRole";
 import { Spinner } from "@/components/pd/Spinner";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
-  requiredRole?: "master" | "agency_owner" | "admin" | "staff";
-  allowedRoles?: Array<"master" | "agency_owner" | "admin" | "staff">;
+  requiredRole?: "master" | "agency_owner" | "admin" | "staff" | "viewer";
+  allowedRoles?: Array<"master" | "agency_owner" | "admin" | "staff" | "viewer">;
 }
 
 export const ProtectedRoute = ({ children, requiredRole, allowedRoles }: ProtectedRouteProps) => {
-  const { role, loading, userId, agencyScope } = useUser();
+  const { role, loading, isAtLeast, hasRole: checkRole } = useRole();
 
   if (loading) {
     return (
@@ -22,14 +22,14 @@ export const ProtectedRoute = ({ children, requiredRole, allowedRoles }: Protect
     );
   }
 
-  if (!userId) {
+  if (!role) {
     return <Navigate to="/auth/login" replace />;
   }
 
   // Check if user has required role or one of allowed roles
   const hasPermission = 
     (!requiredRole && !allowedRoles) ||
-    (requiredRole && role === requiredRole) ||
+    (requiredRole && checkRole(requiredRole)) ||
     (allowedRoles && role && allowedRoles.includes(role));
 
   if (!hasPermission) {
