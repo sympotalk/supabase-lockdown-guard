@@ -37,7 +37,9 @@ export function useUnifiedParticipant(eventId: string | null | undefined, agency
     }
 
     setLoading(true);
-    console.log("[useUnifiedParticipant] Loading participants with:", { eventId, agencyId });
+    // [71-H6.QA] Cache key validation
+    const cacheKey = eventId ? `participants_${agencyId}_${eventId}` : `participants_${agencyId}`;
+    console.log("[71-H6.QA.UnifiedParticipant] Loading with cache key:", cacheKey, { eventId, agencyId });
     
     try {
       // Direct query from participants table with related data

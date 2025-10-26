@@ -29,12 +29,21 @@ export default function RoomingTab() {
     { revalidateOnFocus: false, dedupingInterval: 60000 }
   );
 
+  // [71-H6.QA] Data flow validation
+  console.log("[71-H6.QA.Rooming] Loading:", isLoading, "Error:", error?.message, "Count:", roomingList?.length);
+
   if (isLoading) {
     return <div className="p-6 text-muted-foreground">숙박 데이터를 불러오는 중...</div>;
   }
 
   if (error) {
-    return <div className="p-6 text-destructive">데이터 로드 실패: {error.message}</div>;
+    return (
+      <div className="p-8 text-destructive bg-destructive/10 rounded-xl shadow-sm">
+        <p className="font-semibold">데이터 로드 중 오류가 발생했습니다.</p>
+        <p className="text-sm mt-1">{error.message}</p>
+        <p className="text-xs mt-2 text-muted-foreground">잠시 후 다시 시도해주세요.</p>
+      </div>
+    );
   }
 
   if (!roomingList || roomingList.length === 0) {

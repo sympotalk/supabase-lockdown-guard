@@ -50,6 +50,14 @@ export default function EventDetailLayout() {
     loadEvent();
   }, [eventId, agencyScope]);
 
+  // [71-H6.QA] Validate data hydration across all tabs
+  useEffect(() => {
+    console.log("[71-H6.QA] Active tab:", tab);
+    console.log("[71-H6.QA] Agency scope:", agencyScope);
+    console.log("[71-H6.QA] Event ID:", event?.id);
+    console.log("[71-H6.QA] Event name:", event?.name);
+  }, [tab, agencyScope, event]);
+
   // Persist tab selection
   useEffect(() => {
     if (eventId) {
