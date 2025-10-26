@@ -173,7 +173,7 @@ export default function MasterAccountManager() {
       <Tabs defaultValue="accounts" className="space-y-4">
         <TabsList className="rounded-xl">
           <TabsTrigger value="accounts">계정 목록</TabsTrigger>
-          <TabsTrigger value="permissions">권한 설정</TabsTrigger>
+          <TabsTrigger value="permissions">권한 정책</TabsTrigger>
         </TabsList>
 
         <TabsContent value="accounts" className="space-y-4">
