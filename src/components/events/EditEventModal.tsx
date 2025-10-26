@@ -1,4 +1,4 @@
-// [LOCKED][71-H2.REBUILD.EVENTCARD.STATS.LINE] Event edit modal
+// [LOCKED][71-H3.STATS.SYNC] Event edit modal with statistics refresh
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -6,6 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+import { mutate } from "swr";
+import { useUser } from "@/context/UserContext";
 
 interface Event {
   id: string;
@@ -26,6 +28,7 @@ interface EditEventModalProps {
 export function EditEventModal({ open, onOpenChange, event, onUpdated }: EditEventModalProps) {
   const [form, setForm] = useState({ ...event });
   const [saving, setSaving] = useState(false);
+  const { agencyScope } = useUser();
 
   const handleSave = async () => {
     setSaving(true);
@@ -41,6 +44,11 @@ export function EditEventModal({ open, onOpenChange, event, onUpdated }: EditEve
         .eq("id", event.id);
 
       if (error) throw error;
+
+      // [LOCKED][71-H3.STATS.SYNC] Refresh statistics after update
+      if (agencyScope) {
+        await mutate(`event_stats_${agencyScope}`);
+      }
 
       toast({ 
         title: "수정 완료", 

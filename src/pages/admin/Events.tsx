@@ -1,4 +1,4 @@
-// [LOCKED][71-H2.REBUILD.EVENTCARD.STATS.LINE] Event list rebuilt to horizontal line cards with stats
+// [LOCKED][71-H3.STATS.SYNC] Event list with unified statistics hook
 import { useEffect, useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { Plus } from "lucide-react";
@@ -10,6 +10,8 @@ import { useUser } from "@/context/UserContext";
 import { LoadingSkeleton } from "@/components/pd/LoadingSkeleton";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+import { useEventStatistics } from "@/hooks/useEventStatistics";
+import { mutate } from "swr";
 
 interface Event {
   id: string;
@@ -18,9 +20,6 @@ interface Event {
   end_date: string;
   location: string | null;
   status: string | null;
-  participants_count?: number;
-  rooming_rate?: number;
-  form_rate?: number;
 }
 
 export default function Events() {
@@ -33,7 +32,10 @@ export default function Events() {
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
 
-  console.log('[71-G.UNIFY.EVENTTABS] Events page loaded', { agencyScope, role });
+  // [LOCKED][71-H3.STATS.SYNC] Unified statistics hook
+  const { data: statsData } = useEventStatistics(agencyScope);
+
+  console.log('[71-H3.STATS.SYNC] Events page loaded', { agencyScope, role, statsCount: statsData?.length });
 
   // Sync URL agency parameter with UserContext
   useEffect(() => {
@@ -64,43 +66,7 @@ export default function Events() {
 
       if (eventsError) throw eventsError;
 
-      // Aggregate stats for each event
-      const eventsWithCounts = await Promise.all(
-        (eventsData || []).map(async (event) => {
-          // Participant count
-          const { count: participantCount } = await supabase
-            .from("participants")
-            .select("*", { count: "exact", head: true })
-            .eq("event_id", event.id);
-
-          // Rooming rate - count participants with room assignments
-          const { data: roomingData } = await supabase
-            .from("participants")
-            .select("room_number", { count: "exact", head: false })
-            .eq("event_id", event.id)
-            .not("room_number", "is", null);
-
-          const roomedCount = roomingData?.length || 0;
-          const rooming_rate = participantCount ? (roomedCount / participantCount * 100) : 0;
-
-          // Form completion rate
-          const { count: formCount } = await supabase
-            .from("form_responses")
-            .select("*", { count: "exact", head: true })
-            .eq("event_id", event.id);
-
-          const form_rate = participantCount ? (formCount || 0) / participantCount * 100 : 0;
-
-          return {
-            ...event,
-            participants_count: participantCount || 0,
-            rooming_rate,
-            form_rate,
-          };
-        })
-      );
-
-      setEvents(eventsWithCounts);
+      setEvents(eventsData || []);
     } catch (error: any) {
       toast({
         title: "행사 목록을 불러오지 못했습니다.",
@@ -115,6 +81,15 @@ export default function Events() {
   useEffect(() => {
     loadEvents();
   }, [agencyScope]);
+
+  // Helper to get statistics for an event
+  const getStat = (eventId: string) => {
+    return statsData?.find((s) => s.event_id === eventId) || {
+      participant_count: 0,
+      rooming_rate: 0,
+      form_rate: 0,
+    };
+  };
 
   // Date formatting function
   const formatDateRange = (start: string, end: string) => {
@@ -214,55 +189,58 @@ export default function Events() {
         </div>
       ) : (
         <div className="space-y-3">
-          {events.map((event) => (
-            <div
-              key={event.id}
-              onClick={() => navigate(`/admin/events/${event.id}/participants`)}
-              className="flex items-center justify-between bg-card hover:bg-accent/50 border border-border rounded-xl shadow-sm p-4 transition-all cursor-pointer"
-            >
-              {/* 왼쪽: 행사정보 */}
-              <div className="flex flex-col w-1/3">
-                <div className="text-base font-semibold text-primary">{event.name}</div>
-                <div className="text-sm text-muted-foreground">
-                  {formatDateRange(event.start_date, event.end_date)}
+          {events.map((event) => {
+            const stat = getStat(event.id);
+            return (
+              <div
+                key={event.id}
+                onClick={() => navigate(`/admin/events/${event.id}/participants`)}
+                className="flex items-center justify-between bg-card hover:bg-accent/50 border border-border rounded-xl shadow-sm p-4 transition-all cursor-pointer"
+              >
+                {/* 왼쪽: 행사정보 */}
+                <div className="flex flex-col w-1/3">
+                  <div className="text-base font-semibold text-primary">{event.name}</div>
+                  <div className="text-sm text-muted-foreground">
+                    {formatDateRange(event.start_date, event.end_date)}
+                  </div>
+                </div>
+
+                {/* 중앙: 통계 정보 */}
+                <div className="flex items-center justify-between w-1/3 text-sm text-muted-foreground gap-4">
+                  <div>
+                    <span className="font-semibold text-foreground">{stat.participant_count || 0}</span> 명 참가
+                  </div>
+                  <div>
+                    <span className="font-semibold text-foreground">{Math.round(stat.rooming_rate || 0)}%</span> 객실 배정
+                  </div>
+                  <div>
+                    <span className="font-semibold text-foreground">{Math.round(stat.form_rate || 0)}%</span> 설문 완료
+                  </div>
+                </div>
+
+                {/* 오른쪽: 상태 및 수정 */}
+                <div className="flex items-center gap-3">
+                  <Badge
+                    variant={getStatusBadgeVariant(event.status)}
+                  >
+                    {getStatusLabel(event.status)}
+                  </Badge>
+
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setEditingEvent(event);
+                      setEditModalOpen(true);
+                    }}
+                  >
+                    수정
+                  </Button>
                 </div>
               </div>
-
-              {/* 중앙: 통계 정보 */}
-              <div className="flex items-center justify-between w-1/3 text-sm text-muted-foreground gap-4">
-                <div>
-                  <span className="font-semibold text-foreground">{event.participants_count || 0}</span> 명 참가
-                </div>
-                <div>
-                  <span className="font-semibold text-foreground">{Math.round(event.rooming_rate || 0)}%</span> 객실 배정
-                </div>
-                <div>
-                  <span className="font-semibold text-foreground">{Math.round(event.form_rate || 0)}%</span> 설문 완료
-                </div>
-              </div>
-
-              {/* 오른쪽: 상태 및 수정 */}
-              <div className="flex items-center gap-3">
-                <Badge
-                  variant={getStatusBadgeVariant(event.status)}
-                >
-                  {getStatusLabel(event.status)}
-                </Badge>
-
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setEditingEvent(event);
-                    setEditModalOpen(true);
-                  }}
-                >
-                  수정
-                </Button>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>

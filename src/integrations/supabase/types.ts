@@ -7049,6 +7049,15 @@ export type Database = {
         Args: { p_event_id: string; p_rows: Json }
         Returns: Json
       }
+      fn_event_statistics: {
+        Args: { p_agency_id: string }
+        Returns: {
+          event_id: string
+          form_rate: number
+          participant_count: number
+          rooming_rate: number
+        }[]
+      }
       fn_generate_qa_report: { Args: never; Returns: Json }
       fn_healthcheck_all: { Args: never; Returns: Json }
       fn_manage_agency: {
