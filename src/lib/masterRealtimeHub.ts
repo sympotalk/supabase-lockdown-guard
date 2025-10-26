@@ -165,6 +165,28 @@ export class MasterRealtimeHub {
     this.triggerRefresh("F");
   }
 
+  private handleAlertsHistoryEvent(payload: any) {
+    console.log("[MasterRealtimeHub] alerts_history event:", payload);
+    
+    // Trigger refresh for alert history views
+    this.triggerRefresh("ALERTS");
+    
+    // Show toast for new alerts
+    if (payload.eventType === "INSERT") {
+      const severity = payload.new?.severity || "info";
+      const module = payload.new?.module_name || "Unknown";
+      const message = payload.new?.message || "New alert";
+      
+      if (severity === "critical" || severity === "error") {
+        this.showAlert({
+          title: `🕒 ${module}`,
+          description: message,
+          priority: severity === "critical" ? "critical" : "high",
+        });
+      }
+    }
+  }
+
   private handleConnectionError() {
     connectionFailures++;
     console.warn(`[MasterRealtimeHub] Connection failure count: ${connectionFailures}`);
@@ -251,6 +273,12 @@ export class MasterRealtimeHub {
         "postgres_changes",
         { event: "*", schema: "public", table: "qa_reports" },
         (payload) => this.handleQAReportEvent(payload)
+      )
+      // G1: alerts_history (if exists)
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "alerts_history" },
+        (payload) => this.handleAlertsHistoryEvent(payload)
       )
       .subscribe((status, err) => {
         if (status === "SUBSCRIBED") {

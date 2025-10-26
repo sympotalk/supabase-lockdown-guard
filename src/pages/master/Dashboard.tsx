@@ -131,6 +131,9 @@ export default function MasterDashboard() {
             <RefreshCw className="h-4 w-4" />
             새로고침
           </Button>
+          <Button variant="outline" size="sm" onClick={() => navigate("/master/alert-history")}>
+            Alert History
+          </Button>
           <Button variant="outline" onClick={() => navigate("/master/agencies")}>
             에이전시 관리
           </Button>
