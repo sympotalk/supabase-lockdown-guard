@@ -2,8 +2,11 @@ import { useMaster } from '@/hooks/useMaster';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Building2, Calendar, Users, Activity } from 'lucide-react';
 import { useEffect } from 'react';
+import { SystemInsightBoard } from '@/components/dashboard/SystemInsightBoard';
+import { QAReportSummary } from '@/components/dashboard/QAReportSummary';
 
 export default function MasterDashboard() {
   const { agencies, loading, error } = useMaster();
@@ -107,61 +110,79 @@ export default function MasterDashboard() {
         </Card>
       </div>
 
-      {/* Agencies Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle>에이전시 현황</CardTitle>
-          <CardDescription>
-            전체 에이전시의 활동 현황을 확인할 수 있습니다
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="rounded-lg border">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b bg-muted/50">
-                  <th className="p-3 text-left font-medium">에이전시명</th>
-                  <th className="p-3 text-center font-medium">코드</th>
-                  <th className="p-3 text-center font-medium">행사</th>
-                  <th className="p-3 text-center font-medium">참가자</th>
-                  <th className="p-3 text-center font-medium">최근 활동</th>
-                  <th className="p-3 text-center font-medium">상태</th>
-                </tr>
-              </thead>
-              <tbody>
-                {agencies.length === 0 ? (
-                  <tr>
-                    <td colSpan={6} className="p-8 text-center text-muted-foreground">
-                      등록된 에이전시가 없습니다
-                    </td>
-                  </tr>
-                ) : (
-                  agencies.map((agency) => (
-                    <tr key={agency.id} className="border-b last:border-0 hover:bg-muted/30">
-                      <td className="p-3 font-medium">{agency.name}</td>
-                      <td className="p-3 text-center text-muted-foreground">
-                        {agency.code || '-'}
-                      </td>
-                      <td className="p-3 text-center">{agency.event_count}</td>
-                      <td className="p-3 text-center">{agency.participant_count}</td>
-                      <td className="p-3 text-center text-muted-foreground">
-                        {agency.last_activity
-                          ? new Date(agency.last_activity).toLocaleDateString('ko-KR')
-                          : '-'}
-                      </td>
-                      <td className="p-3 text-center">
-                        <Badge variant={agency.is_active ? 'default' : 'secondary'}>
-                          {agency.is_active ? '활성' : '비활성'}
-                        </Badge>
-                      </td>
+      {/* Analytics Tabs */}
+      <Tabs defaultValue="overview" className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="insights">System Insights</TabsTrigger>
+          <TabsTrigger value="qa">QA Reports</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="overview" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>에이전시 현황</CardTitle>
+              <CardDescription>
+                전체 에이전시의 활동 현황을 확인할 수 있습니다
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="rounded-lg border">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b bg-muted/50">
+                      <th className="p-3 text-left font-medium">에이전시명</th>
+                      <th className="p-3 text-center font-medium">코드</th>
+                      <th className="p-3 text-center font-medium">행사</th>
+                      <th className="p-3 text-center font-medium">참가자</th>
+                      <th className="p-3 text-center font-medium">최근 활동</th>
+                      <th className="p-3 text-center font-medium">상태</th>
                     </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-        </CardContent>
-      </Card>
+                  </thead>
+                  <tbody>
+                    {agencies.length === 0 ? (
+                      <tr>
+                        <td colSpan={6} className="p-8 text-center text-muted-foreground">
+                          등록된 에이전시가 없습니다
+                        </td>
+                      </tr>
+                    ) : (
+                      agencies.map((agency) => (
+                        <tr key={agency.id} className="border-b last:border-0 hover:bg-muted/30">
+                          <td className="p-3 font-medium">{agency.name}</td>
+                          <td className="p-3 text-center text-muted-foreground">
+                            {agency.code || '-'}
+                          </td>
+                          <td className="p-3 text-center">{agency.event_count}</td>
+                          <td className="p-3 text-center">{agency.participant_count}</td>
+                          <td className="p-3 text-center text-muted-foreground">
+                            {agency.last_activity
+                              ? new Date(agency.last_activity).toLocaleDateString('ko-KR')
+                              : '-'}
+                          </td>
+                          <td className="p-3 text-center">
+                            <Badge variant={agency.is_active ? 'default' : 'secondary'}>
+                              {agency.is_active ? '활성' : '비활성'}
+                            </Badge>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="insights">
+          <SystemInsightBoard />
+        </TabsContent>
+
+        <TabsContent value="qa">
+          <QAReportSummary />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

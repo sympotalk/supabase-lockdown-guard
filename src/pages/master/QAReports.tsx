@@ -15,35 +15,34 @@ export default function MasterQAReports() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    const loadReports = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('qa_reports')
+          .select('id, title, status, category, generated_at')
+          .order('generated_at', { ascending: false })
+          .limit(50);
+
+        if (error) {
+          console.error('[QAReports] Error:', error);
+        } else if (data) {
+          setReports(data.map((item: any) => ({
+            id: item.id,
+            title: item.title || 'QA Report',
+            status: item.status || 'PASS',
+            category: item.category || 'System',
+            generated_at: item.generated_at
+          })));
+        }
+      } catch (err) {
+        console.error('[QAReports] Unexpected error:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
     loadReports();
   }, []);
-
-  const loadReports = async () => {
-    try {
-      const result = await supabase
-        .from('qa_reports')
-        .select('id, title, status, category, generated_at')
-        .eq('is_active', true)
-        .order('generated_at', { ascending: false })
-        .limit(50);
-
-      if (result.error) {
-        console.error('[QAReports] Error:', result.error);
-      } else if (result.data) {
-        setReports(result.data.map((item: any) => ({
-          id: item.id,
-          title: item.title || 'QA Report',
-          status: item.status || 'PASS',
-          category: item.category || 'System',
-          generated_at: item.generated_at
-        })));
-      }
-    } catch (err) {
-      console.error('[QAReports] Unexpected error:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   if (loading) {
     return (
