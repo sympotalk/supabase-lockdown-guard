@@ -1,0 +1,752 @@
+═══════════════════════════════════════════════════════════════════════════════
+  [Phase 71-C.PRECHECK] — AGENCY DATA FLOW & POLICY INTEGRITY REPORT
+  Generated: 2025-10-26
+  Purpose: Cross-role structure validation & participant loading diagnosis
+═══════════════════════════════════════════════════════════════════════════════
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ 1️⃣ DATA FLOW TREE (Supabase → Context → Hook → Page → Component)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+┌─ SUPABASE LAYER
+│
+├─── Tables/Views
+│    ├── events (RLS: ✅ Master + Agency scoped)
+│    ├── participants (RLS: ⚠️ NOT EXPLICITLY DEFINED)
+│    ├── event_progress_view (RLS: ⚠️ NOT EXPLICITLY DEFINED)
+│    ├── agencies
+│    ├── user_roles
+│    ├── agency_members
+│    ├── rooming
+│    └── messages
+│
+├─── RPC Functions
+│    ├── fn_bulk_upload_participants (agency_id check required)
+│    ├── rpc_invite_user
+│    ├── rpc_create_agency
+│    └── master_* functions (master role required)
+│
+└─── Views
+     ├── event_progress_view (agency_id column present)
+     └── agency_summary
+
+┌─ CONTEXT LAYER
+│
+├─── UserContext.tsx [SHARED: ✅]
+│    ├── Provides: role, agencyScope, userId, user, session
+│    ├── Used by: ALL pages
+│    └── Manages: Session sync, role determination, agency scope
+│
+├─── AppDataContext.tsx [⚠️ MIXED MASTER/AGENCY LOGIC]
+│    ├── Provides: profile, agency, agencyList, metrics
+│    ├── Used by: CreateEventModal, admin pages
+│    ├── Issues:
+│    │   • Mixes master and agency data fetching
+│    │   • Loads all agencies for master
+│    │   • Realtime subscriptions to agency-specific tables
+│    └── Dependencies: UserContext
+│
+└─── MasterContext.tsx [MASTER ONLY: ✅]
+     ├── Provides: metrics, aiInsights, qaReports
+     ├── Used by: MasterLayout, master/* pages
+     ├── Dependencies: useMasterData hooks
+     └── Scope: Master dashboard only
+
+┌─ HOOK LAYER
+│
+├─── useAgencyDashboard.ts [AGENCY ONLY]
+│    ├── Functions:
+│    │   • useEventProgress() → event_progress_view
+│    │   • useEventCounts() → events table
+│    ├── SWR Keys:
+│    │   • 'event_progress_view' [⚠️ NO AGENCY SCOPE IN KEY]
+│    │   • 'event_counts' [⚠️ NO AGENCY SCOPE IN KEY]
+│    ├── RLS Filter: ⚠️ Relies on DB-level RLS only
+│    └── Used by: /admin/dashboard
+│
+├─── useMasterData.ts [MASTER ONLY]
+│    ├── Functions:
+│    │   • useSystemMetrics() → master metrics
+│    │   • useAIInsights() → ai_insights table
+│    │   • useQAReports() → qa_reports table
+│    ├── SWR Keys: 'master:*' prefix
+│    └── Used by: MasterContext
+│
+├─── useUnifiedParticipant.ts [SHARED: ⚠️]
+│    ├── Parameters: eventId, agencyId
+│    ├── Query: participants table
+│    ├── Issues:
+│    │   • Requires BOTH eventId AND agencyId
+│    │   • Returns empty if neither provided
+│    │   • No RLS policy verification
+│    ├── Realtime: Subscribes to participants, rooming, messages
+│    └── Used by: /admin/participants
+│
+└─── useAppData() [⚠️ MIXED]
+     ├── From: AppDataContext
+     ├── Returns: profile, agency, metrics
+     └── Mixed master/agency logic
+
+┌─ PAGE LAYER
+│
+├─── /admin/dashboard (Dashboard.tsx) [AGENCY]
+│    ├── Context: useUser (agencyScope required for master)
+│    ├── Hooks: useEventProgress, useEventCounts
+│    ├── Components: UploadParticipantsModal, CreateEventModal
+│    ├── Data:
+│    │   • Event progress with rooming rates
+│    │   • Event counts by status
+│    ├── RLS Check: ⚠️ event_progress_view has no explicit RLS
+│    └── Issue: Master without agencyScope sees nothing
+│
+├─── /admin/participants (Participants.tsx) [AGENCY]
+│    ├── Context: useUser (agencyScope, setAgencyScope)
+│    ├── Hooks: useUnifiedParticipant(eventId, agencyScope)
+│    ├── Query Params: Syncs ?agency= param to agencyScope
+│    ├── Data:
+│    │   • Participants list
+│    │   • Filtered by eventId or agencyId
+│    ├── RLS Check: ⚠️ participants table has no explicit RLS
+│    ├── Issue: 🚫 NULL DATA when agencyScope missing
+│    └── Loading: Shows spinner correctly
+│
+├─── /admin/events (Events.tsx) [AGENCY]
+│    ├── Context: useUser (role, agencyScope, setAgencyScope)
+│    ├── Query: Direct supabase.from('events')
+│    ├── RLS Filter:
+│    │   • Master: All events OR filtered by agencyScope
+│    │   • Agency: Filtered by agencyScope
+│    ├── RLS Check: ✅ events table has proper RLS
+│    └── Issue: Works correctly
+│
+└─── /agency/:id (AgencyView.tsx) [INFO PAGE]
+     ├── Context: useUser (setAgencyScope)
+     ├── Query: agencies table
+     ├── Action: "에이전시 대시보드 보기" button
+     │   → setAgencyScope(agency.id)
+     │   → navigate('/admin/dashboard')
+     └── Purpose: Master views agency info before entering
+
+┌─ LAYOUT LAYER
+│
+├─── AdminLayout
+│    ├── Components: Header + Sidebar
+│    ├── Routes: /admin/*
+│    └── Used by: agency_owner, staff, master (with agencyScope)
+│
+├─── MasterLayout
+│    ├── Components: MasterHeader + MasterSidebar
+│    ├── Routes: /master/*
+│    ├── Auto-clear: setAgencyScope(null) on /master/* routes
+│    └── Used by: master only
+│
+├─── Header.tsx [ADMIN]
+│    ├── Badge: Shows when master + agencyScope + /admin/*
+│    ├── Exit Button: setAgencyScope(null) → /master/dashboard
+│    └── Issue: 🚫 Badge conditional may fail if agencyName not loaded
+│
+└─── MasterHeader.tsx [MASTER]
+     ├── Badge: "에이전시 뷰 · {name}"
+     ├── Condition: isAgencyView = (role=master && agencyScope) || (role=agency_owner && agencyScope)
+     ├── Query: agency_summary table
+     └── Fallback: "(알 수 없음)" if name not loaded
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ 2️⃣ PAGE FILE DEPENDENCY MATRIX
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+┌─────────────────────┬─────────────────────────────────────────────────────┐
+│ Page                │ Dependencies                                        │
+├─────────────────────┼─────────────────────────────────────────────────────┤
+│ /admin/dashboard    │ Context: UserContext                                │
+│ (Dashboard.tsx)     │ Hooks: useEventProgress, useEventCounts (SWR)       │
+│                     │ Components: UploadParticipantsModal, CreateEventModal│
+│                     │ Supabase: event_progress_view, events table         │
+│                     │ RLS: ⚠️ event_progress_view (NOT DEFINED)           │
+│                     │ Issue: Master needs agencyScope                     │
+├─────────────────────┼─────────────────────────────────────────────────────┤
+│ /admin/participants │ Context: UserContext                                │
+│ (Participants.tsx)  │ Hooks: useUnifiedParticipant(eventId, agencyScope)  │
+│                     │ Components: ModuleInsightBar, LoadingSkeleton       │
+│                     │ Supabase: participants table, events (for filter)   │
+│                     │ RLS: ⚠️ participants (NOT DEFINED)                  │
+│                     │ Issue: 🚫 Returns [] when agencyScope=null         │
+├─────────────────────┼─────────────────────────────────────────────────────┤
+│ /admin/events       │ Context: UserContext                                │
+│ (Events.tsx)        │ Hooks: None (direct query)                          │
+│                     │ Components: CreateEventModal, StatusBadge           │
+│                     │ Supabase: events table (direct SELECT)              │
+│                     │ RLS: ✅ events (DEFINED)                            │
+│                     │ Filter: Manual .eq('agency_id', agencyScope)        │
+│                     │ Issue: None                                         │
+├─────────────────────┼─────────────────────────────────────────────────────┤
+│ /agency/:id         │ Context: UserContext (setAgencyScope)               │
+│ (AgencyView.tsx)    │ Hooks: None (direct query)                          │
+│                     │ Components: Card, Badge, Button                     │
+│                     │ Supabase: agencies table                            │
+│                     │ Purpose: Info page + dashboard entry button         │
+│                     │ Issue: None                                         │
+└─────────────────────┴─────────────────────────────────────────────────────┘
+
+SUPABASE TABLE/VIEW ACCESS:
+┌──────────────────────┬──────────────┬──────────────┬─────────────────────┐
+│ Resource             │ RLS Enabled  │ Policy Scope │ Accessed By         │
+├──────────────────────┼──────────────┼──────────────┼─────────────────────┤
+│ events               │ ✅ Yes       │ ✅ DEFINED   │ Dashboard, Events   │
+│ participants         │ ⚠️ Unknown   │ ⚠️ MISSING   │ Participants        │
+│ event_progress_view  │ ⚠️ Unknown   │ ⚠️ MISSING   │ Dashboard           │
+│ agencies             │ ✅ Yes       │ ✅ DEFINED   │ AgencyView, Headers │
+│ agency_summary       │ ⚠️ Unknown   │ ⚠️ MISSING   │ MasterHeader        │
+│ user_roles           │ ✅ Yes       │ ✅ DEFINED   │ UserContext         │
+│ rooming              │ ⚠️ Unknown   │ ⚠️ MISSING   │ useUnifiedParticipant│
+│ messages             │ ⚠️ Unknown   │ ⚠️ MISSING   │ useUnifiedParticipant│
+└──────────────────────┴──────────────┴──────────────┴─────────────────────┘
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ 3️⃣ ROLE-BASED ACCESS CONTROL MATRIX
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+ROLE: master
+┌─────────────────────┬──────────┬────────────────────────────────────────┐
+│ Action              │ Access   │ Notes                                  │
+├─────────────────────┼──────────┼────────────────────────────────────────┤
+│ /master/dashboard   │ ✅       │ MasterContext provides data            │
+│ /master/agencies    │ ✅       │ List all agencies                      │
+│ /admin/dashboard    │ ⚠️       │ Requires agencyScope to be set         │
+│ /admin/participants │ ⚠️       │ Requires agencyScope + eventId         │
+│ /admin/events       │ ⚠️       │ Works with agencyScope filter          │
+│ Create Event        │ ✅       │ Can select any agency                  │
+│ Upload Participants │ ⚠️       │ Needs agencyScope for RPC validation   │
+│ RPC: master_*       │ ✅       │ has_role check passes                  │
+│ View all data       │ ✅       │ RLS policies allow                     │
+└─────────────────────┴──────────┴────────────────────────────────────────┘
+
+ROLE: agency_owner
+┌─────────────────────┬──────────┬────────────────────────────────────────┐
+│ Action              │ Access   │ Notes                                  │
+├─────────────────────┼──────────┼────────────────────────────────────────┤
+│ /master/*           │ 🚫       │ MasterLayout redirects to /admin       │
+│ /admin/dashboard    │ ✅       │ agencyScope auto-set from user_roles   │
+│ /admin/participants │ ✅       │ agencyScope available                  │
+│ /admin/events       │ ✅       │ Filtered by agency_id                  │
+│ Create Event        │ ✅       │ agency_id auto-set                     │
+│ Upload Participants │ ✅       │ agency_id available                    │
+│ RPC: master_*       │ 🚫       │ has_role check fails                   │
+│ View own agency     │ ✅       │ RLS policies filter correctly          │
+└─────────────────────┴──────────┴────────────────────────────────────────┘
+
+ROLE: staff
+┌─────────────────────┬──────────┬────────────────────────────────────────┐
+│ Action              │ Access   │ Notes                                  │
+├─────────────────────┼──────────┼────────────────────────────────────────┤
+│ /master/*           │ 🚫       │ Redirected to /admin                   │
+│ /admin/dashboard    │ ✅       │ agencyScope auto-set                   │
+│ /admin/participants │ ✅       │ Can view/edit                          │
+│ /admin/events       │ ✅       │ Can view/create                        │
+│ Create Event        │ ✅       │ [71-B] Staff can create events         │
+│ Upload Participants │ ✅       │ [71-B] Staff can upload                │
+│ RPC: master_*       │ 🚫       │ Insufficient permissions               │
+│ View own agency     │ ✅       │ Filtered correctly                     │
+└─────────────────────┴──────────┴────────────────────────────────────────┘
+
+RLS POLICY MAPPING:
+┌─────────────────────┬──────────────┬─────────────────────────────────────┐
+│ Table/View          │ Policy       │ Logic                               │
+├─────────────────────┼──────────────┼─────────────────────────────────────┤
+│ events              │ ✅ DEFINED   │ Master: ALL                         │
+│                     │              │ Agency: WHERE agency_id=user.agency │
+│ participants        │ ⚠️ MISSING   │ 🚫 NO RLS DEFINED                   │
+│ event_progress_view │ ⚠️ MISSING   │ 🚫 NO RLS DEFINED                   │
+│ agencies            │ ✅ DEFINED   │ Master: ALL, Agency: Own            │
+│ user_roles          │ ✅ DEFINED   │ Self + Master                       │
+└─────────────────────┴──────────────┴─────────────────────────────────────┘
+
+SHARED RESOURCE CONFLICTS:
+┌─────────────────────────────────────────────────────────────────────────┐
+│ 🚫 SWR Key Collision:                                                   │
+│    • useEventProgress() → key: 'event_progress_view'                    │
+│    • useEventCounts() → key: 'event_counts'                             │
+│    • Problem: No agency_id in key → master cache collision              │
+│    • Solution: Add agencyScope to SWR key                               │
+├─────────────────────────────────────────────────────────────────────────┤
+│ ⚠️ AppDataContext Mixed Logic:                                          │
+│    • Loads agencyList for master                                        │
+│    • Subscribes to agency-specific realtime                             │
+│    • Mixes master/agency metrics fetching                               │
+│    • Solution: Split into MasterDataContext + AgencyDataContext         │
+├─────────────────────────────────────────────────────────────────────────┤
+│ ⚠️ useUnifiedParticipant:                                               │
+│    • Requires eventId OR agencyId                                       │
+│    • Returns [] if both null                                            │
+│    • Used by Participants page                                          │
+│    • Problem: Master without agencyScope → empty list                   │
+│    • Solution: Force agencyScope selection before loading               │
+└─────────────────────────────────────────────────────────────────────────┘
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ 4️⃣ DATA SCOPE POLICY BY MENU
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+/admin/dashboard
+├── Expected Scope: agency_id = agencyScope
+├── Data Sources:
+│   • event_progress_view (⚠️ No RLS → relies on DB-level filter)
+│   • events table (✅ RLS enforced)
+├── Filter Logic:
+│   • useEventProgress: SELECT * FROM event_progress_view
+│   • useEventCounts: SELECT status FROM events WHERE is_active=true
+├── Issue: 🚫 Master without agencyScope sees ALL data (unsafe)
+└── Fix Required: Add RLS policy to event_progress_view
+
+/admin/participants
+├── Expected Scope: agency_id = agencyScope + optional event_id filter
+├── Data Sources:
+│   • participants table (⚠️ No RLS)
+│   • events table (for dropdown filter)
+├── Filter Logic:
+│   • useUnifiedParticipant:
+│     - .eq('event_id', eventId) if eventId
+│     - .eq('agency_id', agencyId) if agencyId
+│     - Returns [] if both null
+├── Issue: 🚫 If agencyScope=null → empty list + "등록된 참가자 없음"
+└── Fix Required:
+    1. Add RLS to participants table
+    2. Enforce agencyScope before page load
+
+/admin/events
+├── Expected Scope: agency_id = agencyScope
+├── Data Sources:
+│   • events table (✅ RLS enforced)
+├── Filter Logic:
+│   • Direct query:
+│     - Master without scope: All events
+│     - Master with scope: .eq('agency_id', agencyScope)
+│     - Agency users: Auto-filtered by RLS
+├── Issue: ✅ None (works correctly)
+└── Status: SAFE
+
+/agency/:id (Info Page)
+├── Expected Scope: No filtering (view single agency record)
+├── Data Sources:
+│   • agencies table (✅ RLS enforced)
+├── Purpose: View agency info before entering dashboard
+├── Action Button:
+│   • setAgencyScope(agency.id)
+│   • navigate('/admin/dashboard')
+├── Issue: ✅ None
+└── Status: SAFE
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ 5️⃣ PARTICIPANT PAGE LOADING ERROR ROOT CAUSE ANALYSIS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🔍 SYMPTOM:
+   • Participants page shows "등록된 참가자가 없습니다" message
+   • No data appears even when participants exist
+   • Loading spinner may appear briefly then disappear
+
+🔍 TRIGGER CHAIN:
+
+1️⃣ User enters /admin/participants
+   └─> AdminLayout renders
+       └─> Participants.tsx mounts
+
+2️⃣ Participants.tsx initialization:
+   ├─> const { role, agencyScope, setAgencyScope } = useUser();
+   ├─> const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
+   └─> const { data, loading, refresh } = useUnifiedParticipant(selectedEventId, agencyScope);
+
+3️⃣ useUnifiedParticipant.ts execution:
+   ├─> const load = async () => {
+   │     if (!eventId && !agencyId) {
+   │       console.warn("[useUnifiedParticipant] Skipped loading — no eventId or agencyId provided");
+   │       setData([]);
+   │       setLoading(false);
+   │       return;  ← 🚫 EARLY RETURN HERE
+   │     }
+   │   }
+   └─> If both null → returns empty array immediately
+
+4️⃣ Component renders:
+   └─> {participants.length === 0 ? (
+         <div>등록된 참가자가 없습니다...</div>  ← 🚫 THIS MESSAGE SHOWN
+       ) : (...)}
+
+🔍 ROOT CAUSES:
+
+PRIMARY CAUSE: Missing agencyScope
+┌────────────────────────────────────────────────────────────────────────┐
+│ Scenario: Master enters /admin/participants without setting agencyScope│
+│ Result: useUnifiedParticipant receives (null, null)                    │
+│ Behavior: Early return with empty array                                │
+│ UI: "등록된 참가자가 없습니다" message                                 │
+└────────────────────────────────────────────────────────────────────────┘
+
+SECONDARY CAUSE: URL Sync Delay
+┌────────────────────────────────────────────────────────────────────────┐
+│ Code (Lines 40-46 in Participants.tsx):                                │
+│   useEffect(() => {                                                     │
+│     const agencyParam = searchParams.get("agency");                     │
+│     if (agencyParam && agencyParam !== agencyScope) {                   │
+│       setAgencyScope(agencyParam);  ← Async state update                │
+│     }                                                                    │
+│   }, [searchParams, agencyScope, setAgencyScope]);                      │
+│                                                                          │
+│ Problem: setAgencyScope is async → first render has null               │
+│ Result: useUnifiedParticipant runs with null before update             │
+└────────────────────────────────────────────────────────────────────────┘
+
+TERTIARY CAUSE: No Guard at Page Level
+┌────────────────────────────────────────────────────────────────────────┐
+│ Code (Lines 71-80 in Participants.tsx):                                │
+│   if (role === "master" && !agencyScope) {                             │
+│     return (                                                            │
+│       <div>먼저 에이전시를 선택하세요.</div>                           │
+│     );                                                                  │
+│   }                                                                     │
+│                                                                          │
+│ Issue: Guard exists BUT only for master                                │
+│ Gap: If agency_owner/staff has no agencyScope → no guard               │
+└────────────────────────────────────────────────────────────────────────┘
+
+QUATERNARY CAUSE: Missing RLS Policy
+┌────────────────────────────────────────────────────────────────────────┐
+│ Table: participants                                                     │
+│ RLS Status: ⚠️ NOT EXPLICITLY DEFINED                                  │
+│                                                                          │
+│ Risk: If RLS disabled → cross-agency data leak                         │
+│ Current: Relies on application-level filtering only                    │
+│                                                                          │
+│ Expected Policy:                                                        │
+│   CREATE POLICY "Agency users view own participants"                   │
+│   ON participants FOR SELECT                                            │
+│   USING (                                                               │
+│     has_role(auth.uid(), 'master') OR                                   │
+│     agency_id IN (                                                      │
+│       SELECT agency_id FROM user_roles                                  │
+│       WHERE user_id = auth.uid()                                        │
+│     )                                                                   │
+│   );                                                                    │
+└────────────────────────────────────────────────────────────────────────┘
+
+🔍 CALL STACK AT ERROR:
+
+/admin/participants
+  ↓
+Participants.tsx (mount)
+  ↓
+const { agencyScope } = useUser()  ← Returns null initially
+  ↓
+useUnifiedParticipant(null, null)
+  ↓
+load() function
+  ↓
+if (!eventId && !agencyId) { return; }  ← 🚫 EARLY EXIT
+  ↓
+setData([])
+setLoading(false)
+  ↓
+Component renders with empty array
+  ↓
+{participants.length === 0 ? "등록된 참가자가 없습니다" : ...}
+
+🔍 TIMING DIAGRAM:
+
+T=0ms    Page mounts
+         ├─> UserContext: agencyScope = null (initial)
+         └─> useUnifiedParticipant(null, null)
+             └─> Returns [] immediately
+
+T=50ms   URL sync useEffect runs
+         └─> Reads ?agency=xyz from URL
+             └─> setAgencyScope(xyz) called
+
+T=100ms  UserContext updates
+         └─> agencyScope = xyz now
+
+T=150ms  useUnifiedParticipant detects change
+         └─> Runs load() with new agencyScope
+             └─> Fetches participants
+                 └─> Data appears ✅
+
+Problem: Between T=0 and T=150ms → User sees "no data" message
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ 6️⃣ CRITICAL ISSUES SUMMARY
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🚨 HIGH PRIORITY
+
+1. Missing RLS Policies
+   ├─ participants table: NO POLICY DEFINED
+   ├─ event_progress_view: NO POLICY DEFINED
+   ├─ rooming table: NO POLICY DEFINED
+   └─ messages table: NO POLICY DEFINED
+   
+   Risk: Cross-agency data exposure
+   Impact: Security vulnerability
+   Fix: Add RLS policies for all agency-scoped tables
+
+2. SWR Cache Key Collision
+   ├─ useEventProgress: key = 'event_progress_view'
+   └─ useEventCounts: key = 'event_counts'
+   
+   Problem: No agencyScope in key → master views wrong data
+   Impact: Data confusion between agencies
+   Fix: Include agencyScope in SWR keys
+
+3. useUnifiedParticipant Empty Return
+   ├─ Returns [] if no eventId/agencyId
+   ├─ No loading indicator during sync
+   └─ Master sees "no data" message
+   
+   Problem: Poor UX, confusing error state
+   Impact: Users think data is missing
+   Fix: Show loading state until scope is set
+
+⚠️ MEDIUM PRIORITY
+
+4. AppDataContext Mixed Logic
+   ├─ Handles both master and agency data
+   ├─ Subscribes to agency-specific realtime
+   └─ Complex conditional logic
+   
+   Problem: Hard to maintain, error-prone
+   Impact: Future bugs likely
+   Fix: Split into MasterDataContext + AgencyDataContext
+
+5. URL Sync Delay
+   ├─ Participants.tsx syncs ?agency= param
+   ├─ Async setAgencyScope causes timing gap
+   └─ First render shows empty state
+   
+   Problem: Flickering UI, "no data" flash
+   Impact: Poor UX
+   Fix: Block render until agencyScope is ready
+
+6. Master Dashboard Without Scope
+   ├─ /admin/dashboard requires agencyScope
+   ├─ Master without scope sees nothing
+   └─ No clear instruction to select agency
+   
+   Problem: Confusing empty state
+   Impact: Users don't know what to do
+   Fix: Add "Select Agency" prompt like Participants page
+
+📋 LOW PRIORITY
+
+7. Badge Visibility Logic
+   ├─ MasterHeader checks agencyScope && currentAgencyName
+   ├─ Header checks agencyScope && agencyName && /admin/*
+   └─ Fallback: "(알 수 없음)" added
+   
+   Status: Recently fixed in Phase 3.14-D.AGENCYVIEW.FIX.2
+   Impact: Minimal
+
+8. CreateEventModal Agency Selection
+   ├─ Master selects from dropdown
+   ├─ Agency users have agency_id auto-set
+   └─ Uses AppDataContext (mixed logic)
+   
+   Issue: Depends on AppDataContext refactor
+   Impact: Works but could be cleaner
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ 7️⃣ RECOMMENDED FIX SEQUENCE (Phase 71-D)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+STEP 1: DATABASE LAYER (Supabase RLS Policies)
+───────────────────────────────────────────────
+Priority: 🚨 CRITICAL
+Files: supabase/migrations/new_migration.sql
+
+Actions:
+├─ Add RLS policy to participants table
+├─ Add RLS policy to event_progress_view
+├─ Add RLS policy to rooming table
+├─ Add RLS policy to messages table
+└─ Verify all agency-scoped tables have RLS
+
+SQL Template:
+```sql
+-- Participants RLS
+ALTER TABLE participants ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Master views all participants"
+ON participants FOR SELECT
+USING (has_role(auth.uid(), 'master'::app_role));
+
+CREATE POLICY "Agency users view own participants"
+ON participants FOR SELECT
+USING (
+  agency_id IN (
+    SELECT agency_id FROM user_roles
+    WHERE user_id = auth.uid()
+  )
+);
+
+-- Repeat for other tables...
+```
+
+STEP 2: HOOK LAYER (Fix SWR Cache Keys)
+────────────────────────────────────────
+Priority: 🚨 HIGH
+Files: src/hooks/useAgencyDashboard.ts
+
+Changes:
+├─ Add agencyScope parameter to all hooks
+├─ Include agencyScope in SWR keys
+└─ Filter queries by agencyScope at DB level
+
+Before:
+```typescript
+useSWR('event_progress_view', ...)
+```
+
+After:
+```typescript
+useSWR(
+  agencyScope ? `event_progress_view:${agencyScope}` : null,
+  async () => {
+    return supabase
+      .from('event_progress_view')
+      .select('*')
+      .eq('agency_id', agencyScope)
+      ...
+  }
+)
+```
+
+STEP 3: PARTICIPANTS PAGE (Fix Empty State)
+────────────────────────────────────────────
+Priority: 🚨 HIGH
+Files: src/pages/admin/Participants.tsx
+       src/hooks/useUnifiedParticipant.ts
+
+Changes:
+├─ Block render until agencyScope is set
+├─ Show loading state during URL sync
+├─ Add fallback for missing scope
+└─ Improve error messaging
+
+Pseudocode:
+```typescript
+// Participants.tsx
+if (loading || !agencyScope) {
+  return <LoadingSkeleton message="에이전시 정보 로딩 중..." />;
+}
+
+// useUnifiedParticipant.ts
+if (!eventId && !agencyId) {
+  setLoading(true); // Keep loading state
+  return; // Wait for scope
+}
+```
+
+STEP 4: DASHBOARD PAGE (Add Agency Guard)
+──────────────────────────────────────────
+Priority: ⚠️ MEDIUM
+Files: src/pages/admin/Dashboard.tsx
+
+Changes:
+├─ Add guard for master without agencyScope
+├─ Show "Select Agency" prompt
+└─ Match Participants page pattern
+
+Code:
+```typescript
+if (role === 'master' && !agencyScope) {
+  return (
+    <EmptyState
+      title="에이전시를 선택하세요"
+      description="먼저 에이전시를 선택해주세요."
+      action={<Button onClick={() => navigate('/master/agencies')}>
+        에이전시 목록
+      </Button>}
+    />
+  );
+}
+```
+
+STEP 5: CONTEXT REFACTOR (Split AppDataContext)
+────────────────────────────────────────────────
+Priority: ⚠️ MEDIUM (can defer to Phase 71-E)
+Files: src/contexts/AgencyDataContext.tsx (new)
+       src/contexts/MasterDataContext.tsx (exists)
+
+Changes:
+├─ Create dedicated AgencyDataContext
+├─ Move agency-specific logic from AppDataContext
+├─ Keep MasterContext for master-only data
+└─ Update all consumers
+
+Structure:
+```
+MasterContext (exists)
+  └─ Master dashboard metrics, AI insights, QA reports
+
+AgencyDataContext (new)
+  └─ Agency events, participants, metrics
+
+UserContext (keep)
+  └─ Auth, role, agencyScope
+```
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ 8️⃣ VERIFICATION CHECKLIST (Post-Fix QA)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+□ RLS POLICIES
+  □ participants table has RLS enabled and policies defined
+  □ event_progress_view has RLS policies
+  □ rooming table has RLS policies
+  □ messages table has RLS policies
+  □ Test: Master cannot see other agency data when agencyScope is set
+  □ Test: Agency users cannot see other agency data
+
+□ SWR CACHE
+  □ useEventProgress includes agencyScope in key
+  □ useEventCounts includes agencyScope in key
+  □ Test: Master switching between agencies sees correct cached data
+  □ Test: No cache collision between agencies
+
+□ PARTICIPANTS PAGE
+  □ Shows loading state until agencyScope is ready
+  □ Empty state only when no participants exist (not missing scope)
+  □ Master without agencyScope sees "Select Agency" message
+  □ URL ?agency= param syncs to agencyScope correctly
+  □ Test: Navigate from master agencies → participants works
+  □ Test: Direct URL /admin/participants?agency=xyz works
+  □ Test: Refresh page maintains agencyScope
+
+□ DASHBOARD PAGE
+  □ Master without agencyScope sees "Select Agency" prompt
+  □ Agency users see data immediately
+  □ event_progress_view shows correct agency data only
+  □ Test: Master enters from /master/agencies → dashboard works
+  □ Test: Agency owner sees only own events
+
+□ NAVIGATION FLOW
+  □ Master: /master/agencies → click agency → /admin/dashboard works
+  □ Master: "에이전시 뷰" badge appears correctly
+  □ Master: "Exit View Mode" clears scope and returns to /master
+  □ Agency users: Direct /admin/dashboard access works
+  □ Test: All navigation paths set/clear agencyScope correctly
+
+□ ERROR HANDLING
+  □ Missing agencyScope shows clear user message
+  □ Empty data shows "no data" (not error state)
+  □ RLS denial shows permission error
+  □ Network errors show retry option
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ END OF REPORT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Next Steps:
+1. 설계팀장: Review issues marked with 🚫 and ⚠️
+2. 검수팀장: Prioritize fixes based on STEP 1-5 sequence
+3. Phase 71-D: Execute database + hook layer fixes first
+4. Phase 71-E: Context refactor + final polish
+
+Log: [71-C.PRECHECK] Full Agency Data Flow & Policy Integrity Report completed.
