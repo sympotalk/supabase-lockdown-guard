@@ -36,15 +36,13 @@ export function QAReportSummary() {
   }, []);
 
   const loadLatestReport = async () => {
-    logSys("Loading latest QA report...");
+    logSys("Loading latest QA report from qa_reports_latest...");
 
     try {
       const { data, error } = await supabase
-        .from("qa_reports" as any)
+        .from("qa_reports_latest")
         .select("*")
-        .order("generated_at", { ascending: false })
-        .limit(1)
-        .single();
+        .maybeSingle();
 
       if (error && error.code !== "PGRST116") throw error;
 

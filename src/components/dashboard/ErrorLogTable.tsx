@@ -1,12 +1,15 @@
 import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { AlertTriangle } from "lucide-react";
+import { format } from "date-fns";
 
 interface ErrorLog {
-  timestamp: string;
+  id: string;
+  module: string;
   level: "critical" | "warning" | "info";
-  source: string;
   message: string;
+  created_at: string;
 }
 
 export function ErrorLogTable() {
@@ -19,22 +22,18 @@ export function ErrorLogTable() {
 
   const loadErrorLogs = async () => {
     setLoading(true);
-    console.log("[ErrorLogs] Loading error logs...");
+    console.log("[MasterDashboard] Loading error logs from error_logs_recent...");
 
     try {
-      // E: Error/Warning Log Monitor
-      // TODO: Query error_logs table
-      const mockErrors: ErrorLog[] = [
-        { timestamp: "2025-10-26 13:12", level: "critical", source: "participants_ai_map", message: "TypeError (undefined 'event_id')" },
-        { timestamp: "2025-10-26 13:09", level: "warning", source: "upload_batch", message: "Excel parser timeout" },
-        { timestamp: "2025-10-26 12:45", level: "info", source: "form_sync", message: "Matched 45 responses to participants" },
-        { timestamp: "2025-10-26 12:30", level: "warning", source: "rooming_validator", message: "Room capacity exceeded for event #123" },
-        { timestamp: "2025-10-26 12:15", level: "info", source: "participant_export", message: "Successfully exported 120 participants" }
-      ];
+      const { data, error } = await supabase
+        .from("error_logs_recent")
+        .select("*")
+        .limit(10);
 
-      setErrors(mockErrors);
+      if (error) throw error;
+      setErrors((data || []) as ErrorLog[]);
     } catch (error) {
-      console.error("[ErrorLogs] Error loading:", error);
+      console.error("[MasterDashboard] Error loading logs:", error);
     }
 
     setLoading(false);
@@ -85,12 +84,12 @@ export function ErrorLogTable() {
                     <div className={`h-2 w-2 rounded-full ${indicator.color}`} />
                   </div>
                   <div className="flex-1 min-w-0 space-y-1">
-                    <div className="flex items-center justify-between gap-2">
+                     <div className="flex items-center justify-between gap-2">
                       <p className={`text-[14px] font-medium ${indicator.textColor} truncate`}>
-                        {log.source}
+                        {log.module}
                       </p>
                       <span className="text-[12px] text-muted-foreground whitespace-nowrap">
-                        {log.timestamp}
+                        {format(new Date(log.created_at), "MM/dd HH:mm")}
                       </span>
                     </div>
                     <p className="text-[12px] text-muted-foreground line-clamp-1">

@@ -1,15 +1,19 @@
 import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { FileText, CheckCircle2, AlertTriangle } from "lucide-react";
+import { format } from "date-fns";
 
 interface QAReport {
-  module: string;
-  status: "pass" | "warn" | "fail";
-  score: number;
-  timestamp: string;
+  id: string;
+  title: string | null;
+  status: string;
+  category: string | null;
+  generated_at: string;
+  total_anomalies: number;
 }
 
 export function QAReportTable() {
@@ -22,33 +26,34 @@ export function QAReportTable() {
 
   const loadQAReports = async () => {
     setLoading(true);
-    console.log("[QAReports] Loading QA reports...");
+    console.log("[MasterDashboard] Loading QA reports from qa_reports...");
 
     try {
-      // F: QA Report History
-      // TODO: Query qa_reports table
-      const mockReports: QAReport[] = [
-        { module: "참가자 업로드", status: "pass", score: 98, timestamp: "2025-10-25" },
-        { module: "룸핑 Export", status: "warn", score: 84, timestamp: "2025-10-25" },
-        { module: "메시지 발송", status: "pass", score: 92, timestamp: "2025-10-24" },
-        { module: "폼 응답 처리", status: "pass", score: 95, timestamp: "2025-10-24" },
-        { module: "AI 매핑 검증", status: "warn", score: 78, timestamp: "2025-10-23" }
-      ];
+      const { data, error } = await supabase
+        .from("qa_reports")
+        .select("id, title, status, category, generated_at, total_anomalies")
+        .order("generated_at", { ascending: false })
+        .limit(50);
 
-      setReports(mockReports);
+      if (error) throw error;
+      setReports(data || []);
     } catch (error) {
-      console.error("[QAReports] Error loading:", error);
+      console.error("[MasterDashboard] Error loading QA reports:", error);
     }
 
     setLoading(false);
   };
 
-  const getStatusBadge = (status: "pass" | "warn" | "fail") => {
-    const config = {
-      pass: { variant: "default" as const, label: "PASS", icon: CheckCircle2, color: "text-green-600" },
-      warn: { variant: "secondary" as const, label: "WARN", icon: AlertTriangle, color: "text-yellow-600" },
-      fail: { variant: "destructive" as const, label: "FAIL", icon: AlertTriangle, color: "text-red-600" }
-    }[status];
+  const getStatusBadge = (status: string) => {
+    const statusLower = status.toLowerCase();
+    const isPass = statusLower === 'pass' || statusLower === 'ok' || statusLower === 'success';
+    const isWarn = statusLower === 'warn' || statusLower === 'warning';
+    
+    const config = isPass 
+      ? { variant: "default" as const, label: "PASS", icon: CheckCircle2, color: "text-green-600" }
+      : isWarn
+      ? { variant: "secondary" as const, label: "WARN", icon: AlertTriangle, color: "text-yellow-600" }
+      : { variant: "destructive" as const, label: "FAIL", icon: AlertTriangle, color: "text-red-600" };
 
     const Icon = config.icon;
     return (
@@ -59,9 +64,9 @@ export function QAReportTable() {
     );
   };
 
-  const getScoreColor = (score: number) => {
-    if (score >= 90) return "text-green-600 dark:text-green-400";
-    if (score >= 75) return "text-yellow-600 dark:text-yellow-400";
+  const getScoreColor = (anomalies: number) => {
+    if (anomalies === 0) return "text-green-600 dark:text-green-400";
+    if (anomalies <= 3) return "text-yellow-600 dark:text-yellow-400";
     return "text-red-600 dark:text-red-400";
   };
 
@@ -91,26 +96,29 @@ export function QAReportTable() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>모듈명</TableHead>
-                <TableHead>점수</TableHead>
+                <TableHead>리포트 제목</TableHead>
+                <TableHead>카테고리</TableHead>
+                <TableHead>이상 건수</TableHead>
                 <TableHead>결과</TableHead>
-                <TableHead>실행 일시</TableHead>
+                <TableHead>생성 일시</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {reports.map((report, idx) => (
-                <TableRow key={idx} className="cursor-pointer hover:bg-muted/50">
-                  <TableCell className="font-medium text-[14px]">{report.module}</TableCell>
+              {reports.map((report) => (
+                <TableRow key={report.id} className="cursor-pointer hover:bg-muted/50">
+                  <TableCell className="font-medium text-[14px]">
+                    {report.title || `리포트 #${report.id.slice(0, 8)}`}
+                  </TableCell>
+                  <TableCell className="text-[14px]">{report.category || 'General'}</TableCell>
                   <TableCell>
-                    <div className="flex items-center gap-3">
-                      <Progress value={report.score} className="h-1.5 w-24" />
-                      <span className={`text-[14px] font-semibold ${getScoreColor(report.score)}`}>
-                        {report.score}%
-                      </span>
-                    </div>
+                    <span className={`text-[14px] font-semibold ${getScoreColor(report.total_anomalies)}`}>
+                      {report.total_anomalies}건
+                    </span>
                   </TableCell>
                   <TableCell>{getStatusBadge(report.status)}</TableCell>
-                  <TableCell className="text-[14px] text-muted-foreground">{report.timestamp}</TableCell>
+                  <TableCell className="text-[14px] text-muted-foreground">
+                    {format(new Date(report.generated_at), "yyyy-MM-dd HH:mm")}
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
