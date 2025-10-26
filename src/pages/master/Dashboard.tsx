@@ -9,6 +9,7 @@ import { DataQualityCards } from "@/components/dashboard/DataQualityCards";
 import { FunctionHealthTable } from "@/components/dashboard/FunctionHealthTable";
 import { ErrorLogTable } from "@/components/dashboard/ErrorLogTable";
 import { QAReportTable } from "@/components/dashboard/QAReportTable";
+import { SystemInsightBoard } from "@/components/dashboard/SystemInsightBoard";
 import { masterRealtimeHub } from "@/lib/masterRealtimeHub";
 
 export default function MasterDashboard() {
@@ -139,6 +140,9 @@ export default function MasterDashboard() {
           </Button>
         </div>
       </div>
+
+      {/* System Insight Board */}
+      <SystemInsightBoard key={`insights-${refreshKey}`} />
 
       {/* Section A: System Health Overview */}
       <section className="space-y-4">
