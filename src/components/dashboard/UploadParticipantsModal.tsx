@@ -45,12 +45,22 @@ export function UploadParticipantsModal({ open, onOpenChange, events }: UploadPa
         const worksheet = workbook.Sheets[sheetName];
         const json = XLSX.utils.sheet_to_json(worksheet);
 
-        // Transform to expected format
+        // [71-I] Map to new schema with all 11 columns
         const rows = json.map((row: any) => ({
-          name: row['이름'] || row['name'] || row['Name'] || '',
-          phone: row['전화번호'] || row['phone'] || row['Phone'] || '',
-          email: row['이메일'] || row['email'] || row['Email'] || '',
-        })).filter(row => row.name); // Only keep rows with names
+          participant_name: row['고객 성명'] || row['이름'] || row['name'] || row['Name'] || '',
+          company_name: row['거래처명'] || row['소속'] || row['company'] || '',
+          participant_contact: row['고객 연락처'] || row['전화번호'] || row['phone'] || row['Phone'] || '',
+          memo: row['메모'] || row['memo'] || '',
+          manager_info: {
+            team: row['팀명'] || row['team'] || '',
+            name: row['담당자 성명'] || row['담당자'] || '',
+            contact: row['담당자 연락처'] || '',
+            emp_no: row['담당자 사번'] || row['사번'] || '',
+          },
+          sfe_agency_code: row['SFE 거래처코드'] || '',
+          sfe_customer_code: row['SFE 고객코드'] || '',
+          stay_plan: row['숙박예정'] || '',
+        })).filter(row => row.participant_name); // Only keep rows with names
 
         setParsedRows(rows);
         toast({
@@ -185,8 +195,8 @@ export function UploadParticipantsModal({ open, onOpenChange, events }: UploadPa
             <div className="text-sm text-blue-800 dark:text-blue-300">
               <p className="font-medium mb-1">Excel 파일 형식 안내</p>
               <ul className="list-disc list-inside space-y-0.5 text-xs">
-                <li>필수 컬럼: 이름(name)</li>
-                <li>선택 컬럼: 전화번호(phone), 이메일(email)</li>
+                <li>필수 컬럼: 고객 성명</li>
+                <li>선택 컬럼: 거래처명, 고객 연락처, 팀명, 담당자 성명, 담당자 연락처, 담당자 사번, SFE 거래처코드, SFE 고객코드, 숙박예정, 메모</li>
               </ul>
             </div>
           </div>

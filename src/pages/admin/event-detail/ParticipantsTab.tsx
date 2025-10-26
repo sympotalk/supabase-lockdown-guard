@@ -1,5 +1,5 @@
 // [LOCKED][71-H6.QA] Participants tab wrapper with validation
-import Participants from "@/pages/admin/Participants";
+import ParticipantsPanel from "./ParticipantsPanel";
 import { useParams } from "react-router-dom";
 import { useEffect } from "react";
 
@@ -14,5 +14,5 @@ export default function ParticipantsTab() {
     }
   }, [eventId]);
   
-  return <Participants />;
+  return <ParticipantsPanel />;
 }
