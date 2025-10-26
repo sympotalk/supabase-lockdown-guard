@@ -1,186 +1,183 @@
-import { useMaster } from '@/hooks/useMaster';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Badge } from '@/components/ui/badge';
+import { useEffect, useState } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Building2, Calendar, Users, Activity } from 'lucide-react';
-import { useEffect } from 'react';
-import { SystemInsightBoard } from '@/components/dashboard/SystemInsightBoard';
-import { QAReportSummary } from '@/components/dashboard/QAReportSummary';
+import { FileText, TrendingUp, AlertTriangle, Activity } from 'lucide-react';
+import { InsightCard } from '@/components/dashboard/InsightCard';
+import { TrendChart } from '@/components/dashboard/TrendChart';
+import { AutomationMonitor } from '@/components/dashboard/AutomationMonitor';
+import { AnomalyDetection } from '@/components/dashboard/AnomalyDetection';
+import { QAReportsTable } from '@/components/dashboard/QAReportsTable';
+import { logSys, errorSys } from '@/lib/consoleLogger';
+import { toast } from 'sonner';
+
+interface SystemMetrics {
+  total_reports: number;
+  success_rate: number;
+  warning_count: number;
+  avg_processing_time: number;
+}
+
+interface TrendData {
+  date: string;
+  success_rate: number;
+  processing_time: number;
+}
 
 export default function MasterDashboard() {
-  const { agencies, loading, error } = useMaster();
+  const [metrics, setMetrics] = useState<SystemMetrics>({
+    total_reports: 0,
+    success_rate: 0,
+    warning_count: 0,
+    avg_processing_time: 0,
+  });
+  const [trendData, setTrendData] = useState<TrendData[]>([]);
+  const [qaReports, setQaReports] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
   // Clear agency scope when entering master routes
   useEffect(() => {
     localStorage.removeItem('agency_scope');
+    loadDashboardData();
   }, []);
+
+  const loadDashboardData = async () => {
+    logSys("[MasterDashboard] Loading dashboard data...");
+    try {
+      // Parallel fetch for performance
+      const [metricsRes, trendRes, reportsRes] = await Promise.all([
+        supabase.from('master_system_insights' as any).select('*').single(),
+        supabase
+          .from('qa_reports' as any)
+          .select('generated_at, status')
+          .order('generated_at', { ascending: false })
+          .limit(30),
+        supabase
+          .from('qa_reports' as any)
+          .select('id, title, status, category, generated_at, processing_time_ms, log_excerpt')
+          .order('generated_at', { ascending: false })
+          .limit(20),
+      ]);
+
+      // Process metrics
+      if (metricsRes.data) {
+        const data = metricsRes.data as any;
+        setMetrics({
+          total_reports: data.total_reports || 0,
+          success_rate: data.success_rate || 0,
+          warning_count: data.warning_count || 0,
+          avg_processing_time: data.avg_processing_time || 0,
+        });
+      }
+
+      // Process trend data
+      if (trendRes.data) {
+        const trend = trendRes.data.map((item: any) => ({
+          date: item.generated_at,
+          success_rate: item.status === 'PASS' || item.status === 'OK' ? 100 : 0,
+          processing_time: item.processing_time_ms || 0,
+        }));
+        setTrendData(trend);
+      }
+
+      // Process QA reports
+      if (reportsRes.data) {
+        setQaReports(reportsRes.data);
+      }
+    } catch (error) {
+      errorSys("[MasterDashboard] Error loading dashboard data:", error);
+      toast.error("데이터를 불러오지 못했습니다. 다시 시도해주세요.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   if (loading) {
     return (
       <div className="space-y-6">
-        <Skeleton className="h-8 w-64" />
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">SympoHub Master Dashboard</h1>
+          <p className="text-muted-foreground">전체 시스템 현황 및 분석</p>
+        </div>
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           {[1, 2, 3, 4].map((i) => (
-            <Skeleton key={i} className="h-32" />
+            <Card key={i} className="shadow-md rounded-2xl">
+              <CardContent className="p-6">
+                <div className="h-24 bg-muted rounded animate-pulse" />
+              </CardContent>
+            </Card>
           ))}
         </div>
-        <Skeleton className="h-96" />
       </div>
     );
   }
-
-  if (error) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <Card className="w-full max-w-md">
-          <CardHeader>
-            <CardTitle className="text-destructive">오류 발생</CardTitle>
-            <CardDescription>{error}</CardDescription>
-          </CardHeader>
-        </Card>
-      </div>
-    );
-  }
-
-  const totalAgencies = agencies.length;
-  const activeAgencies = agencies.filter((a) => a.is_active).length;
-  const totalEvents = agencies.reduce((sum, a) => sum + a.event_count, 0);
-  const totalParticipants = agencies.reduce((sum, a) => sum + a.participant_count, 0);
 
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">SympoHub Master Dashboard</h1>
-        <p className="text-muted-foreground">전체 에이전시 현황 및 시스템 지표</p>
+        <p className="text-muted-foreground">전체 시스템 현황 및 분석</p>
       </div>
 
       {/* Summary Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">총 에이전시</CardTitle>
-            <Building2 className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{totalAgencies}</div>
-            <p className="text-xs text-muted-foreground">
-              활성: {activeAgencies}개
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">총 행사</CardTitle>
-            <Calendar className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{totalEvents}</div>
-            <p className="text-xs text-muted-foreground">
-              전체 에이전시 합계
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">총 참가자</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{totalParticipants}</div>
-            <p className="text-xs text-muted-foreground">
-              전체 에이전시 합계
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">시스템 상태</CardTitle>
-            <Activity className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">정상</div>
-            <p className="text-xs text-muted-foreground">
-              모든 서비스 가동 중
-            </p>
-          </CardContent>
-        </Card>
+        <InsightCard
+          title="총 리포트"
+          value={metrics.total_reports}
+          subtitle="전체 생성된 리포트"
+          icon={FileText}
+          variant="default"
+        />
+        <InsightCard
+          title="성공률"
+          value={`${metrics.success_rate}%`}
+          subtitle="정상 처리 비율"
+          icon={TrendingUp}
+          variant={metrics.success_rate >= 80 ? "success" : "warning"}
+          trend={{
+            value: 5.2,
+            isPositive: true,
+          }}
+        />
+        <InsightCard
+          title="경고 건수"
+          value={metrics.warning_count}
+          subtitle="조치 필요 항목"
+          icon={AlertTriangle}
+          variant={metrics.warning_count > 0 ? "warning" : "success"}
+        />
+        <InsightCard
+          title="평균 처리시간"
+          value={`${metrics.avg_processing_time}ms`}
+          subtitle="시스템 응답속도"
+          icon={Activity}
+          variant="default"
+        />
       </div>
 
-      {/* Analytics Tabs */}
+      {/* Tabs */}
       <Tabs defaultValue="overview" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="insights">System Insights</TabsTrigger>
-          <TabsTrigger value="qa">QA Reports</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="overview">시스템 요약</TabsTrigger>
+          <TabsTrigger value="automation">자동화 상태</TabsTrigger>
+          <TabsTrigger value="anomaly">이상 감지</TabsTrigger>
+          <TabsTrigger value="qa">QA 리포트</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>에이전시 현황</CardTitle>
-              <CardDescription>
-                전체 에이전시의 활동 현황을 확인할 수 있습니다
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="rounded-lg border">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b bg-muted/50">
-                      <th className="p-3 text-left font-medium">에이전시명</th>
-                      <th className="p-3 text-center font-medium">코드</th>
-                      <th className="p-3 text-center font-medium">행사</th>
-                      <th className="p-3 text-center font-medium">참가자</th>
-                      <th className="p-3 text-center font-medium">최근 활동</th>
-                      <th className="p-3 text-center font-medium">상태</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {agencies.length === 0 ? (
-                      <tr>
-                        <td colSpan={6} className="p-8 text-center text-muted-foreground">
-                          등록된 에이전시가 없습니다
-                        </td>
-                      </tr>
-                    ) : (
-                      agencies.map((agency) => (
-                        <tr key={agency.id} className="border-b last:border-0 hover:bg-muted/30">
-                          <td className="p-3 font-medium">{agency.name}</td>
-                          <td className="p-3 text-center text-muted-foreground">
-                            {agency.code || '-'}
-                          </td>
-                          <td className="p-3 text-center">{agency.event_count}</td>
-                          <td className="p-3 text-center">{agency.participant_count}</td>
-                          <td className="p-3 text-center text-muted-foreground">
-                            {agency.last_activity
-                              ? new Date(agency.last_activity).toLocaleDateString('ko-KR')
-                              : '-'}
-                          </td>
-                          <td className="p-3 text-center">
-                            <Badge variant={agency.is_active ? 'default' : 'secondary'}>
-                              {agency.is_active ? '활성' : '비활성'}
-                            </Badge>
-                          </td>
-                        </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </CardContent>
-          </Card>
+          <TrendChart data={trendData} loading={false} />
         </TabsContent>
 
-        <TabsContent value="insights">
-          <SystemInsightBoard />
+        <TabsContent value="automation" className="space-y-4">
+          <AutomationMonitor />
         </TabsContent>
 
-        <TabsContent value="qa">
-          <QAReportSummary />
+        <TabsContent value="anomaly" className="space-y-4">
+          <AnomalyDetection />
+        </TabsContent>
+
+        <TabsContent value="qa" className="space-y-4">
+          <QAReportsTable reports={qaReports} loading={false} />
         </TabsContent>
       </Tabs>
     </div>
