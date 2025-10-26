@@ -48,7 +48,15 @@ export function MasterHeader() {
     };
 
     fetchAgencyName();
-  }, [agencyScope, role]);
+
+    // Debug logs
+    if (process.env.NODE_ENV !== "production") {
+      console.log("[MasterHeader] isAgencyView:", isAgencyView);
+      console.log("[MasterHeader] currentAgencyName:", currentAgencyName);
+      console.log("[MasterHeader] agencyScope:", agencyScope);
+      console.log("[MasterHeader] role:", role);
+    }
+  }, [agencyScope, role, isAgencyView, currentAgencyName]);
 
   const handleLogout = async () => {
     try {
@@ -93,12 +101,12 @@ export function MasterHeader() {
           </Button>
 
           {/* [LOCKED] Do not remove: Agency view badge visibility fix */}
-          {isAgencyView && currentAgencyName && (
+          {isAgencyView && (
             <Badge 
               variant="outline" 
               className="ml-2 text-xs border-primary text-primary bg-primary/10 font-medium"
             >
-              에이전시 뷰 · {currentAgencyName}
+              에이전시 뷰 · {currentAgencyName || "(알 수 없음)"}
             </Badge>
           )}
 

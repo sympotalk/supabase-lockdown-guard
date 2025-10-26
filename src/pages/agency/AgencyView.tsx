@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { useUser } from "@/context/UserContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -20,6 +21,7 @@ interface Agency {
 export default function AgencyView() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { setAgencyScope } = useUser();
   const [agency, setAgency] = useState<Agency | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -172,7 +174,21 @@ export default function AgencyView() {
             <div className="flex gap-3">
               <Button
                 variant="outline"
-                onClick={() => navigate(`/admin/dashboard`)}
+                onClick={() => {
+                  if (!agency?.id) {
+                    toast({
+                      title: "오류",
+                      description: "에이전시 ID를 찾을 수 없습니다.",
+                      variant: "destructive",
+                    });
+                    return;
+                  }
+                  if (process.env.NODE_ENV !== "production") {
+                    console.log("[AgencyView] Setting agency context:", agency.id);
+                  }
+                  setAgencyScope(agency.id);
+                  navigate("/admin/dashboard");
+                }}
                 className="gap-2"
               >
                 <Building2 className="h-4 w-4" />

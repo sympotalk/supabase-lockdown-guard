@@ -21,7 +21,7 @@ interface Agency {
 
 export default function MasterAgencies() {
   const navigate = useNavigate();
-  const { role } = useUser();
+  const { role, setAgencyScope } = useUser();
   const [agencies, setAgencies] = useState<Agency[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -176,12 +176,26 @@ export default function MasterAgencies() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {/* [LOCKED] Do not remove: Required for /agency/:id navigation */}
+              {/* [LOCKED] Required: set agency context before navigation */}
               {filteredAgencies.map((agency) => (
                 <TableRow 
                   key={agency.id}
                   className="hover:bg-muted/50 cursor-pointer transition-colors"
-                  onClick={() => navigate(`/agency/${agency.id}`)}
+                  onClick={() => {
+                    if (!agency?.id) {
+                      toast({
+                        title: "오류",
+                        description: "에이전시 ID를 찾을 수 없습니다.",
+                        variant: "destructive",
+                      });
+                      return;
+                    }
+                    if (process.env.NODE_ENV !== "production") {
+                      console.log("[Agencies] Setting agency context:", agency.id);
+                    }
+                    setAgencyScope(agency.id);
+                    navigate("/admin/dashboard");
+                  }}
                 >
                   <TableCell className="font-medium text-[13px]">
                     {agency.name}
