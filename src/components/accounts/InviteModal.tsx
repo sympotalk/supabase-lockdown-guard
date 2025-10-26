@@ -139,7 +139,6 @@ export function InviteModal({
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="staff">Staff</SelectItem>
-                  <SelectItem value="admin">Admin</SelectItem>
                 </SelectContent>
               </Select>
             </div>

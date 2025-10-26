@@ -20,6 +20,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { UserPlus, Shield, Trash2, RefreshCw } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { format } from "date-fns";
+import { useUser } from "@/context/UserContext";
 
 interface UserProfile {
   id: string;
@@ -39,16 +40,40 @@ const roleOptions = [
 ];
 
 export default function MasterAccountManager() {
+  const { role } = useUser();
   const [profiles, setProfiles] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(true);
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null);
   const [editRole, setEditRole] = useState<string>("");
+  const [newEmail, setNewEmail] = useState("");
+  const [newRole, setNewRole] = useState("staff");
+  const [newAgencyId, setNewAgencyId] = useState("");
+  const [agencies, setAgencies] = useState<Array<{ id: string; name: string }>>([]);
+  
+  const canCreate = role === 'master';
 
   useEffect(() => {
     loadProfiles();
+    loadAgencies();
   }, []);
+
+  const loadAgencies = async () => {
+    try {
+      const { data, error } = await (supabase as any)
+        .from("agencies")
+        .select("id, name")
+        .eq("is_active", true)
+        .order("name");
+
+      if (error) throw error;
+      setAgencies(data || []);
+    } catch (error: any) {
+      console.error("[MasterAccount] Failed to load agencies:", error);
+    }
+  };
 
   const loadProfiles = async () => {
     setLoading(true);
@@ -152,6 +177,46 @@ export default function MasterAccountManager() {
     }
   };
 
+  const handleCreateAccount = async () => {
+    if (!newEmail || !newAgencyId) {
+      toast({
+        title: "입력 오류",
+        description: "이메일과 에이전시를 선택해주세요.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const { error } = await (supabase as any).rpc("fn_manage_user_account", {
+        p_action: "create",
+        p_email: newEmail,
+        p_role: newRole,
+        p_agency_id: newAgencyId,
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "계정 생성 완료",
+        description: "새 계정이 생성되었습니다.",
+      });
+
+      setCreateDialogOpen(false);
+      setNewEmail("");
+      setNewRole("staff");
+      setNewAgencyId("");
+      loadProfiles();
+    } catch (error: any) {
+      console.error("[MasterAccount] Failed to create account:", error);
+      toast({
+        title: "계정 생성 실패",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -162,133 +227,156 @@ export default function MasterAccountManager() {
             전체 계정 및 권한 관리
           </p>
         </div>
-        <Button onClick={loadProfiles} variant="outline" size="sm">
-          <RefreshCw className="h-4 w-4 mr-2" />
-          새로고침
-        </Button>
+        <div className="flex gap-2">
+          {canCreate && (
+            <Button onClick={() => setCreateDialogOpen(true)} size="sm">
+              <UserPlus className="h-4 w-4 mr-2" />
+              새 계정 생성
+            </Button>
+          )}
+          <Button onClick={loadProfiles} variant="outline" size="sm">
+            <RefreshCw className="h-4 w-4 mr-2" />
+            새로고침
+          </Button>
+        </div>
       </div>
 
-      {/* Tabs */}
-      <Tabs defaultValue="accounts" className="space-y-4">
-        <TabsList className="rounded-xl">
-          <TabsTrigger value="accounts">계정 목록</TabsTrigger>
-          <TabsTrigger value="permissions">권한 정책</TabsTrigger>
-        </TabsList>
+      {/* Account List */}
+      <Card className="shadow-md rounded-xl">
+        <CardHeader>
+          <CardTitle className="text-lg">전체 계정</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {loading ? (
+            <div className="text-center py-8 text-muted-foreground">
+              로딩 중...
+            </div>
+          ) : profiles.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              계정이 없습니다.
+            </div>
+          ) : (
+            <div className="rounded-md border">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>이메일</TableHead>
+                    <TableHead>권한</TableHead>
+                    <TableHead>에이전시</TableHead>
+                    <TableHead>가입일</TableHead>
+                    <TableHead>최근 로그인</TableHead>
+                    <TableHead className="text-right">관리</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {profiles.map((profile) => (
+                    <TableRow key={profile.id}>
+                      <TableCell className="text-[13px] font-medium">
+                        {profile.email}
+                      </TableCell>
+                      <TableCell>
+                        <RoleBadge role={profile.role} />
+                      </TableCell>
+                      <TableCell className="text-[13px]">
+                        {profile.agency_name || "-"}
+                      </TableCell>
+                      <TableCell className="text-[12px] text-muted-foreground">
+                        {format(new Date(profile.created_at), "yyyy-MM-dd")}
+                      </TableCell>
+                      <TableCell className="text-[12px] text-muted-foreground">
+                        {profile.last_sign_in_at 
+                          ? format(new Date(profile.last_sign_in_at), "yyyy-MM-dd HH:mm")
+                          : "-"}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleEditRole(profile)}
+                          >
+                            <Shield className="h-3 w-3 mr-1" />
+                            권한
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            onClick={() => handleDeleteUser(profile)}
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
-        <TabsContent value="accounts" className="space-y-4">
-          <Card className="shadow-md rounded-xl">
-            <CardHeader>
-              <CardTitle className="text-lg">전체 계정</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {loading ? (
-                <div className="text-center py-8 text-muted-foreground">
-                  로딩 중...
-                </div>
-              ) : profiles.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">
-                  계정이 없습니다.
-                </div>
-              ) : (
-                <div className="rounded-md border">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>이메일</TableHead>
-                        <TableHead>권한</TableHead>
-                        <TableHead>에이전시</TableHead>
-                        <TableHead>가입일</TableHead>
-                        <TableHead>최근 로그인</TableHead>
-                        <TableHead className="text-right">관리</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {profiles.map((profile) => (
-                        <TableRow key={profile.id}>
-                          <TableCell className="text-[13px] font-medium">
-                            {profile.email}
-                          </TableCell>
-                          <TableCell>
-                            <RoleBadge role={profile.role} />
-                          </TableCell>
-                          <TableCell className="text-[13px]">
-                            {profile.agency_name || "-"}
-                          </TableCell>
-                          <TableCell className="text-[12px] text-muted-foreground">
-                            {format(new Date(profile.created_at), "yyyy-MM-dd")}
-                          </TableCell>
-                          <TableCell className="text-[12px] text-muted-foreground">
-                            {profile.last_sign_in_at 
-                              ? format(new Date(profile.last_sign_in_at), "yyyy-MM-dd HH:mm")
-                              : "-"}
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <div className="flex items-center justify-end gap-2">
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => handleEditRole(profile)}
-                              >
-                                <Shield className="h-3 w-3 mr-1" />
-                                권한
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="destructive"
-                                onClick={() => handleDeleteUser(profile)}
-                              >
-                                <Trash2 className="h-3 w-3" />
-                              </Button>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="permissions" className="space-y-4">
-          <Card className="shadow-md rounded-xl">
-            <CardHeader>
-              <CardTitle className="text-lg">권한 정책</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <h3 className="font-medium">Master</h3>
-                <p className="text-sm text-muted-foreground">
-                  • 전체 시스템 접근 및 관리 권한
-                  <br />
-                  • 모든 에이전시 및 계정 관리
-                  <br />
-                  • QA 리포트 및 시스템 로그 조회
-                </p>
-              </div>
-              <div className="space-y-2">
-                <h3 className="font-medium">Agency Owner</h3>
-                <p className="text-sm text-muted-foreground">
-                  • 소속 에이전시 전체 관리
-                  <br />
-                  • 팀원 초대 및 권한 설정
-                  <br />
-                  • 이벤트 생성 및 관리
-                </p>
-              </div>
-              <div className="space-y-2">
-                <h3 className="font-medium">Staff</h3>
-                <p className="text-sm text-muted-foreground">
-                  • 모든 기능 사용 (행사·참가자·숙박·메시지·보고서 등)
-                  <br />
-                  • 초대 및 계정 생성 불가
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+      {/* Create Account Dialog */}
+      <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
+        <DialogContent className="rounded-xl">
+          <DialogHeader>
+            <DialogTitle>새 계정 생성</DialogTitle>
+            <DialogDescription>
+              새 사용자 계정을 직접 생성합니다.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="new-email">이메일</Label>
+              <Input
+                id="new-email"
+                type="email"
+                placeholder="user@example.com"
+                value={newEmail}
+                onChange={(e) => setNewEmail(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="new-agency">에이전시</Label>
+              <Select value={newAgencyId} onValueChange={setNewAgencyId}>
+                <SelectTrigger id="new-agency">
+                  <SelectValue placeholder="에이전시 선택" />
+                </SelectTrigger>
+                <SelectContent>
+                  {agencies.map((agency) => (
+                    <SelectItem key={agency.id} value={agency.id}>
+                      {agency.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="new-role">권한</Label>
+              <Select value={newRole} onValueChange={setNewRole}>
+                <SelectTrigger id="new-role">
+                  <SelectValue placeholder="권한 선택" />
+                </SelectTrigger>
+                <SelectContent>
+                  {roleOptions.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>
+              취소
+            </Button>
+            <Button onClick={handleCreateAccount}>
+              생성
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Edit Role Dialog */}
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>

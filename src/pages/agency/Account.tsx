@@ -3,12 +3,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { AccountLayout } from "@/components/account/AccountLayout";
 import { AccountFormBase, AccountFormData } from "@/components/accounts/AccountFormBase";
 import { InviteModal } from "@/components/accounts/InviteModal";
+import { SelfRegenModal } from "@/components/accounts/SelfRegenModal";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { RoleBadge } from "@/components/accounts/RoleBadge";
-import { UserPlus, Users } from "lucide-react";
+import { UserPlus, Users, RefreshCw } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { useUser } from "@/context/UserContext";
@@ -24,14 +25,17 @@ interface InvitedUser {
 }
 
 export default function AgencyAccount() {
-  const { role } = useUser();
-  const [profile, setProfile] = useState<AccountFormData>({ email: "" });
+  const { role, userId } = useUser();
+  const [profile, setProfile] = useState<AccountFormData & { active?: boolean }>({ email: "" });
   const [invites, setInvites] = useState<InvitedUser[]>([]);
   const [inviteOpen, setInviteOpen] = useState(false);
+  const [selfRegenOpen, setSelfRegenOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   
   // Only AGENCY_OWNER can invite users (STAFF cannot invite)
   const canInvite = role === 'agency_owner';
+  // STAFF can self-regenerate if account is inactive
+  const canSelfRegen = role === 'staff' && profile.active === false;
 
   useEffect(() => {
     loadProfile();
@@ -43,11 +47,18 @@ export default function AgencyAccount() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      // Get user role and agency
+      // Get user role, agency, and active status
       const { data: roleData } = await supabase
         .from("user_roles")
         .select("agency_id")
         .eq("user_id", user.id)
+        .single();
+
+      // Get active status from user_profiles view
+      const { data: profileData } = await (supabase as any)
+        .from("user_profiles")
+        .select("is_active")
+        .eq("id", user.id)
         .single();
 
       if (roleData?.agency_id) {
@@ -61,9 +72,13 @@ export default function AgencyAccount() {
           email: user.email || "",
           agency_name: agencyData?.name,
           agency_id: roleData.agency_id,
+          active: profileData?.is_active !== false,
         });
       } else {
-        setProfile({ email: user.email || "" });
+        setProfile({ 
+          email: user.email || "",
+          active: profileData?.is_active !== false,
+        });
       }
     } catch (error) {
       console.error("Failed to load profile:", error);
@@ -154,13 +169,38 @@ export default function AgencyAccount() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <AccountFormBase
-            user={profile}
-            onSave={handleSaveProfile}
-            readOnly={["email", "agency_name"]}
-            showRoleEdit={false}
-            variant="agency"
-          />
+          <div className="space-y-4">
+            <AccountFormBase
+              user={profile}
+              onSave={handleSaveProfile}
+              readOnly={["email", "agency_name"]}
+              showRoleEdit={false}
+              variant="agency"
+            />
+            {canSelfRegen && (
+              <Card className="shadow-md rounded-2xl border-orange-500/20">
+                <CardHeader>
+                  <CardTitle className="text-lg flex items-center gap-2 text-orange-600">
+                    <RefreshCw className="h-5 w-5" />
+                    계정 복원
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-[13px] text-muted-foreground mb-4">
+                    비활성화된 계정을 복원할 수 있습니다.
+                  </p>
+                  <Button 
+                    onClick={() => setSelfRegenOpen(true)}
+                    variant="outline"
+                    className="w-full"
+                  >
+                    <RefreshCw className="h-4 w-4 mr-2" />
+                    계정 복원하기
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
+          </div>
 
           <Card className="shadow-md rounded-2xl">
             <CardHeader>
@@ -240,6 +280,12 @@ export default function AgencyAccount() {
           onOpenChange={setInviteOpen}
           agencyId={profile.agency_id || ""}
           onSuccess={loadInvites}
+        />
+
+        <SelfRegenModal
+          open={selfRegenOpen}
+          onOpenChange={setSelfRegenOpen}
+          onSuccess={loadProfile}
         />
       </div>
     </AccountLayout>
