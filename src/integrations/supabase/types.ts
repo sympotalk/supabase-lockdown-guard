@@ -463,6 +463,42 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_anomaly_logs: {
+        Row: {
+          category: string | null
+          description: string | null
+          detected_at: string | null
+          id: string
+          related_function: string | null
+          resolved: boolean | null
+          resolved_at: string | null
+          severity: string | null
+          title: string | null
+        }
+        Insert: {
+          category?: string | null
+          description?: string | null
+          detected_at?: string | null
+          id?: string
+          related_function?: string | null
+          resolved?: boolean | null
+          resolved_at?: string | null
+          severity?: string | null
+          title?: string | null
+        }
+        Update: {
+          category?: string | null
+          description?: string | null
+          detected_at?: string | null
+          id?: string
+          related_function?: string | null
+          resolved?: boolean | null
+          resolved_at?: string | null
+          severity?: string | null
+          title?: string | null
+        }
+        Relationships: []
+      }
       ai_insights: {
         Row: {
           category: string
@@ -3038,6 +3074,105 @@ export type Database = {
           },
         ]
       }
+      notifications: {
+        Row: {
+          body: string | null
+          created_at: string | null
+          id: string
+          level: string | null
+          meta: Json | null
+          read: boolean | null
+          scope: string | null
+          title: string | null
+        }
+        Insert: {
+          body?: string | null
+          created_at?: string | null
+          id?: string
+          level?: string | null
+          meta?: Json | null
+          read?: boolean | null
+          scope?: string | null
+          title?: string | null
+        }
+        Update: {
+          body?: string | null
+          created_at?: string | null
+          id?: string
+          level?: string | null
+          meta?: Json | null
+          read?: boolean | null
+          scope?: string | null
+          title?: string | null
+        }
+        Relationships: []
+      }
+      ops_executions: {
+        Row: {
+          created_at: string | null
+          dedup_key: string | null
+          finished_at: string | null
+          id: string
+          playbook_key: string
+          result: Json | null
+          started_at: string | null
+          status: string | null
+          trigger_payload: Json | null
+          trigger_source: string
+        }
+        Insert: {
+          created_at?: string | null
+          dedup_key?: string | null
+          finished_at?: string | null
+          id?: string
+          playbook_key: string
+          result?: Json | null
+          started_at?: string | null
+          status?: string | null
+          trigger_payload?: Json | null
+          trigger_source: string
+        }
+        Update: {
+          created_at?: string | null
+          dedup_key?: string | null
+          finished_at?: string | null
+          id?: string
+          playbook_key?: string
+          result?: Json | null
+          started_at?: string | null
+          status?: string | null
+          trigger_payload?: Json | null
+          trigger_source?: string
+        }
+        Relationships: []
+      }
+      ops_playbooks: {
+        Row: {
+          actions: Json
+          created_at: string | null
+          enabled: boolean | null
+          id: string
+          key: string
+          name: string
+        }
+        Insert: {
+          actions: Json
+          created_at?: string | null
+          enabled?: boolean | null
+          id?: string
+          key: string
+          name: string
+        }
+        Update: {
+          actions?: Json
+          created_at?: string | null
+          enabled?: boolean | null
+          id?: string
+          key?: string
+          name?: string
+        }
+        Relationships: []
+      }
       participant_insights: {
         Row: {
           agency_id: string | null
@@ -3906,6 +4041,48 @@ export type Database = {
           remediation_link?: string | null
           status?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      qa_reports: {
+        Row: {
+          ai_recommendations: string | null
+          critical_count: number | null
+          generated_at: string | null
+          id: string
+          info_count: number | null
+          period_end: string | null
+          period_start: string | null
+          report_json: Json | null
+          summary: string | null
+          total_anomalies: number | null
+          warning_count: number | null
+        }
+        Insert: {
+          ai_recommendations?: string | null
+          critical_count?: number | null
+          generated_at?: string | null
+          id?: string
+          info_count?: number | null
+          period_end?: string | null
+          period_start?: string | null
+          report_json?: Json | null
+          summary?: string | null
+          total_anomalies?: number | null
+          warning_count?: number | null
+        }
+        Update: {
+          ai_recommendations?: string | null
+          critical_count?: number | null
+          generated_at?: string | null
+          id?: string
+          info_count?: number | null
+          period_end?: string | null
+          period_start?: string | null
+          report_json?: Json | null
+          summary?: string | null
+          total_anomalies?: number | null
+          warning_count?: number | null
         }
         Relationships: []
       }
@@ -5946,6 +6123,7 @@ export type Database = {
         Args: { p_brand?: string; p_hotel: string }
         Returns: undefined
       }
+      fn_generate_qa_report: { Args: never; Returns: Json }
       fn_healthcheck_all: { Args: never; Returns: Json }
       generate_weekly_ops_reports: { Args: never; Returns: undefined }
       get_agencies_by_member: {
@@ -6273,6 +6451,10 @@ export type Database = {
       }
       normalize_korean: { Args: { text_input: string }; Returns: string }
       normalize_role_type: { Args: { input_role: string }; Returns: string }
+      ops_execute: {
+        Args: { _payload?: Json; _playbook_key: string; _trigger: string }
+        Returns: string
+      }
       refresh_cache: {
         Args: { _key: string; _payload: Json }
         Returns: undefined
