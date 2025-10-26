@@ -3,7 +3,8 @@ import { RealtimeChannel } from "@supabase/supabase-js";
 import { toast } from "@/hooks/use-toast";
 
 type AlertPriority = "critical" | "high" | "medium" | "low";
-type RefreshCallback = () => void;
+type SectionTag = "SYSTEM_HEALTH" | "AUTOMATION" | "ANOMALY" | "QA" | "GLOBAL";
+type RefreshCallback = (tag: SectionTag) => void;
 
 interface AlertConfig {
   title: string;
@@ -14,27 +15,47 @@ interface AlertConfig {
 let masterChannel: RealtimeChannel | null = null;
 let connectionFailures = 0;
 let isStaticMode = false;
+let debounceTimer: number | null = null;
 
 const MAX_FAILURES = 5;
+const DEBOUNCE_MS = 250;
 
 export class MasterRealtimeHub {
-  private refreshCallbacks: Map<string, RefreshCallback> = new Map();
+  private unifiedCallback: RefreshCallback | null = null;
+  private pendingTags: Set<SectionTag> = new Set();
 
   constructor() {
-    console.log("[MasterRealtimeHub] Initializing...");
+    console.log("[MasterRealtime] Initializing...");
   }
 
-  registerRefreshCallback(section: string, callback: RefreshCallback) {
-    this.refreshCallbacks.set(section, callback);
-    console.log(`[MasterRealtimeHub] Registered refresh for section: ${section}`);
+  registerUnifiedCallback(callback: RefreshCallback) {
+    this.unifiedCallback = callback;
+    console.log("[MasterRealtime] Unified callback registered");
   }
 
-  private triggerRefresh(section: string) {
-    const callback = this.refreshCallbacks.get(section);
-    if (callback) {
-      console.log(`[MasterRealtimeHub] Triggering refresh for: ${section}`);
-      callback();
+  private triggerRefresh(tag: SectionTag) {
+    this.pendingTags.add(tag);
+
+    // Debounce: clear existing timer and set new one
+    if (debounceTimer !== null) {
+      clearTimeout(debounceTimer);
     }
+
+    debounceTimer = window.setTimeout(() => {
+      if (this.unifiedCallback && this.pendingTags.size > 0) {
+        console.log(`[MasterRealtime] EVENT ${Array.from(this.pendingTags).join(", ")}`);
+        
+        // Trigger global refresh with all pending tags
+        this.pendingTags.forEach(t => {
+          if (this.unifiedCallback) {
+            this.unifiedCallback(t);
+          }
+        });
+        
+        this.pendingTags.clear();
+      }
+      debounceTimer = null;
+    }, DEBOUNCE_MS);
   }
 
   private showAlert(config: AlertConfig) {
@@ -54,11 +75,8 @@ export class MasterRealtimeHub {
   }
 
   private handleHealthEvent(payload: any) {
-    console.log("[MasterRealtimeHub] functions_health event:", payload);
-    
     if (payload.eventType === "UPDATE" || payload.eventType === "INSERT") {
       const status = payload.new?.status;
-      
       if (status === "fail" || status === "down") {
         this.showAlert({
           title: "⚠️ 시스템 함수 장애 발생",
@@ -67,27 +85,10 @@ export class MasterRealtimeHub {
         });
       }
     }
-    
-    this.triggerRefresh("A");
-  }
-
-  private handleRealtimeChannelEvent(payload: any) {
-    console.log("[MasterRealtimeHub] realtime_channels event:", payload);
-    
-    if (payload.eventType === "DELETE") {
-      this.showAlert({
-        title: "❌ Realtime 연결 끊김",
-        description: "실시간 채널 연결이 해제되었습니다.",
-        priority: "high",
-      });
-    }
-    
-    this.triggerRefresh("A");
+    this.triggerRefresh("SYSTEM_HEALTH");
   }
 
   private handleAgencyEvent(payload: any) {
-    console.log("[MasterRealtimeHub] agencies event:", payload);
-    
     if (payload.eventType === "INSERT") {
       this.showAlert({
         title: "🆕 신규 에이전시 등록",
@@ -95,50 +96,13 @@ export class MasterRealtimeHub {
         priority: "medium",
       });
     }
-    
-    this.triggerRefresh("B");
-  }
-
-  private handleEventEvent(payload: any) {
-    console.log("[MasterRealtimeHub] events event:", payload);
-    
-    if (payload.eventType === "INSERT") {
-      this.showAlert({
-        title: "🆕 신규 행사 등록",
-        description: `${payload.new?.title || payload.new?.name || "새 행사"}가 생성되었습니다.`,
-        priority: "medium",
-      });
-    }
-    
-    this.triggerRefresh("B");
-  }
-
-  private handleParticipantLogEvent(payload: any) {
-    console.log("[MasterRealtimeHub] participants_log event:", payload);
-    
-    if (payload.eventType === "INSERT" && payload.new?.action === "ai_mapping_failed") {
-      this.showAlert({
-        title: "⚠️ AI 매핑 오류 감지",
-        description: "참가자 AI 매핑에 실패했습니다.",
-        priority: "medium",
-      });
-    }
-    
-    this.triggerRefresh("C");
-  }
-
-  private handleFunctionLogEvent(payload: any) {
-    console.log("[MasterRealtimeHub] functions_logs event:", payload);
-    this.triggerRefresh("D");
+    this.triggerRefresh("GLOBAL");
   }
 
   private handleErrorLogEvent(payload: any) {
-    console.log("[MasterRealtimeHub] error_logs event:", payload);
-    
     if (payload.eventType === "INSERT") {
       const module = payload.new?.module || "Unknown";
       const severity = payload.new?.severity || "error";
-      
       if (severity === "critical" || severity === "error") {
         this.showAlert({
           title: `🚨 새 오류 발생: ${module}`,
@@ -147,13 +111,10 @@ export class MasterRealtimeHub {
         });
       }
     }
-    
-    this.triggerRefresh("E");
+    this.triggerRefresh("ANOMALY");
   }
 
   private handleQAReportEvent(payload: any) {
-    console.log("[MasterRealtimeHub] qa_reports event:", payload);
-    
     if (payload.eventType === "INSERT" && payload.new?.status === "FAIL") {
       this.showAlert({
         title: "❌ QA 실패",
@@ -161,35 +122,30 @@ export class MasterRealtimeHub {
         priority: "high",
       });
     }
-    
-    this.triggerRefresh("F");
+    this.triggerRefresh("QA");
   }
 
-  private handleAlertsHistoryEvent(payload: any) {
-    console.log("[MasterRealtimeHub] alerts_history event:", payload);
-    
-    // Trigger refresh for alert history views
-    this.triggerRefresh("ALERTS");
-    
-    // Show toast for new alerts
+  private handleAIInsightsEvent(payload: any) {
     if (payload.eventType === "INSERT") {
       const severity = payload.new?.severity || "info";
-      const module = payload.new?.module_name || "Unknown";
-      const message = payload.new?.message || "New alert";
-      
-      if (severity === "critical" || severity === "error") {
+      if (severity === "critical") {
         this.showAlert({
-          title: `🕒 ${module}`,
-          description: message,
-          priority: severity === "critical" ? "critical" : "high",
+          title: "🤖 AI 이상 감지",
+          description: payload.new?.title || "새로운 이상 징후가 감지되었습니다.",
+          priority: "critical",
         });
       }
     }
+    this.triggerRefresh("ANOMALY");
+  }
+
+  private handleAutomationEvent() {
+    this.triggerRefresh("AUTOMATION");
   }
 
   private handleConnectionError() {
     connectionFailures++;
-    console.warn(`[MasterRealtimeHub] Connection failure count: ${connectionFailures}`);
+    console.warn(`[MasterRealtime] Connection failure count: ${connectionFailures}`);
     
     if (connectionFailures >= MAX_FAILURES && !isStaticMode) {
       isStaticMode = true;
@@ -198,111 +154,100 @@ export class MasterRealtimeHub {
         description: "실시간 연결이 불안정하여 정적 모드로 전환합니다.",
         priority: "high",
       });
-      console.warn("[MasterRealtimeHub] Switched to static mode due to connection failures");
+      console.warn("[MasterRealtime] Switched to static mode due to connection failures");
     }
   }
 
   connect() {
     if (masterChannel) {
-      console.log("[MasterRealtimeHub] Already connected");
+      console.log("[MasterRealtime] Already connected");
       return;
     }
 
     if (isStaticMode) {
-      console.log("[MasterRealtimeHub] In static mode, skipping connection");
+      console.log("[MasterRealtime] In static mode, skipping connection");
       return;
     }
 
-    console.log("[MasterRealtimeHub] Connecting to master_realtime_hub...");
+    console.log("[MasterRealtime] Connecting...");
 
     masterChannel = supabase
       .channel("master_realtime_hub")
-      // A1: functions_health
+      // SYSTEM_HEALTH: functions_health
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "functions_health" },
         (payload) => this.handleHealthEvent(payload)
       )
-      // A2: realtime_channels (if exists)
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "realtime_channels" },
-        (payload) => this.handleRealtimeChannelEvent(payload)
-      )
-      // B1: agencies
+      // GLOBAL: agencies, events, participants
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "agencies" },
         (payload) => this.handleAgencyEvent(payload)
       )
-      // B2: events
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "events" },
-        (payload) => this.handleEventEvent(payload)
+        (payload) => this.triggerRefresh("GLOBAL")
       )
-      // B3: participants
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "participants" },
-        (payload) => {
-          console.log("[MasterRealtimeHub] participants event:", payload);
-          this.triggerRefresh("B");
-        }
+        (payload) => this.triggerRefresh("GLOBAL")
       )
-      // C1: participants_log
+      // ANOMALY: ai_insights, error_logs
       .on(
         "postgres_changes",
-        { event: "*", schema: "public", table: "participants_log" },
-        (payload) => this.handleParticipantLogEvent(payload)
+        { event: "*", schema: "public", table: "ai_insights" },
+        (payload) => this.handleAIInsightsEvent(payload)
       )
-      // D1: functions_logs (if exists)
-      .on(
-        "postgres_changes",
-        { event: "INSERT", schema: "public", table: "functions_logs" },
-        (payload) => this.handleFunctionLogEvent(payload)
-      )
-      // E1: error_logs (if exists)
       .on(
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "error_logs" },
         (payload) => this.handleErrorLogEvent(payload)
       )
-      // F1: qa_reports (if exists)
+      // QA: qa_reports
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "qa_reports" },
         (payload) => this.handleQAReportEvent(payload)
       )
-      // G1: alerts_history (if exists)
+      // AUTOMATION: automation_jobs
       .on(
         "postgres_changes",
-        { event: "INSERT", schema: "public", table: "alerts_history" },
-        (payload) => this.handleAlertsHistoryEvent(payload)
+        { event: "*", schema: "public", table: "automation_jobs" },
+        (payload) => this.handleAutomationEvent()
       )
       .subscribe((status, err) => {
         if (status === "SUBSCRIBED") {
-          console.log("[MasterRealtimeHub] ✅ Connected successfully");
+          console.log("[MasterRealtime] Connected");
           connectionFailures = 0;
           isStaticMode = false;
         } else if (status === "CHANNEL_ERROR") {
-          console.error("[MasterRealtimeHub] ❌ Channel error:", err);
+          console.error("[MasterRealtime] Channel error:", err);
+          console.error("[MasterRealtime] Disconnected (retry scheduled)");
           this.handleConnectionError();
         } else if (status === "TIMED_OUT") {
-          console.error("[MasterRealtimeHub] ⏱️ Connection timed out");
+          console.error("[MasterRealtime] Connection timed out");
+          console.error("[MasterRealtime] Disconnected (retry scheduled)");
           this.handleConnectionError();
         } else {
-          console.log(`[MasterRealtimeHub] Status: ${status}`);
+          console.log(`[MasterRealtime] Status: ${status}`);
         }
       });
   }
 
   disconnect() {
     if (masterChannel) {
-      console.log("[MasterRealtimeHub] Disconnecting...");
+      console.log("[MasterRealtime] Disconnecting...");
       masterChannel.unsubscribe();
       masterChannel = null;
-      this.refreshCallbacks.clear();
+      this.unifiedCallback = null;
+      this.pendingTags.clear();
+      if (debounceTimer !== null) {
+        clearTimeout(debounceTimer);
+        debounceTimer = null;
+      }
     }
   }
 
@@ -317,7 +262,7 @@ export class MasterRealtimeHub {
   resetStaticMode() {
     connectionFailures = 0;
     isStaticMode = false;
-    console.log("[MasterRealtimeHub] Static mode reset");
+    console.log("[MasterRealtime] Static mode reset");
   }
 }
 

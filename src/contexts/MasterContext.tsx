@@ -126,9 +126,9 @@ export function MasterProvider({ children }: { children: ReactNode }) {
     // Initial fetch
     fetchAllData();
 
-    // Setup realtime hub
-    masterRealtimeHub.registerRefreshCallback("global", () => {
-      console.log("[MasterDashboard] Realtime update received, refreshing data");
+    // Setup unified realtime callback
+    masterRealtimeHub.registerUnifiedCallback((tag) => {
+      console.log(`[MasterDashboard] Realtime update received: ${tag}`);
       fetchAllData();
     });
 
@@ -143,7 +143,8 @@ export function MasterProvider({ children }: { children: ReactNode }) {
 
     // Check realtime status
     const statusInterval = setInterval(() => {
-      setIsRealtimeConnected(masterRealtimeHub.isConnected());
+      const connected = masterRealtimeHub.isConnected();
+      setIsRealtimeConnected(connected);
     }, 5000);
 
     return () => {
