@@ -21,6 +21,7 @@ import { UserPlus, Shield, Trash2, RefreshCw } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { useUser } from "@/context/UserContext";
+import { NewAccountModal } from "@/components/accounts/NewAccountModal";
 
 interface UserProfile {
   id: string;
@@ -48,9 +49,6 @@ export default function MasterAccountManager() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null);
   const [editRole, setEditRole] = useState<string>("");
-  const [newEmail, setNewEmail] = useState("");
-  const [newRole, setNewRole] = useState("staff");
-  const [newAgencyId, setNewAgencyId] = useState("");
   const [agencies, setAgencies] = useState<Array<{ id: string; name: string }>>([]);
   
   const canCreate = role === 'master';
@@ -177,45 +175,6 @@ export default function MasterAccountManager() {
     }
   };
 
-  const handleCreateAccount = async () => {
-    if (!newEmail || !newAgencyId) {
-      toast({
-        title: "입력 오류",
-        description: "이메일과 에이전시를 선택해주세요.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    try {
-      const { error } = await (supabase as any).rpc("fn_manage_user_account", {
-        p_action: "create",
-        p_email: newEmail,
-        p_role: newRole,
-        p_agency_id: newAgencyId,
-      });
-
-      if (error) throw error;
-
-      toast({
-        title: "계정 생성 완료",
-        description: "새 계정이 생성되었습니다.",
-      });
-
-      setCreateDialogOpen(false);
-      setNewEmail("");
-      setNewRole("staff");
-      setNewAgencyId("");
-      loadProfiles();
-    } catch (error: any) {
-      console.error("[MasterAccount] Failed to create account:", error);
-      toast({
-        title: "계정 생성 실패",
-        description: error.message,
-        variant: "destructive",
-      });
-    }
-  };
 
   return (
     <div className="space-y-6">
@@ -316,67 +275,13 @@ export default function MasterAccountManager() {
         </CardContent>
       </Card>
 
-      {/* Create Account Dialog */}
-      <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-        <DialogContent className="rounded-xl">
-          <DialogHeader>
-            <DialogTitle>새 계정 생성</DialogTitle>
-            <DialogDescription>
-              새 사용자 계정을 직접 생성합니다.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="new-email">이메일</Label>
-              <Input
-                id="new-email"
-                type="email"
-                placeholder="user@example.com"
-                value={newEmail}
-                onChange={(e) => setNewEmail(e.target.value)}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="new-agency">에이전시</Label>
-              <Select value={newAgencyId} onValueChange={setNewAgencyId}>
-                <SelectTrigger id="new-agency">
-                  <SelectValue placeholder="에이전시 선택" />
-                </SelectTrigger>
-                <SelectContent>
-                  {agencies.map((agency) => (
-                    <SelectItem key={agency.id} value={agency.id}>
-                      {agency.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="new-role">권한</Label>
-              <Select value={newRole} onValueChange={setNewRole}>
-                <SelectTrigger id="new-role">
-                  <SelectValue placeholder="권한 선택" />
-                </SelectTrigger>
-                <SelectContent>
-                  {roleOptions.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>
-              취소
-            </Button>
-            <Button onClick={handleCreateAccount}>
-              생성
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {/* Create Account Modal */}
+      <NewAccountModal
+        open={createDialogOpen}
+        onOpenChange={setCreateDialogOpen}
+        agencies={agencies}
+        onSuccess={loadProfiles}
+      />
 
       {/* Edit Role Dialog */}
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
