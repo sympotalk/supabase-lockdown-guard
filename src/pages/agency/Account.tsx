@@ -85,14 +85,41 @@ export default function AgencyAccount() {
 
       if (!roleData?.agency_id) return;
 
-      // Get invited users for this agency
-      const { data } = await supabase
-        .from("master_users")
-        .select("*")
-        .eq("agency", (await supabase.from("agencies").select("name").eq("id", roleData.agency_id).single()).data?.name)
-        .order("created_at", { ascending: false });
+      // Get agency name first
+      const { data: agencyData } = await supabase
+        .from("agencies")
+        .select("name")
+        .eq("id", roleData.agency_id)
+        .single();
 
-      setInvites((data as any) || []);
+      if (!agencyData?.name) return;
+
+      // Get invited users for this agency - use raw query to avoid type issues
+      type MasterUserRow = {
+        id: string;
+        email: string;
+        role: string;
+        created_at: string;
+      };
+      
+      // Cast supabase client to any to completely bypass type checking for this query
+      const result = await (supabase as any)
+        .from("master_users")
+        .select("id, email, role, created_at")
+        .eq("agency", agencyData.name)
+        .order("created_at", { ascending: false });
+      
+      const masterUsersData: MasterUserRow[] = result?.data || [];
+
+      const invitedUsers: InvitedUser[] = masterUsersData.map((item) => ({
+        id: item.id || "",
+        email: item.email || "",
+        role: item.role || "staff",
+        active: true,
+        created_at: item.created_at || new Date().toISOString(),
+      }));
+      
+      setInvites(invitedUsers);
     } catch (error) {
       console.error("Failed to load invites:", error);
     }

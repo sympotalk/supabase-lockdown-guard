@@ -1,66 +1,87 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Database, Radio, Zap, TrendingUp, CheckCircle2, AlertTriangle } from "lucide-react";
+import { Activity, Database, Shield, TrendingUp } from "lucide-react";
+import { SystemHealthUI } from "@/types/masterUI";
 
-interface SystemInsights {
-  total_reports: number;
-  success_rate: number;
-  avg_processing_time: number;
-  warning_count: number;
-  total_functions: number;
-  total_channels: number;
-}
+const defaultHealth: SystemHealthUI = {
+  totalReports: 0,
+  successRate: 0,
+  avgProcessingTime: 0,
+  warningCount: 0,
+};
 
 export function SystemHealthCards() {
-  const [insights, setInsights] = useState<SystemInsights | null>(null);
+  const [health, setHealth] = useState<SystemHealthUI>(defaultHealth);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    loadSystemInsights();
+    loadSystemHealth();
   }, []);
 
-  const loadSystemInsights = async () => {
+  const loadSystemHealth = async () => {
     setLoading(true);
-    console.log("[MasterDashboard] Loading system insights from master_system_insights...");
+    console.log("[MasterDashboard] Loading system health from master_system_insights...");
 
     try {
       const { data, error } = await supabase
         .from("master_system_insights")
         .select("*")
-        .maybeSingle();
+        .single();
 
       if (error) throw error;
-      setInsights(data);
+      // Narrow cast from Supabase to UI type
+      const healthUI: SystemHealthUI = {
+        totalReports: data?.total_reports ?? 0,
+        successRate: data?.success_rate ?? 0,
+        avgProcessingTime: data?.avg_processing_time ?? 0,
+        warningCount: data?.warning_count ?? 0,
+      };
+      setHealth(healthUI);
     } catch (error) {
-      console.error("[MasterDashboard] Error loading system insights:", error);
+      console.error("[MasterDashboard] Error loading system health:", error);
     }
 
     setLoading(false);
   };
 
-  const getStatusBadge = (value: number, isGood: boolean) => {
-    const config = isGood
-      ? { variant: "default" as const, label: "정상", icon: CheckCircle2, color: "text-green-600" }
-      : { variant: "destructive" as const, label: "주의", icon: AlertTriangle, color: "text-yellow-600" };
-
-    const Icon = config.icon;
-    return (
-      <Badge variant={config.variant} className="gap-1">
-        <Icon className={`h-3 w-3 ${config.color}`} />
-        {config.label}
-      </Badge>
-    );
-  };
+  const cards = [
+    {
+      icon: Database,
+      title: "총 리포트",
+      value: health.totalReports.toString(),
+      subtitle: "누적 QA 리포트",
+      color: "text-blue-600 dark:text-blue-400",
+    },
+    {
+      icon: TrendingUp,
+      title: "성공률",
+      value: `${health.successRate.toFixed(1)}%`,
+      subtitle: "PASS 비율",
+      color: "text-green-600 dark:text-green-400",
+    },
+    {
+      icon: Activity,
+      title: "평균 처리시간",
+      value: `${health.avgProcessingTime.toFixed(0)}ms`,
+      subtitle: "리포트 생성 시간",
+      color: "text-purple-600 dark:text-purple-400",
+    },
+    {
+      icon: Shield,
+      title: "경고 수",
+      value: health.warningCount.toString(),
+      subtitle: "시스템 경고",
+      color: "text-orange-600 dark:text-orange-400",
+    },
+  ];
 
   if (loading) {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {[1, 2, 3, 4].map(i => (
-          <Card key={i} className="shadow-md animate-pulse">
-            <CardContent className="p-6">
+        {cards.map((_, idx) => (
+          <Card key={idx} className="shadow-md rounded-2xl animate-pulse">
+            <CardContent className="p-4">
               <div className="h-20 bg-muted rounded" />
             </CardContent>
           </Card>
@@ -70,86 +91,28 @@ export function SystemHealthCards() {
   }
 
   return (
-    <TooltipProvider>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* QA Reports */}
-        <Card className="shadow-md rounded-2xl border-border">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                <TrendingUp className="h-5 w-5 text-primary" />
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      {cards.map((card, idx) => {
+        const Icon = card.icon;
+        return (
+          <Card key={idx} className="shadow-md rounded-2xl border-border">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                  <Icon className={`h-5 w-5 ${card.color}`} />
+                </div>
+                <div className="flex-1">
+                  <p className="text-[12px] text-muted-foreground">{card.title}</p>
+                </div>
               </div>
-              <div className="flex-1">
-                <p className="text-[14px] text-muted-foreground">QA 리포트</p>
+              <div className="space-y-1">
+                <p className="text-[24px] font-bold">{card.value}</p>
+                <p className="text-[12px] text-muted-foreground">{card.subtitle}</p>
               </div>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-[24px] font-bold">{insights?.total_reports || 0}개</span>
-              {getStatusBadge(insights?.success_rate || 0, (insights?.success_rate || 0) >= 90)}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Realtime Channels */}
-        <Card className="shadow-md rounded-2xl border-border">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                <Radio className="h-5 w-5 text-primary" />
-              </div>
-              <div className="flex-1">
-                <p className="text-[14px] text-muted-foreground">Realtime 채널</p>
-              </div>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-[24px] font-bold">{insights?.total_channels || 0}개</span>
-              <Badge variant="default" className="gap-1">
-                <Radio className="h-3 w-3" />
-                활성
-              </Badge>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Functions Count */}
-        <Card className="shadow-md rounded-2xl border-border">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                <Zap className="h-5 w-5 text-primary" />
-              </div>
-              <div className="flex-1">
-                <p className="text-[14px] text-muted-foreground">등록된 자동화</p>
-              </div>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-[24px] font-bold">{insights?.total_functions || 0}개</span>
-              <Badge variant="default" className="gap-1">
-                <CheckCircle2 className="h-3 w-3" />
-                정상
-              </Badge>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Warning Count */}
-        <Card className="shadow-md rounded-2xl border-border">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                <Database className="h-5 w-5 text-primary" />
-              </div>
-              <div className="flex-1">
-                <p className="text-[14px] text-muted-foreground">경고 건수</p>
-              </div>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-[24px] font-bold">{insights?.warning_count || 0}건</span>
-              {getStatusBadge(insights?.warning_count || 0, (insights?.warning_count || 0) === 0)}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    </TooltipProvider>
+            </CardContent>
+          </Card>
+        );
+      })}
+    </div>
   );
 }

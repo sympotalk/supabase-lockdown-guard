@@ -3,17 +3,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { AlertTriangle } from "lucide-react";
 import { format } from "date-fns";
-
-interface ErrorLog {
-  id: string;
-  module: string;
-  level: "critical" | "warning" | "info";
-  message: string;
-  created_at: string;
-}
+import { ErrorLogUI } from "@/types/masterUI";
 
 export function ErrorLogTable() {
-  const [errors, setErrors] = useState<ErrorLog[]>([]);
+  const [errors, setErrors] = useState<ErrorLogUI[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -31,7 +24,15 @@ export function ErrorLogTable() {
         .limit(10);
 
       if (error) throw error;
-      setErrors((data || []) as ErrorLog[]);
+      // Narrow cast from Supabase to UI type
+      const errorsUI: ErrorLogUI[] = (data || []).map((item: any) => ({
+        id: item.id,
+        module: item.module,
+        level: item.level,
+        message: item.message,
+        createdAt: item.created_at,
+      }));
+      setErrors(errorsUI);
     } catch (error) {
       console.error("[MasterDashboard] Error loading logs:", error);
     }
@@ -88,8 +89,8 @@ export function ErrorLogTable() {
                       <p className={`text-[14px] font-medium ${indicator.textColor} truncate`}>
                         {log.module}
                       </p>
-                      <span className="text-[12px] text-muted-foreground whitespace-nowrap">
-                        {format(new Date(log.created_at), "MM/dd HH:mm")}
+                       <span className="text-[12px] text-muted-foreground whitespace-nowrap">
+                        {format(new Date(log.createdAt), "MM/dd HH:mm")}
                       </span>
                     </div>
                     <p className="text-[12px] text-muted-foreground line-clamp-1">

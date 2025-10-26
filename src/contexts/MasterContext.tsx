@@ -3,42 +3,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { validateSystemInsights } from "@/lib/masterDashboardValidation";
 import { masterRealtimeHub } from "@/lib/masterRealtimeHub";
 import { toast } from "@/hooks/use-toast";
-
-interface SystemInsights {
-  healthRate: number;
-  activeChannels: number;
-  aiMappingRate: number;
-  duplicateRate: number;
-  qaPassRate: number;
-  errorRate: number;
-  isMock: boolean;
-}
-
-interface AIInsight {
-  id: string;
-  detected_at: string;
-  severity: "critical" | "warning" | "info";
-  title: string;
-  description: string;
-}
-
-interface QAReport {
-  id: string;
-  generated_at: string;
-  period_start: string;
-  period_end: string;
-  summary: string;
-  total_anomalies: number;
-  critical_count: number;
-  warning_count: number;
-  info_count: number;
-  ai_recommendations: string;
-}
+import { MasterMetricsUI, AIInsightUI, QAReportUI } from "@/types/masterUI";
 
 interface MasterContextValue {
-  metrics: SystemInsights | null;
-  aiInsights: AIInsight[];
-  qaReports: QAReport[];
+  metrics: MasterMetricsUI;
+  aiInsights: AIInsightUI[];
+  qaReports: QAReportUI[];
   isRealtimeConnected: boolean;
   lastFetchedAt: Date | null;
   loading: boolean;
@@ -50,10 +20,20 @@ const MasterContext = createContext<MasterContextValue | null>(null);
 
 const STALE_TIME = 60000; // 60s
 
+const defaultMetrics: MasterMetricsUI = {
+  healthRate: 0,
+  activeChannels: 0,
+  aiMappingRate: 0,
+  duplicateRate: 0,
+  qaPassRate: 0,
+  errorRate: 0,
+  isMock: true,
+};
+
 export function MasterProvider({ children }: { children: ReactNode }) {
-  const [metrics, setMetrics] = useState<SystemInsights | null>(null);
-  const [aiInsights, setAiInsights] = useState<AIInsight[]>([]);
-  const [qaReports, setQaReports] = useState<QAReport[]>([]);
+  const [metrics, setMetrics] = useState<MasterMetricsUI>(defaultMetrics);
+  const [aiInsights, setAiInsights] = useState<AIInsightUI[]>([]);
+  const [qaReports, setQaReports] = useState<QAReportUI[]>([]);
   const [isRealtimeConnected, setIsRealtimeConnected] = useState(false);
   const [lastFetchedAt, setLastFetchedAt] = useState<Date | null>(null);
   const [loading, setLoading] = useState(true);
@@ -91,10 +71,32 @@ export function MasterProvider({ children }: { children: ReactNode }) {
       });
 
       if (aiResult.error) throw aiResult.error;
-      setAiInsights((aiResult.data || []) as AIInsight[]);
+      // Narrow cast from Supabase to UI type
+      const aiInsightsUI: AIInsightUI[] = (aiResult.data || []).map((item: any) => ({
+        id: item.id,
+        detectedAt: item.detected_at,
+        severity: item.severity,
+        title: item.title,
+        description: item.description,
+      }));
+      setAiInsights(aiInsightsUI);
 
       if (qaResult.error) throw qaResult.error;
-      setQaReports(qaResult.data || []);
+      // Narrow cast from Supabase to UI type
+      const qaReportsUI: QAReportUI[] = (qaResult.data || []).map((item: any) => ({
+        id: item.id,
+        title: item.title,
+        status: item.status,
+        category: item.category,
+        generatedAt: item.generated_at,
+        totalAnomalies: item.total_anomalies ?? 0,
+        criticalCount: item.critical_count ?? 0,
+        warningCount: item.warning_count ?? 0,
+        infoCount: item.info_count ?? 0,
+        summary: item.summary,
+        aiRecommendations: item.ai_recommendations,
+      }));
+      setQaReports(qaReportsUI);
 
       setLastFetchedAt(new Date());
       console.log("[MasterDashboard] Data fetch complete");

@@ -2,22 +2,13 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { FileText, CheckCircle2, AlertTriangle } from "lucide-react";
 import { format } from "date-fns";
-
-interface QAReport {
-  id: string;
-  title: string | null;
-  status: string;
-  category: string | null;
-  generated_at: string;
-  total_anomalies: number;
-}
+import { QAReportUI } from "@/types/masterUI";
 
 export function QAReportTable() {
-  const [reports, setReports] = useState<QAReport[]>([]);
+  const [reports, setReports] = useState<QAReportUI[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -36,7 +27,21 @@ export function QAReportTable() {
         .limit(50);
 
       if (error) throw error;
-      setReports(data || []);
+      // Narrow cast from Supabase to UI type
+      const reportsUI: QAReportUI[] = (data || []).map((item: any) => ({
+        id: item.id,
+        title: item.title,
+        status: item.status,
+        category: item.category,
+        generatedAt: item.generated_at,
+        totalAnomalies: item.total_anomalies ?? 0,
+        criticalCount: 0,
+        warningCount: 0,
+        infoCount: 0,
+        summary: null,
+        aiRecommendations: null,
+      }));
+      setReports(reportsUI);
     } catch (error) {
       console.error("[MasterDashboard] Error loading QA reports:", error);
     }
@@ -111,13 +116,13 @@ export function QAReportTable() {
                   </TableCell>
                   <TableCell className="text-[14px]">{report.category || 'General'}</TableCell>
                   <TableCell>
-                    <span className={`text-[14px] font-semibold ${getScoreColor(report.total_anomalies)}`}>
-                      {report.total_anomalies}건
+                    <span className={`text-[14px] font-semibold ${getScoreColor(report.totalAnomalies)}`}>
+                      {report.totalAnomalies}건
                     </span>
                   </TableCell>
                   <TableCell>{getStatusBadge(report.status)}</TableCell>
                   <TableCell className="text-[14px] text-muted-foreground">
-                    {format(new Date(report.generated_at), "yyyy-MM-dd HH:mm")}
+                    {format(new Date(report.generatedAt), "yyyy-MM-dd HH:mm")}
                   </TableCell>
                 </TableRow>
               ))}
