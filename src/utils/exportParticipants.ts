@@ -1,4 +1,4 @@
-// [LOCKED][71-I] Export participants with all 11 columns including manager info
+// [LOCKED][71-I.QA2] Export participants with dual templates (work/archive)
 import * as XLSX from "xlsx";
 
 interface Participant {
@@ -15,10 +15,17 @@ interface Participant {
   sfe_agency_code?: string;
   sfe_customer_code?: string;
   stay_plan?: string;
+  call_checked?: boolean;
 }
 
-export function exportParticipantsToExcel(rows: Participant[], filename: string = "participants.xlsx") {
-  const mapped = rows.map((r) => ({
+export type ExportMode = 'work' | 'archive';
+
+export function exportParticipantsToExcel(
+  rows: Participant[], 
+  filename: string = "participants.xlsx",
+  mode: ExportMode = 'work'
+) {
+  const baseMapping = rows.map((r) => ({
     "고객 성명": r.participant_name || "",
     "거래처명": r.company_name || "",
     "고객 연락처": r.participant_contact || "",
@@ -31,6 +38,11 @@ export function exportParticipantsToExcel(rows: Participant[], filename: string 
     "숙박예정": r.stay_plan || "",
     "메모": r.memo || "",
   }));
+
+  // Archive mode: add call status
+  const mapped = mode === 'archive' 
+    ? baseMapping.map((r, idx) => ({ ...r, "통화완료": rows[idx].call_checked ? "Y" : "N" }))
+    : baseMapping;
 
   const worksheet = XLSX.utils.json_to_sheet(mapped);
   const workbook = XLSX.utils.book_new();

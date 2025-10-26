@@ -1,11 +1,18 @@
-// [LOCKED][71-I] Participants panel with event context enforcement
+// [LOCKED][71-I.QA2] Participants panel with bulk actions & export modes
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { useUser } from "@/context/UserContext";
-import { Plus, Search, Download, Upload, RefreshCw } from "lucide-react";
+import { Plus, Search, Download, Upload, RefreshCw, CheckSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   Table,
   TableBody,
@@ -17,7 +24,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { ParticipantRightPanel } from "@/components/participants/ParticipantRightPanel";
 import { UploadParticipantsModal } from "@/components/dashboard/UploadParticipantsModal";
-import { exportParticipantsToExcel } from "@/utils/exportParticipants";
+import { exportParticipantsToExcel, type ExportMode } from "@/utils/exportParticipants";
 import { LoadingSkeleton } from "@/components/pd/LoadingSkeleton";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -40,11 +47,12 @@ interface Participant {
 
 export default function ParticipantsPanel() {
   const { eventId } = useParams();
-  const { agencyScope } = useUser();
+  const { agencyScope, user } = useUser();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedParticipant, setSelectedParticipant] = useState<Participant | null>(null);
   const [panelOpen, setPanelOpen] = useState(false);
   const [uploadOpen, setUploadOpen] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
   // [71-I] Enforce event context
   if (!eventId || !agencyScope) {
@@ -101,13 +109,45 @@ export default function ParticipantsPanel() {
     setPanelOpen(true);
   };
 
-  const handleExport = () => {
+  const handleExport = (mode: ExportMode = 'work') => {
     if (!participants || participants.length === 0) {
       toast.error("내보낼 데이터가 없습니다");
       return;
     }
-    exportParticipantsToExcel(participants, `participants_${eventId}.xlsx`);
-    toast.success(`${participants.length}명의 데이터를 내보냈습니다`);
+    const modeLabel = mode === 'work' ? '업무용' : '보관용';
+    exportParticipantsToExcel(participants, `participants_${eventId}_${mode}.xlsx`, mode);
+    toast.success(`${participants.length}명의 데이터를 ${modeLabel} 템플릿으로 내보냈습니다`);
+  };
+
+  // [LOCKED][QA2] Bulk actions
+  const handleBulkUpdate = async (patch: Record<string, any>) => {
+    if (selectedIds.length === 0) {
+      toast.error("선택된 참가자가 없습니다");
+      return;
+    }
+
+    const { error } = await supabase
+      .from("participants")
+      .update({ ...patch })
+      .in("id", selectedIds);
+
+    if (error) {
+      console.error("[QA2] Bulk update error:", error);
+      toast.error("일괄 수정 실패");
+    } else {
+      console.log("[QA2] Bulk updated:", selectedIds.length, "participants");
+      toast.success(`${selectedIds.length}명 일괄 수정 완료`);
+      setSelectedIds([]);
+      mutate();
+    }
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedIds.length === filteredParticipants?.length) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds(filteredParticipants?.map((p) => p.id) || []);
+    }
   };
 
   const filteredParticipants = participants?.filter(
@@ -152,14 +192,56 @@ export default function ParticipantsPanel() {
           </Badge>
         </div>
         <div className="flex gap-2">
+          {selectedIds.length > 0 && (
+            <>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handleBulkUpdate({ call_checked: true })}
+              >
+                <CheckSquare className="h-4 w-4 mr-2" />
+                통화완료 ({selectedIds.length})
+              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm">
+                    일괄 숙박 변경
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  <DropdownMenuItem onClick={() => handleBulkUpdate({ stay_plan: "미숙박" })}>
+                    미숙박
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleBulkUpdate({ stay_plan: "1일차" })}>
+                    1일차
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleBulkUpdate({ stay_plan: "2일차" })}>
+                    2일차
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </>
+          )}
           <Button variant="outline" size="sm" onClick={() => mutate()}>
             <RefreshCw className="h-4 w-4 mr-2" />
             새로고침
           </Button>
-          <Button variant="outline" size="sm" onClick={handleExport}>
-            <Download className="h-4 w-4 mr-2" />
-            내보내기
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm">
+                <Download className="h-4 w-4 mr-2" />
+                내보내기
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuItem onClick={() => handleExport('work')}>
+                업무용 템플릿
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleExport('archive')}>
+                보관용 템플릿
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
           <Button variant="outline" size="sm" onClick={() => setUploadOpen(true)}>
             <Upload className="h-4 w-4 mr-2" />
             업로드
@@ -183,6 +265,12 @@ export default function ParticipantsPanel() {
               <Table>
                 <TableHeader>
                   <TableRow className="bg-muted hover:bg-muted">
+                    <TableHead className="w-12">
+                      <Checkbox
+                        checked={selectedIds.length === filteredParticipants.length}
+                        onCheckedChange={toggleSelectAll}
+                      />
+                    </TableHead>
                     <TableHead className="font-semibold">성명</TableHead>
                     <TableHead className="font-semibold">소속</TableHead>
                     <TableHead className="font-semibold">연락처</TableHead>
@@ -195,15 +283,33 @@ export default function ParticipantsPanel() {
                   {filteredParticipants.map((participant) => (
                     <TableRow
                       key={participant.id}
-                      className="cursor-pointer hover:bg-muted/50 transition-colors"
-                      onClick={() => handleRowClick(participant)}
+                      className="hover:bg-muted/50 transition-colors"
                     >
-                      <TableCell className="font-semibold">
+                      <TableCell onClick={(e) => e.stopPropagation()}>
+                        <Checkbox
+                          checked={selectedIds.includes(participant.id)}
+                          onCheckedChange={(checked) => {
+                            if (checked) {
+                              setSelectedIds([...selectedIds, participant.id]);
+                            } else {
+                              setSelectedIds(selectedIds.filter((id) => id !== participant.id));
+                            }
+                          }}
+                        />
+                      </TableCell>
+                      <TableCell
+                        className="font-semibold cursor-pointer"
+                        onClick={() => handleRowClick(participant)}
+                      >
                         {participant.participant_name}
                       </TableCell>
-                      <TableCell>{participant.company_name || "-"}</TableCell>
-                      <TableCell>{participant.participant_contact || "-"}</TableCell>
-                      <TableCell>
+                      <TableCell onClick={() => handleRowClick(participant)}>
+                        {participant.company_name || "-"}
+                      </TableCell>
+                      <TableCell onClick={() => handleRowClick(participant)}>
+                        {participant.participant_contact || "-"}
+                      </TableCell>
+                      <TableCell onClick={() => handleRowClick(participant)}>
                         {participant.stay_plan ? (
                           <Badge variant="secondary" className="rounded-xl">
                             {participant.stay_plan}
@@ -212,10 +318,10 @@ export default function ParticipantsPanel() {
                           <span className="text-muted-foreground text-sm">-</span>
                         )}
                       </TableCell>
-                      <TableCell>
+                      <TableCell onClick={() => handleRowClick(participant)}>
                         {participant.manager_info?.name || "-"}
                       </TableCell>
-                      <TableCell>
+                      <TableCell onClick={() => handleRowClick(participant)}>
                         <Badge
                           variant={participant.status === "VIP" ? "default" : "secondary"}
                           className="rounded-xl"

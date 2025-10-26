@@ -1,11 +1,14 @@
-// [LOCKED][70.4+71-I] SmartBadges component for participant memo management
-import { useState } from "react";
+// [LOCKED][71-I.QA2] SmartBadges with dynamic agency customization
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Plus } from "lucide-react";
 import { toast } from "sonner";
+import { useUser } from "@/context/UserContext";
+import { supabase } from "@/integrations/supabase/client";
+import useSWR from "swr";
 
 interface Category {
   key: string;
@@ -14,7 +17,7 @@ interface Category {
   items: string[];
 }
 
-const CATEGORIES: Category[] = [
+const BASE_CATEGORIES: Category[] = [
   { key: "room", icon: "🏷️", label: "객실등급", items: ["프리미엄", "디럭스", "스탠다드"] },
   { key: "bedding", icon: "💤", label: "침구", items: ["엑스트라베드", "소파베드", "침대가드"] },
   { key: "infant", icon: "🍼", label: "유아용품", items: ["아기침대", "아기욕조", "유모차"] },
@@ -29,7 +32,55 @@ interface SmartBadgesProps {
 }
 
 export function SmartBadges({ currentMemo, onMemoChange }: SmartBadgesProps) {
+  const { agencyScope } = useUser();
   const [customInput, setCustomInput] = useState("");
+  const [categories, setCategories] = useState<Category[]>(BASE_CATEGORIES);
+
+  // [LOCKED][QA2] Load agency-specific custom badges
+  const { data: customBadges } = useSWR(
+    agencyScope ? `badge_${agencyScope}` : null,
+    async () => {
+      const { data, error } = await supabase
+        .from("agency_badge_items")
+        .select("*")
+        .eq("agency_id", agencyScope!)
+        .eq("is_active", true);
+      if (error) throw error;
+      return data || [];
+    },
+    { revalidateOnFocus: false }
+  );
+
+  // Merge custom badges into categories
+  useEffect(() => {
+    if (!customBadges || customBadges.length === 0) {
+      setCategories(BASE_CATEGORIES);
+      return;
+    }
+
+    const merged = [...BASE_CATEGORIES];
+    const customCategory: Category = {
+      key: "custom",
+      icon: "💎",
+      label: "커스텀",
+      items: [],
+    };
+
+    customBadges.forEach((badge: any) => {
+      const existingCat = merged.find((c) => c.key === badge.category);
+      if (existingCat && !existingCat.items.includes(badge.label)) {
+        existingCat.items.push(badge.label);
+      } else if (!existingCat && badge.category === "custom") {
+        customCategory.items.push(badge.label);
+      }
+    });
+
+    if (customCategory.items.length > 0) {
+      merged.push(customCategory);
+    }
+
+    setCategories(merged);
+  }, [customBadges]);
 
   const appendMemo = (label: string) => {
     const memoItems = currentMemo ? currentMemo.split(" / ").filter(Boolean) : [];
@@ -83,7 +134,7 @@ export function SmartBadges({ currentMemo, onMemoChange }: SmartBadgesProps) {
 
         {/* Category buttons */}
         <div className="space-y-3">
-          {CATEGORIES.map((cat) => (
+          {categories.map((cat) => (
             <div key={cat.key} className="space-y-2">
               <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
                 <span>{cat.icon}</span>

@@ -1,24 +1,17 @@
-// [LOCKED][71-I] Right panel with slide-in and editable fields
-import { useState, useEffect } from "react";
+// [LOCKED][71-I.QA2] Participant right panel with inline save & optimistic updates
+import { useEffect, useState, useCallback } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { SmartBadges } from "./SmartBadges";
-import { supabase } from "@/integrations/supabase/client";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Trash2, Phone, Building2, User, Hash, Mail } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
-import { Phone, Mail, Building2, User, Trash2 } from "lucide-react";
-// Debounce utility
-function debounce<T extends (...args: any[]) => any>(func: T, wait: number): T {
-  let timeout: NodeJS.Timeout;
-  return ((...args: any[]) => {
-    clearTimeout(timeout);
-    timeout = setTimeout(() => func(...args), wait);
-  }) as T;
-}
+import { supabase } from "@/integrations/supabase/client";
+import { SmartBadges } from "./SmartBadges";
+import { useUser } from "@/context/UserContext";
 
 interface Participant {
   id: string;
@@ -36,14 +29,24 @@ interface Participant {
   };
   sfe_agency_code?: string;
   sfe_customer_code?: string;
+  status?: string;
+}
+
+// [LOCKED][QA2] Debounce utility
+function debounce<T extends (...args: any[]) => any>(fn: T, delay: number): (...args: Parameters<T>) => void {
+  let timeoutId: NodeJS.Timeout;
+  return (...args: Parameters<T>) => {
+    clearTimeout(timeoutId);
+    timeoutId = setTimeout(() => fn(...args), delay);
+  };
 }
 
 interface ParticipantRightPanelProps {
   participant: Participant | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onUpdate: () => void;
-  onDelete?: (id: string) => void;
+  onUpdate?: () => void;
+  onDelete?: () => void;
 }
 
 export function ParticipantRightPanel({
@@ -53,71 +56,73 @@ export function ParticipantRightPanel({
   onUpdate,
   onDelete,
 }: ParticipantRightPanelProps) {
-  const [localMemo, setLocalMemo] = useState("");
-  const [localStayPlan, setLocalStayPlan] = useState("");
-  const [localManagerInfo, setLocalManagerInfo] = useState<any>({});
+  const { user } = useUser();
+  const [localData, setLocalData] = useState<Participant | null>(null);
 
   useEffect(() => {
-    if (participant) {
-      setLocalMemo(participant.memo || "");
-      setLocalStayPlan(participant.stay_plan || "");
-      setLocalManagerInfo(participant.manager_info || {});
-    }
+    setLocalData(participant);
   }, [participant]);
 
-  const saveField = debounce(async (patch: any) => {
-    if (!participant) return;
+  // [LOCKED][QA2] Optimistic + debounced inline save
+  const saveField = useCallback(
+    debounce(async (patch: Record<string, any>) => {
+      if (!localData?.id) return;
+      
+      const { error } = await supabase
+        .from("participants")
+        .update(patch)
+        .eq("id", localData.id);
 
-    const { error } = await supabase
-      .from("participants")
-      .update({ ...patch, updated_by: (await supabase.auth.getUser()).data.user?.id })
-      .eq("id", participant.id);
+      if (error) {
+        console.error("[QA2] Save error:", error);
+        toast.error("저장 실패");
+        onUpdate?.(); // Revalidate on error
+      } else {
+        console.log("[QA2] Field saved:", Object.keys(patch));
+        onUpdate?.();
+      }
+    }, 500),
+    [localData?.id, onUpdate]
+  );
 
-    if (error) {
-      toast.error("저장 실패: " + error.message);
-    } else {
-      toast.success("저장되었습니다");
-      onUpdate();
-    }
-  }, 800);
-
-  const handleMemoChange = (newMemo: string) => {
-    setLocalMemo(newMemo);
-    saveField({ memo: newMemo });
-  };
-
-  const handleManagerInfoChange = (field: string, value: string) => {
-    const updated = { ...localManagerInfo, [field]: value };
-    setLocalManagerInfo(updated);
-    saveField({ manager_info: updated });
+  const handleFieldChange = (field: string, value: any) => {
+    if (!localData) return;
+    
+    // Optimistic update
+    setLocalData({ ...localData, [field]: value });
+    
+    // Debounced save
+    saveField({ [field]: value });
   };
 
   const handleDelete = async () => {
-    if (!participant || !onDelete) return;
-    if (!confirm(`"${participant.participant_name}"을(를) 삭제하시겠습니까?`)) return;
+    if (!localData?.id) return;
+    if (!confirm("이 참가자를 삭제하시겠습니까?")) return;
 
     const { error } = await supabase
       .from("participants")
       .delete()
-      .eq("id", participant.id);
+      .eq("id", localData.id);
 
     if (error) {
-      toast.error("삭제 실패: " + error.message);
+      console.error("[QA2] Delete error:", error);
+      toast.error("삭제 실패");
     } else {
+      console.log("[QA2] Participant deleted:", localData.id);
       toast.success("삭제되었습니다");
-      onDelete(participant.id);
+      onDelete?.();
       onOpenChange(false);
     }
   };
 
-  if (!participant) return null;
+  if (!localData) return null;
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="w-[500px] sm:max-w-[500px] overflow-y-auto">
         <SheetHeader>
           <SheetTitle className="flex items-center justify-between">
-            <span>{participant.participant_name}</span>
+            <span>{localData.participant_name}</span>
             {onDelete && (
               <Button
                 size="sm"
@@ -140,31 +145,53 @@ export function ParticipantRightPanel({
             <CardContent className="space-y-3">
               <div className="flex items-center gap-2 text-sm">
                 <User className="h-4 w-4 text-muted-foreground" />
-                <span className="font-medium">{participant.participant_name}</span>
+                <span className="font-medium">{localData.participant_name}</span>
               </div>
-              {participant.company_name && (
+              {localData.company_name && (
                 <div className="flex items-center gap-2 text-sm">
                   <Building2 className="h-4 w-4 text-muted-foreground" />
-                  <span>{participant.company_name}</span>
+                  <span>{localData.company_name}</span>
                 </div>
               )}
-              {participant.participant_contact && (
+              {localData.participant_contact && (
                 <div className="flex items-center gap-2 text-sm">
                   <Phone className="h-4 w-4 text-muted-foreground" />
-                  <span>{participant.participant_contact}</span>
+                  <span>{localData.participant_contact}</span>
                 </div>
               )}
-              {participant.email && (
+              {localData.email && (
                 <div className="flex items-center gap-2 text-sm">
                   <Mail className="h-4 w-4 text-muted-foreground" />
-                  <span>{participant.email}</span>
+                  <span>{localData.email}</span>
                 </div>
               )}
             </CardContent>
           </Card>
 
+          {/* Memo */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-sm font-medium">메모</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Textarea
+                placeholder="메모 입력..."
+                value={localData?.memo || ""}
+                onChange={(e) => {
+                  if (!localData) return;
+                  setLocalData({ ...localData, memo: e.target.value });
+                }}
+                onBlur={(e) => handleFieldChange("memo", e.target.value)}
+                className="min-h-[80px] resize-none"
+              />
+            </CardContent>
+          </Card>
+
           {/* SmartBadges */}
-          <SmartBadges currentMemo={localMemo} onMemoChange={handleMemoChange} />
+          <SmartBadges
+            currentMemo={localData?.memo || ""}
+            onMemoChange={(newMemo) => handleFieldChange("memo", newMemo)}
+          />
 
           {/* Stay Plan */}
           <Card>
@@ -172,21 +199,21 @@ export function ParticipantRightPanel({
               <CardTitle className="text-sm font-medium">숙박 예정</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="flex gap-2">
-                {["미숙박", "1일차", "2일차", "전체"].map((plan) => (
-                  <Button
-                    key={plan}
-                    size="sm"
-                    variant={localStayPlan === plan ? "default" : "outline"}
-                    onClick={() => {
-                      setLocalStayPlan(plan);
-                      saveField({ stay_plan: plan });
-                    }}
-                  >
-                    {plan}
-                  </Button>
-                ))}
-              </div>
+              <Select
+                value={localData?.stay_plan || "none"}
+                onValueChange={(value) => handleFieldChange("stay_plan", value === "none" ? "" : value)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="선택하세요" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">선택 안함</SelectItem>
+                  <SelectItem value="미숙박">미숙박</SelectItem>
+                  <SelectItem value="1일차">1일차</SelectItem>
+                  <SelectItem value="2일차">2일차</SelectItem>
+                  <SelectItem value="직접입력">직접입력</SelectItem>
+                </SelectContent>
+              </Select>
             </CardContent>
           </Card>
 
@@ -199,8 +226,18 @@ export function ParticipantRightPanel({
               <div className="space-y-1">
                 <Label className="text-xs">팀명</Label>
                 <Input
-                  value={localManagerInfo.team || ""}
-                  onChange={(e) => handleManagerInfoChange("team", e.target.value)}
+                  value={localData?.manager_info?.team || ""}
+                  onChange={(e) => {
+                    if (!localData) return;
+                    setLocalData({
+                      ...localData,
+                      manager_info: { ...localData.manager_info, team: e.target.value },
+                    });
+                  }}
+                  onBlur={(e) => {
+                    const updatedInfo = { ...localData?.manager_info, team: e.target.value };
+                    handleFieldChange("manager_info", updatedInfo);
+                  }}
                   placeholder="예: 영업1팀"
                   className="h-8 text-sm"
                 />
@@ -208,8 +245,18 @@ export function ParticipantRightPanel({
               <div className="space-y-1">
                 <Label className="text-xs">담당자 성명</Label>
                 <Input
-                  value={localManagerInfo.name || ""}
-                  onChange={(e) => handleManagerInfoChange("name", e.target.value)}
+                  value={localData?.manager_info?.name || ""}
+                  onChange={(e) => {
+                    if (!localData) return;
+                    setLocalData({
+                      ...localData,
+                      manager_info: { ...localData.manager_info, name: e.target.value },
+                    });
+                  }}
+                  onBlur={(e) => {
+                    const updatedInfo = { ...localData?.manager_info, name: e.target.value };
+                    handleFieldChange("manager_info", updatedInfo);
+                  }}
                   placeholder="예: 홍길동"
                   className="h-8 text-sm"
                 />
@@ -217,8 +264,18 @@ export function ParticipantRightPanel({
               <div className="space-y-1">
                 <Label className="text-xs">담당자 연락처</Label>
                 <Input
-                  value={localManagerInfo.contact || ""}
-                  onChange={(e) => handleManagerInfoChange("contact", e.target.value)}
+                  value={localData?.manager_info?.contact || ""}
+                  onChange={(e) => {
+                    if (!localData) return;
+                    setLocalData({
+                      ...localData,
+                      manager_info: { ...localData.manager_info, contact: e.target.value },
+                    });
+                  }}
+                  onBlur={(e) => {
+                    const updatedInfo = { ...localData?.manager_info, contact: e.target.value };
+                    handleFieldChange("manager_info", updatedInfo);
+                  }}
                   placeholder="예: 010-1234-5678"
                   className="h-8 text-sm"
                 />
@@ -226,8 +283,18 @@ export function ParticipantRightPanel({
               <div className="space-y-1">
                 <Label className="text-xs">사번</Label>
                 <Input
-                  value={localManagerInfo.emp_no || ""}
-                  onChange={(e) => handleManagerInfoChange("emp_no", e.target.value)}
+                  value={localData?.manager_info?.emp_no || ""}
+                  onChange={(e) => {
+                    if (!localData) return;
+                    setLocalData({
+                      ...localData,
+                      manager_info: { ...localData.manager_info, emp_no: e.target.value },
+                    });
+                  }}
+                  onBlur={(e) => {
+                    const updatedInfo = { ...localData?.manager_info, emp_no: e.target.value };
+                    handleFieldChange("manager_info", updatedInfo);
+                  }}
                   placeholder="예: EMP001"
                   className="h-8 text-sm"
                 />
@@ -240,14 +307,32 @@ export function ParticipantRightPanel({
             <CardHeader>
               <CardTitle className="text-sm font-medium">SFE 코드</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">거래처 코드</span>
-                <span className="font-mono">{participant.sfe_agency_code || "-"}</span>
+            <CardContent className="space-y-3">
+              <div className="space-y-1">
+                <Label className="text-xs">거래처 코드</Label>
+                <Input
+                  value={localData?.sfe_agency_code || ""}
+                  onChange={(e) => {
+                    if (!localData) return;
+                    setLocalData({ ...localData, sfe_agency_code: e.target.value });
+                  }}
+                  onBlur={(e) => handleFieldChange("sfe_agency_code", e.target.value)}
+                  placeholder="SFE 거래처 코드"
+                  className="h-8 text-sm font-mono"
+                />
               </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">고객 코드</span>
-                <span className="font-mono">{participant.sfe_customer_code || "-"}</span>
+              <div className="space-y-1">
+                <Label className="text-xs">고객 코드</Label>
+                <Input
+                  value={localData?.sfe_customer_code || ""}
+                  onChange={(e) => {
+                    if (!localData) return;
+                    setLocalData({ ...localData, sfe_customer_code: e.target.value });
+                  }}
+                  onBlur={(e) => handleFieldChange("sfe_customer_code", e.target.value)}
+                  placeholder="SFE 고객 코드"
+                  className="h-8 text-sm font-mono"
+                />
               </div>
             </CardContent>
           </Card>
