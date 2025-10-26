@@ -4221,6 +4221,7 @@ export type Database = {
       qa_reports: {
         Row: {
           ai_recommendations: string | null
+          category: string | null
           critical_count: number | null
           generated_at: string | null
           id: string
@@ -4228,12 +4229,15 @@ export type Database = {
           period_end: string | null
           period_start: string | null
           report_json: Json | null
+          status: string | null
           summary: string | null
+          title: string | null
           total_anomalies: number | null
           warning_count: number | null
         }
         Insert: {
           ai_recommendations?: string | null
+          category?: string | null
           critical_count?: number | null
           generated_at?: string | null
           id?: string
@@ -4241,12 +4245,15 @@ export type Database = {
           period_end?: string | null
           period_start?: string | null
           report_json?: Json | null
+          status?: string | null
           summary?: string | null
+          title?: string | null
           total_anomalies?: number | null
           warning_count?: number | null
         }
         Update: {
           ai_recommendations?: string | null
+          category?: string | null
           critical_count?: number | null
           generated_at?: string | null
           id?: string
@@ -4254,7 +4261,9 @@ export type Database = {
           period_end?: string | null
           period_start?: string | null
           report_json?: Json | null
+          status?: string | null
           summary?: string | null
+          title?: string | null
           total_anomalies?: number | null
           warning_count?: number | null
         }
@@ -6111,26 +6120,26 @@ export type Database = {
       master_users: {
         Row: {
           agency_id: string | null
+          agency_name: string | null
           created_at: string | null
           email: string | null
           id: string | null
-          last_sign_in_at: string | null
           role: string | null
         }
         Insert: {
           agency_id?: never
+          agency_name?: never
           created_at?: string | null
           email?: string | null
           id?: string | null
-          last_sign_in_at?: string | null
           role?: never
         }
         Update: {
           agency_id?: never
+          agency_name?: never
           created_at?: string | null
           email?: string | null
           id?: string | null
-          last_sign_in_at?: string | null
           role?: never
         }
         Relationships: []

@@ -1,18 +1,14 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
-import { FileText } from 'lucide-react';
 
-interface QAReport {
+type QAReport = {
   id: string;
   title: string;
   status: string;
-  category: string | null;
-  summary: string | null;
+  category: string;
   generated_at: string;
-}
+};
 
 export default function MasterQAReports() {
   const [reports, setReports] = useState<QAReport[]>([]);
@@ -24,60 +20,67 @@ export default function MasterQAReports() {
 
   const loadReports = async () => {
     try {
-      const { data, error } = await supabase
+      const result = await supabase
         .from('qa_reports')
-        .select('*')
+        .select('id, title, status, category, generated_at')
         .eq('is_active', true)
         .order('generated_at', { ascending: false })
         .limit(50);
 
-      if (error) throw error;
-      setReports(data || []);
+      if (result.error) {
+        console.error('[QAReports] Error:', result.error);
+      } else if (result.data) {
+        setReports(result.data.map((item: any) => ({
+          id: item.id,
+          title: item.title || 'QA Report',
+          status: item.status || 'PASS',
+          category: item.category || 'System',
+          generated_at: item.generated_at
+        })));
+      }
     } catch (err) {
-      console.error('[QAReports] Error:', err);
+      console.error('[QAReports] Unexpected error:', err);
     } finally {
       setLoading(false);
     }
   };
 
-  if (loading) return <div className="space-y-6"><Skeleton className="h-96" /></div>;
+  if (loading) {
+    return (
+      <div className="space-y-4">
+        <div className="h-8 w-64 bg-muted animate-pulse rounded" />
+        <div className="h-96 bg-muted animate-pulse rounded" />
+      </div>
+    );
+  }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">QA 리포트</h1>
-        <p className="text-muted-foreground">시스템 품질 보증 결과</p>
-      </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <FileText className="h-5 w-5" />
-            QA 리포트 목록
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {reports.length === 0 ? (
-            <div className="py-12 text-center text-muted-foreground">생성된 리포트가 없습니다</div>
-          ) : (
-            <div className="space-y-3">
-              {reports.map((report) => (
-                <div key={report.id} className="flex items-center justify-between rounded-lg border p-4">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3">
-                      <h3 className="font-medium">{report.title}</h3>
-                      <Badge variant={report.status === 'PASS' ? 'default' : 'destructive'}>{report.status}</Badge>
-                    </div>
-                  </div>
-                  <div className="text-sm text-muted-foreground">
-                    {new Date(report.generated_at).toLocaleString('ko-KR')}
-                  </div>
-                </div>
-              ))}
+    <div className="space-y-4">
+      <h1 className="text-xl font-semibold">QA 리포트</h1>
+      {reports.length === 0 ? (
+        <div className="rounded-lg border p-8 text-center text-muted-foreground">
+          리포트가 없습니다.
+        </div>
+      ) : (
+        <div className="rounded-lg border divide-y">
+          {reports.map((r) => (
+            <div key={r.id} className="p-3 flex justify-between text-sm hover:bg-muted/30">
+              <div className="flex flex-col">
+                <span className="font-medium">{r.title}</span>
+                <span className="text-xs text-muted-foreground">{r.category}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Badge variant={r.status === 'PASS' ? 'default' : 'destructive'}>
+                  {r.status}
+                </Badge>
+                <span className="text-muted-foreground">
+                  {new Date(r.generated_at).toLocaleString('ko-KR')}
+                </span>
+              </div>
             </div>
-          )}
-        </CardContent>
-      </Card>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

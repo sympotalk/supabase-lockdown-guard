@@ -16,26 +16,45 @@ interface Agency {
   created_at: string;
 }
 
+interface MasterUser {
+  email: string;
+  role: string;
+  agency_name: string | null;
+  created_at: string;
+}
+
 export default function MasterAccounts() {
   const [agencies, setAgencies] = useState<Agency[]>([]);
+  const [users, setUsers] = useState<MasterUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    loadAgencies();
+    loadData();
   }, []);
 
-  const loadAgencies = async () => {
+  const loadData = async () => {
     try {
-      const { data, error } = await supabase
+      // Load agencies
+      const { data: agencyData, error: agencyError } = await supabase
         .from('agencies')
         .select('id, name, code, contact_name, contact_email, is_active, created_at')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
-      setAgencies(data || []);
+      if (agencyError) throw agencyError;
+      setAgencies(agencyData || []);
+
+      // Load master users
+      const { data: userData, error: userError } = await supabase
+        .from('master_users')
+        .select('email, role, agency_name, created_at')
+        .order('created_at', { ascending: false });
+
+      if (!userError) {
+        setUsers(userData || []);
+      }
     } catch (err: any) {
-      console.error('[MasterAccounts] Error loading agencies:', err);
+      console.error('[MasterAccounts] Error:', err);
       setError(err.message);
     } finally {
       setLoading(false);
@@ -123,6 +142,44 @@ export default function MasterAccounts() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Master Users Section */}
+      {users.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>마스터 사용자</CardTitle>
+            <CardDescription>시스템 마스터 권한을 가진 사용자 목록</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="rounded-lg border">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b bg-muted/50">
+                    <th className="p-3 text-left font-medium">이메일</th>
+                    <th className="p-3 text-left font-medium">소속</th>
+                    <th className="p-3 text-center font-medium">역할</th>
+                    <th className="p-3 text-center font-medium">가입일</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {users.map((user) => (
+                    <tr key={user.email} className="border-b last:border-0 hover:bg-muted/30">
+                      <td className="p-3">{user.email}</td>
+                      <td className="p-3 text-muted-foreground">{user.agency_name || '-'}</td>
+                      <td className="p-3 text-center">
+                        <Badge variant="default">{user.role}</Badge>
+                      </td>
+                      <td className="p-3 text-center text-muted-foreground">
+                        {new Date(user.created_at).toLocaleDateString('ko-KR')}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
