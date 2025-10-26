@@ -4,6 +4,7 @@ import {
   Building2,
   ScrollText,
   Users,
+  FileText,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -22,6 +23,11 @@ const masterMenuItems = [
     title: "계정 관리",
     icon: Users,
     url: "/master/accounts",
+  },
+  {
+    title: "QA 리포트",
+    icon: FileText,
+    url: "/master/qa-reports",
   },
   {
     title: "시스템 로그",

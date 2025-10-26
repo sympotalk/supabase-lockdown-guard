@@ -17,6 +17,7 @@ import MasterAgencies from "./pages/master/Agencies";
 import MasterAccounts from "./pages/master/Accounts";
 import MasterLogs from "./pages/master/Logs";
 import MasterAlertHistory from "./pages/master/AlertHistory";
+import MasterQAReports from "./pages/master/QAReports";
 import Events from "./pages/admin/Events";
 import EventOverview from "./pages/admin/EventOverview";
 import Participants from "./pages/admin/Participants";
@@ -58,6 +59,7 @@ const App = () => (
               <Route path="accounts" element={<MasterAccounts />} />
               <Route path="logs" element={<MasterLogs />} />
               <Route path="alert-history" element={<MasterAlertHistory />} />
+              <Route path="qa-reports" element={<MasterQAReports />} />
               <Route index element={<Navigate to="dashboard" replace />} />
             </Route>
 

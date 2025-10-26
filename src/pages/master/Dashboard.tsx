@@ -12,6 +12,7 @@ import { QAReportTable } from "@/components/dashboard/QAReportTable";
 import { SystemInsightBoard } from "@/components/dashboard/SystemInsightBoard";
 import { AIInsightsPanel } from "@/components/dashboard/AIInsightsPanel";
 import { SystemHealthMonitor } from "@/components/dashboard/SystemHealthMonitor";
+import { QAReportSummary } from "@/components/dashboard/QAReportSummary";
 import { masterRealtimeHub } from "@/lib/masterRealtimeHub";
 
 export default function MasterDashboard() {
@@ -156,6 +157,12 @@ export default function MasterDashboard() {
       <section className="space-y-4">
         <h2 className="text-[18px] font-semibold text-foreground">⚡ System Health Monitor</h2>
         <SystemHealthMonitor key={`health-monitor-${refreshKey}`} />
+      </section>
+
+      {/* QA Report Summary */}
+      <section className="space-y-4">
+        <h2 className="text-[18px] font-semibold text-foreground">📊 QA 리포트 및 이상 감지</h2>
+        <QAReportSummary key={`qa-report-${refreshKey}`} />
       </section>
 
       {/* Section A: System Health Overview */}
