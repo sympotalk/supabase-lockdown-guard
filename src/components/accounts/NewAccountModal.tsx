@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -38,6 +38,16 @@ export function NewAccountModal({
   const [role, setRole] = useState<"master" | "agency_owner" | "staff">("staff");
   const [agencyId, setAgencyId] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
+
+  // Reset all fields when modal closes
+  useEffect(() => {
+    if (!open) {
+      setEmail("");
+      setPassword("");
+      setRole("staff");
+      setAgencyId("");
+    }
+  }, [open]);
 
   // Master role cannot have agency
   const canSelectAgency = role !== "master";
@@ -130,12 +140,6 @@ export function NewAccountModal({
         title: "계정 생성 완료",
         description: "계정이 정상적으로 생성되었습니다.",
       });
-
-      // Reset form
-      setEmail("");
-      setPassword("");
-      setRole("staff");
-      setAgencyId("");
 
       onOpenChange(false);
       onSuccess();
