@@ -463,6 +463,60 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_insights: {
+        Row: {
+          category: string
+          cause_analysis: string | null
+          created_at: string
+          description: string
+          detected_at: string
+          detection_key: string
+          id: string
+          metadata: Json | null
+          recommended_action: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          severity: string
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          category: string
+          cause_analysis?: string | null
+          created_at?: string
+          description: string
+          detected_at?: string
+          detection_key: string
+          id?: string
+          metadata?: Json | null
+          recommended_action?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          severity: string
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          cause_analysis?: string | null
+          created_at?: string
+          description?: string
+          detected_at?: string
+          detection_key?: string
+          id?: string
+          metadata?: Json | null
+          recommended_action?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          severity?: string
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       ai_mapping_suggestions: {
         Row: {
           approved_at: string | null
@@ -5209,6 +5263,14 @@ export type Database = {
           is_active: boolean | null
           last_activity: string | null
           participant_count: number | null
+        }
+        Relationships: []
+      }
+      ai_insights_summary: {
+        Row: {
+          count: number | null
+          latest_detection: string | null
+          severity: string | null
         }
         Relationships: []
       }

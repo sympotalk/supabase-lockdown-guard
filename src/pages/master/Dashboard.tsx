@@ -10,6 +10,7 @@ import { FunctionHealthTable } from "@/components/dashboard/FunctionHealthTable"
 import { ErrorLogTable } from "@/components/dashboard/ErrorLogTable";
 import { QAReportTable } from "@/components/dashboard/QAReportTable";
 import { SystemInsightBoard } from "@/components/dashboard/SystemInsightBoard";
+import { AIInsightsPanel } from "@/components/dashboard/AIInsightsPanel";
 import { masterRealtimeHub } from "@/lib/masterRealtimeHub";
 
 export default function MasterDashboard() {
@@ -143,6 +144,12 @@ export default function MasterDashboard() {
 
       {/* System Insight Board */}
       <SystemInsightBoard key={`insights-${refreshKey}`} />
+
+      {/* AI Anomaly Insights */}
+      <section className="space-y-4">
+        <h2 className="text-[18px] font-semibold text-foreground">🤖 AI Anomaly Detection</h2>
+        <AIInsightsPanel key={`ai-insights-${refreshKey}`} />
+      </section>
 
       {/* Section A: System Health Overview */}
       <section className="space-y-4">
