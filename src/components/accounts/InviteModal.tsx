@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Dialog,
@@ -22,6 +22,7 @@ interface InviteModalProps {
   onSuccess?: () => void;
 }
 
+// [LOCKED][71-E.FIXSELECT.STABLE] Do not remove or inline this block without architect/QA approval.
 export function InviteModal({
   open,
   onOpenChange,
@@ -31,9 +32,14 @@ export function InviteModal({
   onSuccess,
 }: InviteModalProps) {
   const [email, setEmail] = useState("");
-  const [selectedAgencyId, setSelectedAgencyId] = useState(agencyId);
-  const [role, setRole] = useState("staff");
+  const [selectedAgencyId, setSelectedAgencyId] = useState<string | undefined>(agencyId);
+  const [role, setRole] = useState<string>("staff");
   const [loading, setLoading] = useState(false);
+
+  // [71-E.FIXSELECT] Debug log
+  useEffect(() => {
+    console.log('[71-E.FIXSELECT] InviteModal Select initialized', { selectedAgencyId, role });
+  }, [selectedAgencyId, role]);
 
   const handleInvite = async () => {
     if (!email) {
@@ -115,16 +121,24 @@ export function InviteModal({
           {isMaster && agencies.length > 0 && (
             <div className="space-y-2">
               <Label htmlFor="agency">에이전시</Label>
-              <Select value={selectedAgencyId} onValueChange={setSelectedAgencyId}>
+              <Select 
+                value={selectedAgencyId || undefined} 
+                onValueChange={(v) => setSelectedAgencyId(v || undefined)}
+              >
                 <SelectTrigger id="agency">
                   <SelectValue placeholder="에이전시 선택" />
                 </SelectTrigger>
                 <SelectContent>
-                  {agencies.map((agency) => (
-                    <SelectItem key={agency.id} value={agency.id}>
-                      {agency.name}
-                    </SelectItem>
-                  ))}
+                  {agencies
+                    .filter((agency) => 
+                      typeof agency.id === "string" && 
+                      agency.id.match(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/)
+                    )
+                    .map((agency) => (
+                      <SelectItem key={agency.id} value={agency.id}>
+                        {agency.name}
+                      </SelectItem>
+                    ))}
                 </SelectContent>
               </Select>
             </div>

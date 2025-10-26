@@ -16,10 +16,16 @@ interface Agency {
   name: string;
 }
 
+// [LOCKED][71-E.FIXSELECT.STABLE] Do not remove or inline this block without architect/QA approval.
 export function DashboardHeader() {
   const { role, agencyScope, setAgencyScope } = useUser();
   const [agencies, setAgencies] = useState<Agency[]>([]);
   const [currentAgencyName, setCurrentAgencyName] = useState<string>("");
+
+  // [71-E.FIXSELECT] Debug log
+  useEffect(() => {
+    console.log('[71-E.FIXSELECT] DashboardHeader Select initialized', { value: agencyScope });
+  }, [agencyScope]);
 
   useEffect(() => {
     const fetchAgencies = async () => {
@@ -88,16 +94,24 @@ export function DashboardHeader() {
               {currentAgencyName}
             </Badge>
           )}
-          <Select value={agencyScope || ""} onValueChange={handleAgencyChange}>
+          <Select 
+            value={agencyScope || undefined} 
+            onValueChange={(v) => handleAgencyChange(v || "")}
+          >
             <SelectTrigger className="w-[240px]">
               <SelectValue placeholder="에이전시 선택" />
             </SelectTrigger>
             <SelectContent>
-            {agencies.map((agency) => (
-              <SelectItem key={agency.id} value={agency.id}>
-                {agency.name}
-              </SelectItem>
-            ))}
+            {agencies
+              .filter((agency) => 
+                typeof agency.id === "string" && 
+                agency.id.match(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/)
+              )
+              .map((agency) => (
+                <SelectItem key={agency.id} value={agency.id}>
+                  {agency.name}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>

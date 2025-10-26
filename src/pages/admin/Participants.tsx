@@ -1,4 +1,5 @@
 // [LOCKED][71-D.FIXFLOW.STABLE] Do not remove or inline this block without architect/QA approval.
+// [LOCKED][71-E.FIXSELECT.STABLE] Do not remove or inline this block without architect/QA approval.
 import { Plus, Search, Filter, Phone, MessageSquare, User, BedDouble, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -32,9 +33,14 @@ export default function Participants() {
   const navigate = useNavigate();
   const { role, agencyScope, setAgencyScope } = useUser();
   const [searchParams] = useSearchParams();
-  const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
+  const [selectedEventId, setSelectedEventId] = useState<string | undefined>(undefined);
   const [searchQuery, setSearchQuery] = useState("");
   const [events, setEvents] = useState<Array<{id: string; name: string}>>([]);
+
+  // [71-E.FIXSELECT] Debug log
+  useEffect(() => {
+    console.log('[71-E.FIXSELECT] Participants Select initialized', { value: selectedEventId });
+  }, [selectedEventId]);
 
   // Sync URL agency parameter with UserContext
   useEffect(() => {
@@ -111,17 +117,25 @@ export default function Participants() {
 
         {/* Event Selector */}
         <div className="flex items-center gap-3">
-          <Select value={selectedEventId || ""} onValueChange={(value) => setSelectedEventId(value || null)}>
+          <Select 
+            value={selectedEventId || undefined} 
+            onValueChange={(value) => setSelectedEventId(value === "all" ? undefined : value)}
+          >
             <SelectTrigger className="w-[300px]">
               <SelectValue placeholder="행사를 선택하세요" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">전체 참가자</SelectItem>
-              {events.map((event) => (
-                <SelectItem key={event.id} value={event.id}>
-                  {event.name}
-                </SelectItem>
-              ))}
+              <SelectItem value="all">전체 참가자</SelectItem>
+              {events
+                .filter((event) => 
+                  typeof event.id === "string" && 
+                  event.id.match(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/)
+                )
+                .map((event) => (
+                  <SelectItem key={event.id} value={event.id}>
+                    {event.name}
+                  </SelectItem>
+                ))}
             </SelectContent>
           </Select>
         </div>

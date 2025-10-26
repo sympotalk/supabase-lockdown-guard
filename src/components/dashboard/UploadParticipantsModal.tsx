@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -10,6 +10,7 @@ import { mutate } from "swr";
 import * as XLSX from "xlsx";
 
 // [LOCKED][71-D.FIXFLOW.R2] Select guard added to prevent null/empty ID issues
+// [LOCKED][71-E.FIXSELECT.STABLE] Do not remove or inline this block without architect/QA approval.
 interface UploadParticipantsModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -18,10 +19,15 @@ interface UploadParticipantsModalProps {
 
 export function UploadParticipantsModal({ open, onOpenChange, events }: UploadParticipantsModalProps) {
   const { toast } = useToast();
-  const [selectedEventId, setSelectedEventId] = useState<string>("");
+  const [selectedEventId, setSelectedEventId] = useState<string | undefined>(undefined);
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const [parsedRows, setParsedRows] = useState<any[]>([]);
+
+  // [71-E.FIXSELECT] Debug log
+  useEffect(() => {
+    console.log('[71-E.FIXSELECT] UploadParticipantsModal Select initialized', { value: selectedEventId });
+  }, [selectedEventId]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const uploadedFile = e.target.files?.[0];
@@ -94,7 +100,7 @@ export function UploadParticipantsModal({ open, onOpenChange, events }: UploadPa
       mutate('event_progress_view');
       
       // Reset state
-      setSelectedEventId("");
+      setSelectedEventId(undefined);
       setFile(null);
       setParsedRows([]);
       onOpenChange(false);
@@ -123,13 +129,19 @@ export function UploadParticipantsModal({ open, onOpenChange, events }: UploadPa
           {/* Event Selection */}
           <div className="space-y-2">
             <Label htmlFor="event-select">행사 선택 *</Label>
-            <Select value={selectedEventId || undefined} onValueChange={setSelectedEventId}>
+            <Select 
+              value={selectedEventId || undefined} 
+              onValueChange={(v) => setSelectedEventId(v || undefined)}
+            >
               <SelectTrigger id="event-select">
                 <SelectValue placeholder="행사를 선택하세요" />
               </SelectTrigger>
               <SelectContent>
                 {events
-                  .filter((event) => event.id && event.id !== "")
+                  .filter((event) => 
+                    typeof event.id === "string" && 
+                    event.id.match(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/)
+                  )
                   .map((event) => (
                     <SelectItem key={event.id} value={event.id}>
                       {event.name}

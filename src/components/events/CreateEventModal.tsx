@@ -17,6 +17,7 @@ interface CreateEventModalProps {
   onOpenChange: (open: boolean) => void;
 }
 
+// [LOCKED][71-E.FIXSELECT.STABLE] Do not remove or inline this block without architect/QA approval.
 export default function CreateEventModal({ open, onOpenChange }: CreateEventModalProps) {
   const { refresh } = useAppData();
   const navigate = useNavigate();
@@ -27,8 +28,13 @@ export default function CreateEventModal({ open, onOpenChange }: CreateEventModa
     to: undefined,
   });
   const [agencies, setAgencies] = useState<any[]>([]);
-  const [selectedAgencyId, setSelectedAgencyId] = useState<string>("");
+  const [selectedAgencyId, setSelectedAgencyId] = useState<string | undefined>(undefined);
   const [isMaster, setIsMaster] = useState(false);
+
+  // [71-E.FIXSELECT] Debug log
+  useEffect(() => {
+    console.log('[71-E.FIXSELECT] CreateEventModal Select initialized', { value: selectedAgencyId });
+  }, [selectedAgencyId]);
   const [hotelSearch, setHotelSearch] = useState("");
   const [hotels, setHotels] = useState<any[]>([]);
   const [selectedHotel, setSelectedHotel] = useState<any>(null);
@@ -320,7 +326,7 @@ export default function CreateEventModal({ open, onOpenChange }: CreateEventModa
       // Reset form
       setEventName("");
       setDateRange({ from: new Date(), to: new Date(Date.now() + 86400000 * 2) });
-      setSelectedAgencyId(isMaster ? "" : selectedAgencyId);
+      setSelectedAgencyId(isMaster ? undefined : selectedAgencyId);
       setSelectedHotel(null);
       setRoomTypes([]);
       setCheckedRooms({});
@@ -349,16 +355,24 @@ export default function CreateEventModal({ open, onOpenChange }: CreateEventModa
                 <Building className="h-4 w-4 text-blue-600" />
                 <Label className="text-base font-semibold text-blue-700">에이전시 선택</Label>
               </div>
-              <Select value={selectedAgencyId} onValueChange={setSelectedAgencyId}>
+              <Select 
+                value={selectedAgencyId || undefined} 
+                onValueChange={(v) => setSelectedAgencyId(v || undefined)}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="에이전시를 선택하세요" />
                 </SelectTrigger>
                 <SelectContent>
-                  {agencies.map((agency) => (
-                    <SelectItem key={agency.id} value={agency.id}>
-                      {agency.name}
-                    </SelectItem>
-                  ))}
+                  {agencies
+                    .filter((agency) => 
+                      typeof agency.id === "string" && 
+                      agency.id.match(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/)
+                    )
+                    .map((agency) => (
+                      <SelectItem key={agency.id} value={agency.id}>
+                        {agency.name}
+                      </SelectItem>
+                    ))}
                 </SelectContent>
               </Select>
             </div>
