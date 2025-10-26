@@ -30,8 +30,8 @@ export default function AgencyAccount() {
   const [inviteOpen, setInviteOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   
-  // STAFF and AGENCY_OWNER can invite users
-  const canInvite = role === 'agency_owner' || role === 'staff';
+  // Only AGENCY_OWNER can invite users (STAFF cannot invite)
+  const canInvite = role === 'agency_owner';
 
   useEffect(() => {
     loadProfile();
