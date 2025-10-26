@@ -2,13 +2,16 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Database, Radio, Zap, GitBranch, CheckCircle2, AlertTriangle, Clock } from "lucide-react";
+import { validateSystemHealth, validateRealtimeChannels, validateFunctionCount } from "@/lib/masterDashboardValidation";
 
 interface SystemHealth {
   supabaseStatus: "healthy" | "degraded" | "down";
   realtimeChannels: number;
   functionsCount: number;
   lastDeployment: { status: string; timestamp: string } | null;
+  isMock: boolean;
 }
 
 export function SystemHealthCards() {
@@ -16,7 +19,8 @@ export function SystemHealthCards() {
     supabaseStatus: "healthy",
     realtimeChannels: 0,
     functionsCount: 0,
-    lastDeployment: null
+    lastDeployment: null,
+    isMock: false
   });
   const [loading, setLoading] = useState(true);
 
@@ -29,32 +33,31 @@ export function SystemHealthCards() {
     console.log("[SystemHealth] Loading health status...");
 
     try {
-      // A1: Supabase Connection Status
-      const { error: connectionError } = await supabase.from("agencies").select("id", { count: "exact", head: true });
-      
-      // A2: Realtime Channels (mock for now - will implement in Phase 4.1)
-      const realtimeChannels = 3; // TODO: Implement realtime channel monitoring
+      // Run all validations in parallel
+      const [healthStatus, channelsResult, functionsResult] = await Promise.all([
+        validateSystemHealth(),
+        validateRealtimeChannels(),
+        validateFunctionCount()
+      ]);
 
-      // A3: Function/Trigger Count
-      // TODO: Query functions_health table when available
-      const functionsCount = 12;
-
-      // A4: Deployment Status
-      // TODO: Query deployment_logs when available
+      // A4: Deployment Status (mock for now)
       const lastDeployment = {
         status: "success",
         timestamp: new Date().toISOString()
       };
 
+      const isMock = healthStatus.isMock || channelsResult.isMock || functionsResult.isMock;
+
       setHealth({
-        supabaseStatus: connectionError ? "down" : "healthy",
-        realtimeChannels,
-        functionsCount,
-        lastDeployment
+        supabaseStatus: healthStatus.data,
+        realtimeChannels: channelsResult.data,
+        functionsCount: functionsResult.data,
+        lastDeployment,
+        isMock
       });
     } catch (error) {
       console.error("[SystemHealth] Error loading:", error);
-      setHealth(prev => ({ ...prev, supabaseStatus: "down" }));
+      setHealth(prev => ({ ...prev, supabaseStatus: "down", isMock: true }));
     }
 
     setLoading(false);
@@ -91,24 +94,39 @@ export function SystemHealthCards() {
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-      {/* A1: Supabase Connection */}
-      <Card className="shadow-md rounded-2xl border-border">
-        <CardContent className="p-4">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
-              <Database className="h-5 w-5 text-primary" />
-            </div>
-            <div className="flex-1">
-              <p className="text-[14px] text-muted-foreground">Supabase 연결</p>
-            </div>
-          </div>
-          <div className="flex items-center justify-between">
-            <span className="text-[24px] font-bold">DB</span>
-            {getStatusBadge(health.supabaseStatus)}
-          </div>
-        </CardContent>
-      </Card>
+    <TooltipProvider>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* A1: Supabase Connection */}
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Card className="shadow-md rounded-2xl border-border">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <Database className="h-5 w-5 text-primary" />
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <p className="text-[14px] text-muted-foreground">Supabase 연결</p>
+                      {health.isMock && (
+                        <Badge variant="secondary" className="text-[10px] px-1 py-0">Mock</Badge>
+                      )}
+                    </div>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-[24px] font-bold">DB</span>
+                  {getStatusBadge(health.supabaseStatus)}
+                </div>
+              </CardContent>
+            </Card>
+          </TooltipTrigger>
+          {health.isMock && (
+            <TooltipContent>
+              <p>실제 데이터 연결 대기 중</p>
+            </TooltipContent>
+          )}
+        </Tooltip>
 
       {/* A2: Realtime Channels */}
       <Card className="shadow-md rounded-2xl border-border">
@@ -174,6 +192,7 @@ export function SystemHealthCards() {
           </div>
         </CardContent>
       </Card>
-    </div>
+      </div>
+    </TooltipProvider>
   );
 }

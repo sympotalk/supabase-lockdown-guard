@@ -2,14 +2,22 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Users, Calendar, TrendingUp, Upload } from "lucide-react";
+import { 
+  validateActiveAgencies, 
+  validateRecentEvents, 
+  validateTotalParticipants, 
+  validateRecentUploads 
+} from "@/lib/masterDashboardValidation";
 
 interface AgencyActivity {
   activeAgencies: number;
   recentEvents: number;
   totalParticipants: number;
   recentUploads: number;
+  isMock: boolean;
 }
 
 interface TopAgency {
@@ -24,7 +32,8 @@ export function AgencyActivityCards() {
     activeAgencies: 0,
     recentEvents: 0,
     totalParticipants: 0,
-    recentUploads: 0
+    recentUploads: 0,
+    isMock: false
   });
   const [topAgencies, setTopAgencies] = useState<TopAgency[]>([]);
   const [loading, setLoading] = useState(true);
@@ -38,36 +47,18 @@ export function AgencyActivityCards() {
     console.log("[AgencyActivity] Loading activity data...");
 
     try {
-      const sevenDaysAgo = new Date();
-      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-      const threeDaysAgo = new Date();
-      threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
-
-      // B1: Active Agencies
-      const { count: activeAgencies } = await supabase
-        .from("agencies")
-        .select("*", { count: "exact", head: true })
-        .eq("is_active", true);
-
-      // B2: Recent Events (7 days)
-      const { count: recentEvents } = await supabase
-        .from("events")
-        .select("*", { count: "exact", head: true })
-        .gte("created_at", sevenDaysAgo.toISOString());
-
-      // B3: Total Participants
-      const { count: totalParticipants } = await supabase
-        .from("participants")
-        .select("*", { count: "exact", head: true });
-
-      // B4: Recent Uploads (3 days)
-      const { data: uploadData } = await supabase
-        .from("activity_logs")
-        .select("id")
-        .eq("type", "upload")
-        .gte("created_at", threeDaysAgo.toISOString());
+      // Run all validations in parallel (B1-B4)
+      const [agenciesResult, eventsResult, participantsResult, uploadsResult] = await Promise.all([
+        validateActiveAgencies(),
+        validateRecentEvents(),
+        validateTotalParticipants(),
+        validateRecentUploads()
+      ]);
 
       // B5: Top 3 Active Agencies
+      const sevenDaysAgo = new Date();
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
       const { data: agencies } = await supabase
         .from("agencies")
         .select("id, name")
@@ -98,11 +89,14 @@ export function AgencyActivityCards() {
         setTopAgencies(sortedAgencies);
       }
 
+      const isMock = agenciesResult.isMock || eventsResult.isMock || participantsResult.isMock || uploadsResult.isMock;
+
       setActivity({
-        activeAgencies: activeAgencies ?? 0,
-        recentEvents: recentEvents ?? 0,
-        totalParticipants: totalParticipants ?? 0,
-        recentUploads: uploadData?.length ?? 0
+        activeAgencies: agenciesResult.data,
+        recentEvents: eventsResult.data,
+        totalParticipants: participantsResult.data,
+        recentUploads: uploadsResult.data,
+        isMock
       });
     } catch (error) {
       console.error("[AgencyActivity] Error loading:", error);
@@ -142,7 +136,14 @@ export function AgencyActivityCards() {
               <div className="h-10 w-10 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
                 <Users className="h-5 w-5 text-blue-600 dark:text-blue-400" />
               </div>
-              <p className="text-[14px] text-muted-foreground">활성 에이전시</p>
+              <div className="flex-1">
+                <div className="flex items-center gap-2">
+                  <p className="text-[14px] text-muted-foreground">활성 에이전시</p>
+                  {activity.isMock && (
+                    <Badge variant="secondary" className="text-[10px] px-1 py-0">Mock</Badge>
+                  )}
+                </div>
+              </div>
             </div>
             <p className="text-[28px] font-bold">{activity.activeAgencies}</p>
           </CardContent>
