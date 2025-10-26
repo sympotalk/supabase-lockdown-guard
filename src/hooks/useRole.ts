@@ -43,13 +43,12 @@ export function useRole(): UseRoleReturn {
           return;
         }
 
-        // Get user's highest role from user_agency_roles
-        const { data: userRoles, error: roleError } = await supabase
+        // Query user_agency_roles using raw query to avoid type issues
+        const { data: userRoles, error: roleError } = await (supabase as any)
           .from("user_agency_roles")
           .select("role, agency_id, agencies(name)")
           .eq("user_id", user.id)
-          .eq("is_active", true)
-          .order("role");
+          .eq("is_active", true);
 
         if (roleError) {
           console.error("[useRole] Error fetching roles:", roleError);
@@ -74,7 +73,7 @@ export function useRole(): UseRoleReturn {
 
         // Get the highest role (lowest number in hierarchy)
         const sortedRoles = userRoles.sort(
-          (a, b) => roleHierarchy[a.role as RoleTier] - roleHierarchy[b.role as RoleTier]
+          (a: any, b: any) => roleHierarchy[a.role as RoleTier] - roleHierarchy[b.role as RoleTier]
         );
         
         const highestRole = sortedRoles[0];
@@ -85,7 +84,7 @@ export function useRole(): UseRoleReturn {
           setAgencyScope(
             highestRole.role === "master" 
               ? "MASTER" 
-              : (highestRole.agencies as any)?.name || null
+              : highestRole.agencies?.name || null
           );
           setLoading(false);
         }

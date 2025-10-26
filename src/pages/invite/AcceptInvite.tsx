@@ -31,7 +31,7 @@ export default function AcceptInvite() {
 
   async function loadInvite() {
     try {
-      const { data, error: inviteError } = await supabase
+      const { data, error: inviteError } = await (supabase as any)
         .from("user_invites")
         .select("*, agencies(name)")
         .eq("token", token)

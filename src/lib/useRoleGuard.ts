@@ -44,13 +44,23 @@ export function useRoleGuard(requiredRole?: RoleTier) {
  * Check if user has a specific role
  */
 export async function hasRole(userId: string, role: RoleTier): Promise<boolean> {
-  const { data, error } = await supabase
-    .rpc("has_role_tier", { _user_id: userId, _role: role });
+  try {
+    const { data, error } = await (supabase as any)
+      .from("user_agency_roles")
+      .select("role")
+      .eq("user_id", userId)
+      .eq("role", role)
+      .eq("is_active", true)
+      .single();
 
-  if (error) {
+    if (error) {
+      console.error("[RLS] Error checking role:", error);
+      return false;
+    }
+
+    return !!data;
+  } catch (error) {
     console.error("[RLS] Error checking role:", error);
     return false;
   }
-
-  return !!data;
 }
