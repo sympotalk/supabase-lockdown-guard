@@ -1,14 +1,16 @@
-import { Calendar, Users, Hotel, TrendingUp, RefreshCw, Activity } from "lucide-react";
+// [71-B.STABLE] Agency Dashboard Core — Progress-first, Staff-centered
+import { useMemo, useState } from "react";
+import { Calendar, Users, Upload, Hotel, Activity, CheckCircle2, Clock, BarChart3 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { StatCard } from "@/components/ui/stat-card";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useAppData } from "@/contexts/AppDataContext";
-import { useUser } from "@/context/UserContext";
+import { Progress } from "@/components/ui/progress";
+import { Badge } from "@/components/ui/badge";
 import { Spinner } from "@/components/pd/Spinner";
-import AgencySwitcher from "@/components/dashboard/AgencySwitcher";
-import MasterOverviewPanel from "@/components/dashboard/MasterOverviewPanel";
-import MasterActionPanel from "@/components/dashboard/MasterActionPanel";
-import AgencyActivityLog from "@/components/dashboard/AgencyActivityLog";
+import { useEventProgress, useEventCounts } from "@/hooks/useAgencyDashboard";
+import { UploadParticipantsModal } from "@/components/dashboard/UploadParticipantsModal";
+import CreateEventModal from "@/components/events/CreateEventModal";
 import {
   Table,
   TableBody,
@@ -17,42 +19,41 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { StatusBadge } from "@/components/ui/status-badge";
-
-const recentEvents = [
-  {
-    id: 1,
-    name: "2025 글로벌 테크 컨퍼런스",
-    date: "2025-03-15",
-    participants: 245,
-    status: "active" as const,
-  },
-  {
-    id: 2,
-    name: "스타트업 네트워킹 데이",
-    date: "2025-03-20",
-    participants: 180,
-    status: "pending" as const,
-  },
-  {
-    id: 3,
-    name: "AI 혁신 포럼",
-    date: "2025-04-05",
-    participants: 320,
-    status: "active" as const,
-  },
-  {
-    id: 4,
-    name: "디자인 씽킹 워크샵",
-    date: "2025-04-12",
-    participants: 95,
-    status: "completed" as const,
-  },
-];
+import { format } from "date-fns";
+import { ko } from "date-fns/locale";
 
 export default function Dashboard() {
-  const { agency, metrics, loading, refresh, agencyList } = useAppData();
-  const { role } = useUser();
+  const navigate = useNavigate();
+  const { data: eventProgress, isLoading: progressLoading } = useEventProgress();
+  const { data: counts, isLoading: countsLoading } = useEventCounts();
+  const [uploadModalOpen, setUploadModalOpen] = useState(false);
+  const [createModalOpen, setCreateModalOpen] = useState(false);
+
+  // Sort events: active → upcoming → completed
+  const sortedEvents = useMemo(() => {
+    if (!eventProgress) return [];
+    
+    const statusOrder = { 
+      '진행중': 0, 
+      'active': 0, 
+      '예정': 1, 
+      'upcoming': 1, 
+      '완료': 2, 
+      'completed': 2 
+    };
+    
+    return [...eventProgress].sort((a, b) => {
+      const orderA = statusOrder[a.status?.toLowerCase() as keyof typeof statusOrder] ?? 3;
+      const orderB = statusOrder[b.status?.toLowerCase() as keyof typeof statusOrder] ?? 3;
+      
+      if (orderA !== orderB) return orderA - orderB;
+      
+      // Within same status, sort by start_date descending
+      return new Date(b.start_date).getTime() - new Date(a.start_date).getTime();
+    });
+  }, [eventProgress]);
+
+  const loading = progressLoading || countsLoading;
 
   if (loading) {
     return (
@@ -65,124 +66,189 @@ export default function Dashboard() {
     );
   }
 
+  const getStatusBadge = (status: string) => {
+    const normalized = status?.toLowerCase();
+    
+    if (normalized === '진행중' || normalized === 'active') {
+      return <Badge className="bg-blue-500 text-white">진행중</Badge>;
+    }
+    if (normalized === '예정' || normalized === 'upcoming') {
+      return <Badge className="bg-orange-500 text-white">예정</Badge>;
+    }
+    if (normalized === '완료' || normalized === 'completed') {
+      return <Badge variant="secondary">완료</Badge>;
+    }
+    return <Badge variant="outline">{status}</Badge>;
+  };
+
+  const formatDateRange = (startDate: string, endDate: string) => {
+    try {
+      const start = format(new Date(startDate), 'M/d', { locale: ko });
+      const end = format(new Date(endDate), 'M/d', { locale: ko });
+      return `${start} - ${end}`;
+    } catch {
+      return '-';
+    }
+  };
+
+  // Prepare events list for upload modal
+  const eventsForUpload = sortedEvents.map(e => ({ id: e.event_id, name: e.name }));
+
   return (
     <div className="space-y-8">
-        {/* Master Overview Panel - Only for masters with multiple agencies */}
-        {role === "master" && agencyList.length > 0 && (
-          <>
-            <MasterOverviewPanel />
-            <MasterActionPanel />
-          </>
-        )}
-
-        {/* Individual Agency Dashboard - Always shown */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold">
-              {agency?.name || "SympoHub"} 대시보드
-            </h1>
-            <p className="mt-2 text-muted-foreground">
-              {agency?.code ? `에이전시 코드: ${agency.code}` : "행사 관리 플랫폼에 오신 것을 환영합니다"}
-            </p>
-          </div>
-          <div className="flex gap-3 items-center">
-            <AgencySwitcher />
-            <Button 
-              variant="outline" 
-              size="lg" 
-              className="gap-2"
-              onClick={refresh}
-            >
-              <RefreshCw className="h-5 w-5" />
-              새로고침
-            </Button>
-            <Button size="lg" className="gap-2">
-              <Calendar className="h-5 w-5" />
-              새 행사 등록
-            </Button>
-          </div>
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold">에이전시 대시보드</h1>
+          <p className="mt-2 text-muted-foreground">
+            진행 중인 행사와 진행률을 한눈에 확인하세요
+          </p>
         </div>
-
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          <StatCard
-            title="전체 행사"
-            value={metrics.events}
-            description="등록된 행사"
-            icon={Calendar}
-          />
-          <StatCard
-            title="총 참가자"
-            value={metrics.participants.toLocaleString()}
-            description="전체 등록 인원"
-            icon={Users}
-          />
-          <StatCard
-            title="활동 로그"
-            value={metrics.activities.toLocaleString()}
-            description="최근 활동 기록"
-            icon={Activity}
-          />
+        
+        {/* Quick Actions */}
+        <div className="flex gap-3">
+          <Button 
+            size="lg" 
+            className="gap-2"
+            onClick={() => setCreateModalOpen(true)}
+          >
+            <Calendar className="h-5 w-5" />
+            새 행사 등록
+          </Button>
+          <Button 
+            size="lg" 
+            variant="outline"
+            className="gap-2"
+            onClick={() => setUploadModalOpen(true)}
+          >
+            <Upload className="h-5 w-5" />
+            참가자 업로드
+          </Button>
+          <Button 
+            size="lg" 
+            variant="outline"
+            className="gap-2"
+            onClick={() => navigate('/admin/rooming')}
+          >
+            <Hotel className="h-5 w-5" />
+            객실 관리
+          </Button>
         </div>
-
-        <div className="grid gap-6 lg:grid-cols-2">
-        <Card className="transition-shadow hover:shadow-lg">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <TrendingUp className="h-5 w-5 text-primary" />
-                최근 행사
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-6 pt-0">
-              <div className="overflow-hidden rounded-lg border border-border">
-                <Table>
-                  <TableHeader>
-                    <TableRow className="bg-muted hover:bg-muted">
-                      <TableHead className="font-semibold">행사명</TableHead>
-                      <TableHead className="font-semibold">일자</TableHead>
-                      <TableHead className="font-semibold">참가자</TableHead>
-                      <TableHead className="font-semibold">상태</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {recentEvents.map((event) => (
-                      <TableRow key={event.id} className="hover:bg-muted/50">
-                        <TableCell className="font-medium">{event.name}</TableCell>
-                        <TableCell>{event.date}</TableCell>
-                        <TableCell>{event.participants}명</TableCell>
-                        <TableCell>
-                          <StatusBadge status={event.status} />
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="transition-shadow hover:shadow-lg">
-            <CardHeader>
-              <CardTitle className="text-lg">빠른 작업</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <Button variant="outline" className="w-full justify-start gap-3" size="lg">
-                <Calendar className="h-5 w-5 text-primary" />
-                새 행사 등록
-              </Button>
-              <Button variant="outline" className="w-full justify-start gap-3" size="lg">
-                <Users className="h-5 w-5 text-primary" />
-                참가자 추가
-              </Button>
-              <Button variant="outline" className="w-full justify-start gap-3" size="lg">
-                <Hotel className="h-5 w-5 text-primary" />
-                객실 배정
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Activity Log Section */}
-        <AgencyActivityLog />
       </div>
+
+      {/* Status Cards */}
+      <div className="grid gap-6 md:grid-cols-3">
+        <StatCard
+          title="진행 중"
+          value={String(counts?.active || 0)}
+          description="현재 진행 중인 행사"
+          icon={Activity}
+        />
+        <StatCard
+          title="예정"
+          value={String(counts?.upcoming || 0)}
+          description="앞으로 진행될 행사"
+          icon={Clock}
+        />
+        <StatCard
+          title="완료"
+          value={String(counts?.completed || 0)}
+          description="종료된 행사"
+          icon={CheckCircle2}
+        />
+      </div>
+
+      {/* Events Progress Table */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <BarChart3 className="h-5 w-5 text-primary" />
+            행사 진행률
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {sortedEvents.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-12 text-center">
+              <Calendar className="h-12 w-12 text-muted-foreground/50 mb-4" />
+              <p className="text-muted-foreground">등록된 행사가 없습니다.</p>
+              <Button 
+                className="mt-4"
+                onClick={() => setCreateModalOpen(true)}
+              >
+                첫 행사 등록하기
+              </Button>
+            </div>
+          ) : (
+            <div className="overflow-hidden rounded-lg border">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-muted hover:bg-muted">
+                    <TableHead className="font-semibold">행사명</TableHead>
+                    <TableHead className="font-semibold">일정</TableHead>
+                    <TableHead className="font-semibold text-center">참가자</TableHead>
+                    <TableHead className="font-semibold text-center">배정률</TableHead>
+                    <TableHead className="font-semibold text-center">진행률</TableHead>
+                    <TableHead className="font-semibold text-center">상태</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {sortedEvents.map((event) => (
+                    <TableRow 
+                      key={event.event_id}
+                      className="hover:bg-muted/50 cursor-pointer transition-colors"
+                      onClick={() => navigate(`/admin/events/${event.event_id}`)}
+                    >
+                      <TableCell className="font-medium">
+                        {event.name}
+                      </TableCell>
+                      <TableCell className="text-sm text-muted-foreground">
+                        {formatDateRange(event.start_date, event.end_date)}
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <div className="flex items-center justify-center gap-1">
+                          <Users className="h-4 w-4 text-muted-foreground" />
+                          <span className="font-medium">{event.participant_count}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center justify-center gap-2">
+                          <Progress value={event.rooming_rate} className="w-20" />
+                          <span className="text-sm font-medium min-w-[3ch]">
+                            {Math.round(event.rooming_rate)}%
+                          </span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center justify-center gap-2">
+                          <Progress value={event.progress_rate} className="w-20" />
+                          <span className="text-sm font-medium min-w-[3ch]">
+                            {Math.round(event.progress_rate)}%
+                          </span>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-center">
+                        {getStatusBadge(event.status)}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Modals */}
+      <UploadParticipantsModal
+        open={uploadModalOpen}
+        onOpenChange={setUploadModalOpen}
+        events={eventsForUpload}
+      />
+      
+      <CreateEventModal
+        open={createModalOpen}
+        onOpenChange={setCreateModalOpen}
+      />
+    </div>
   );
 }

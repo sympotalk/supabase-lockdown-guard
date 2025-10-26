@@ -155,6 +155,13 @@ export type Database = {
             foreignKeyName: "activity_logs_event_id_fkey"
             columns: ["event_id"]
             isOneToOne: false
+            referencedRelation: "event_progress_view"
+            referencedColumns: ["event_id"]
+          },
+          {
+            foreignKeyName: "activity_logs_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
             referencedRelation: "events"
             referencedColumns: ["id"]
           },
@@ -652,6 +659,13 @@ export type Database = {
             foreignKeyName: "ai_mapping_suggestions_event_id_fkey"
             columns: ["event_id"]
             isOneToOne: false
+            referencedRelation: "event_progress_view"
+            referencedColumns: ["event_id"]
+          },
+          {
+            foreignKeyName: "ai_mapping_suggestions_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
             referencedRelation: "events"
             referencedColumns: ["id"]
           },
@@ -848,6 +862,13 @@ export type Database = {
             foreignKeyName: "behavior_logs_event_id_fkey"
             columns: ["event_id"]
             isOneToOne: false
+            referencedRelation: "event_progress_view"
+            referencedColumns: ["event_id"]
+          },
+          {
+            foreignKeyName: "behavior_logs_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
             referencedRelation: "events"
             referencedColumns: ["id"]
           },
@@ -998,6 +1019,13 @@ export type Database = {
             foreignKeyName: "context_memory_event_id_fkey"
             columns: ["event_id"]
             isOneToOne: false
+            referencedRelation: "event_progress_view"
+            referencedColumns: ["event_id"]
+          },
+          {
+            foreignKeyName: "context_memory_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
             referencedRelation: "events"
             referencedColumns: ["id"]
           },
@@ -1108,6 +1136,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "v_master_operations"
             referencedColumns: ["agency_id"]
+          },
+          {
+            foreignKeyName: "daily_summaries_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "event_progress_view"
+            referencedColumns: ["event_id"]
           },
           {
             foreignKeyName: "daily_summaries_event_id_fkey"
@@ -1453,6 +1488,13 @@ export type Database = {
             foreignKeyName: "event_room_refs_event_id_fkey"
             columns: ["event_id"]
             isOneToOne: false
+            referencedRelation: "event_progress_view"
+            referencedColumns: ["event_id"]
+          },
+          {
+            foreignKeyName: "event_room_refs_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
             referencedRelation: "events"
             referencedColumns: ["id"]
           },
@@ -1679,6 +1721,13 @@ export type Database = {
             foreignKeyName: "events_managers_event_id_fkey"
             columns: ["event_id"]
             isOneToOne: false
+            referencedRelation: "event_progress_view"
+            referencedColumns: ["event_id"]
+          },
+          {
+            foreignKeyName: "events_managers_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
             referencedRelation: "events"
             referencedColumns: ["id"]
           },
@@ -1879,6 +1928,13 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "form_responses_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "event_progress_view"
+            referencedColumns: ["event_id"]
+          },
           {
             foreignKeyName: "form_responses_event_id_fkey"
             columns: ["event_id"]
@@ -2350,6 +2406,13 @@ export type Database = {
             foreignKeyName: "hotel_contacts_event_id_fkey"
             columns: ["event_id"]
             isOneToOne: false
+            referencedRelation: "event_progress_view"
+            referencedColumns: ["event_id"]
+          },
+          {
+            foreignKeyName: "hotel_contacts_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
             referencedRelation: "events"
             referencedColumns: ["id"]
           },
@@ -2410,6 +2473,13 @@ export type Database = {
           subject?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "hotel_mail_logs_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "event_progress_view"
+            referencedColumns: ["event_id"]
+          },
           {
             foreignKeyName: "hotel_mail_logs_event_id_fkey"
             columns: ["event_id"]
@@ -2990,6 +3060,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "v_master_operations"
             referencedColumns: ["agency_id"]
+          },
+          {
+            foreignKeyName: "message_logs_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "event_progress_view"
+            referencedColumns: ["event_id"]
           },
           {
             foreignKeyName: "message_logs_event_id_fkey"
@@ -3643,6 +3720,13 @@ export type Database = {
             foreignKeyName: "participants_log_event_id_fkey"
             columns: ["event_id"]
             isOneToOne: false
+            referencedRelation: "event_progress_view"
+            referencedColumns: ["event_id"]
+          },
+          {
+            foreignKeyName: "participants_log_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
             referencedRelation: "events"
             referencedColumns: ["id"]
           },
@@ -3791,6 +3875,13 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "participants_temp_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "event_progress_view"
+            referencedColumns: ["event_id"]
+          },
           {
             foreignKeyName: "participants_temp_event_id_fkey"
             columns: ["event_id"]
@@ -4041,6 +4132,13 @@ export type Database = {
             foreignKeyName: "qa_actions_log_event_id_fkey"
             columns: ["event_id"]
             isOneToOne: false
+            referencedRelation: "event_progress_view"
+            referencedColumns: ["event_id"]
+          },
+          {
+            foreignKeyName: "qa_actions_log_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
             referencedRelation: "events"
             referencedColumns: ["id"]
           },
@@ -4184,6 +4282,13 @@ export type Database = {
             foreignKeyName: "qa_alert_rules_event_id_fkey"
             columns: ["event_id"]
             isOneToOne: false
+            referencedRelation: "event_progress_view"
+            referencedColumns: ["event_id"]
+          },
+          {
+            foreignKeyName: "qa_alert_rules_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
             referencedRelation: "events"
             referencedColumns: ["id"]
           },
@@ -4296,6 +4401,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "user_profiles"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "qa_events_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "event_progress_view"
+            referencedColumns: ["event_id"]
           },
           {
             foreignKeyName: "qa_events_event_id_fkey"
@@ -4719,6 +4831,13 @@ export type Database = {
             foreignKeyName: "reports_event_id_fkey"
             columns: ["event_id"]
             isOneToOne: false
+            referencedRelation: "event_progress_view"
+            referencedColumns: ["event_id"]
+          },
+          {
+            foreignKeyName: "reports_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
             referencedRelation: "events"
             referencedColumns: ["id"]
           },
@@ -4915,6 +5034,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "v_master_operations"
             referencedColumns: ["agency_id"]
+          },
+          {
+            foreignKeyName: "role_audit_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "event_progress_view"
+            referencedColumns: ["event_id"]
           },
           {
             foreignKeyName: "role_audit_event_id_fkey"
@@ -5397,6 +5523,13 @@ export type Database = {
             foreignKeyName: "rooming_participants_event_id_fkey"
             columns: ["event_id"]
             isOneToOne: false
+            referencedRelation: "event_progress_view"
+            referencedColumns: ["event_id"]
+          },
+          {
+            foreignKeyName: "rooming_participants_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
             referencedRelation: "events"
             referencedColumns: ["id"]
           },
@@ -5763,6 +5896,13 @@ export type Database = {
             foreignKeyName: "user_event_roles_event_id_fkey"
             columns: ["event_id"]
             isOneToOne: false
+            referencedRelation: "event_progress_view"
+            referencedColumns: ["event_id"]
+          },
+          {
+            foreignKeyName: "user_event_roles_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
             referencedRelation: "events"
             referencedColumns: ["id"]
           },
@@ -5899,6 +6039,13 @@ export type Database = {
             foreignKeyName: "vendor_feedback_event_id_fkey"
             columns: ["event_id"]
             isOneToOne: false
+            referencedRelation: "event_progress_view"
+            referencedColumns: ["event_id"]
+          },
+          {
+            foreignKeyName: "vendor_feedback_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
             referencedRelation: "events"
             referencedColumns: ["id"]
           },
@@ -5970,6 +6117,13 @@ export type Database = {
             foreignKeyName: "vendor_performance_event_id_fkey"
             columns: ["event_id"]
             isOneToOne: false
+            referencedRelation: "event_progress_view"
+            referencedColumns: ["event_id"]
+          },
+          {
+            foreignKeyName: "vendor_performance_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
             referencedRelation: "events"
             referencedColumns: ["id"]
           },
@@ -6037,6 +6191,13 @@ export type Database = {
           vendor_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "vendor_scores_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "event_progress_view"
+            referencedColumns: ["event_id"]
+          },
           {
             foreignKeyName: "vendor_scores_event_id_fkey"
             columns: ["event_id"]
@@ -6264,6 +6425,65 @@ export type Database = {
           module: string | null
         }
         Relationships: []
+      }
+      event_progress_view: {
+        Row: {
+          agency_id: string | null
+          assigned_room_count: number | null
+          end_date: string | null
+          event_id: string | null
+          name: string | null
+          participant_count: number | null
+          participant_rate: number | null
+          progress_rate: number | null
+          rooming_rate: number | null
+          start_date: string | null
+          status: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "events_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agencies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "events_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agency_performance_summary"
+            referencedColumns: ["agency_id"]
+          },
+          {
+            foreignKeyName: "events_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agency_summary"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "events_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "dashboard_metrics"
+            referencedColumns: ["agency_id"]
+          },
+          {
+            foreignKeyName: "events_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "master_agency_overview"
+            referencedColumns: ["agency_id"]
+          },
+          {
+            foreignKeyName: "events_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "v_master_operations"
+            referencedColumns: ["agency_id"]
+          },
+        ]
       }
       flow_ops_intelligence: {
         Row: {
@@ -6824,6 +7044,10 @@ export type Database = {
       ensure_default_room_types: {
         Args: { p_brand?: string; p_hotel: string }
         Returns: undefined
+      }
+      fn_bulk_upload_participants: {
+        Args: { p_event_id: string; p_rows: Json }
+        Returns: Json
       }
       fn_generate_qa_report: { Args: never; Returns: Json }
       fn_healthcheck_all: { Args: never; Returns: Json }
