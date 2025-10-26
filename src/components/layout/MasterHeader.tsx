@@ -1,7 +1,9 @@
+import { useEffect, useState } from "react";
 import { Bell, Settings, ChevronDown, Moon, Sun, LogOut } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useUser } from "@/context/UserContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -19,7 +21,29 @@ import {
 export function MasterHeader() {
   const { theme, setTheme } = useTheme();
   const navigate = useNavigate();
-  const { user } = useUser();
+  const { user, role, agencyScope } = useUser();
+  const [currentAgencyName, setCurrentAgencyName] = useState<string>("");
+
+  // [LOCKED] Do not remove: Fetch agency name for agency view badge
+  useEffect(() => {
+    const fetchAgencyName = async () => {
+      if (agencyScope && role === "master") {
+        const { data } = await supabase
+          .from("agency_summary")
+          .select("name")
+          .eq("id", agencyScope)
+          .single();
+        
+        if (data) {
+          setCurrentAgencyName(data.name);
+        }
+      } else {
+        setCurrentAgencyName("");
+      }
+    };
+
+    fetchAgencyName();
+  }, [agencyScope, role]);
 
   const handleLogout = async () => {
     try {
@@ -62,6 +86,16 @@ export function MasterHeader() {
               <Moon className="h-5 w-5 transition-all" />
             )}
           </Button>
+
+          {/* [LOCKED] Do not remove: Agency view badge for context clarity */}
+          {agencyScope && role === "master" && (
+            <Badge 
+              variant="outline" 
+              className="ml-2 text-xs border-primary text-primary bg-primary/10 font-medium"
+            >
+              에이전시 뷰 · {currentAgencyName || "불명"}
+            </Badge>
+          )}
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
