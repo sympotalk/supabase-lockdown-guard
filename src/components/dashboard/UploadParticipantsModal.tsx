@@ -27,7 +27,7 @@ export function UploadParticipantsModal({ open, onOpenChange, events }: UploadPa
 
   const activeEventId = eventId ?? "";
 
-  // [71-I.QA3] Validate event context on mount
+  // [LOCKED][QA3.FIX.R2] Validate event context on mount - no auto RPC trigger
   useEffect(() => {
     if (!activeEventId) {
       console.error("[71-I.QA3] ⚠️ eventId not found in route");
@@ -111,8 +111,19 @@ export function UploadParticipantsModal({ open, onOpenChange, events }: UploadPa
     reader.readAsArrayBuffer(uploadedFile);
   };
 
-  // [LOCKED][71-I.QA3] Upload with realtime refresh and comprehensive error handling
+  // [LOCKED][71-I.QA3-FIX.R2] Upload with guards and realtime refresh
   const handleUpload = async () => {
+    // [QA3.FIX.R2] Upload guard
+    if (!agencyScope || !activeEventId) {
+      console.warn("[QA3.FIX.R2] Missing scope →", { agencyScope, eventId: activeEventId });
+      toast({
+        title: "업로드 불가",
+        description: "행사 페이지에서만 업로드 가능합니다.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (!parsedRows.length) {
       toast({
         title: "업로드 불가",
@@ -123,7 +134,7 @@ export function UploadParticipantsModal({ open, onOpenChange, events }: UploadPa
     }
 
     setUploading(true);
-    console.info("[71-I.QA3] Uploading rows:", parsedRows.length, "to event:", activeEventId);
+    console.info("[71-I.QA3-FIX.R2] Uploading rows:", parsedRows.length, "to event:", activeEventId);
 
     try {
       const { data, error } = await supabase.rpc('fn_bulk_upload_participants', {
@@ -132,11 +143,11 @@ export function UploadParticipantsModal({ open, onOpenChange, events }: UploadPa
       });
 
       if (error) {
-        console.error("[71-I.QA3] RPC upload error →", error);
+        console.error("[71-I.QA3-FIX.R2] RPC upload error →", error);
         throw error;
       }
 
-      console.log("[71-I.QA3] RPC response →", data);
+      console.log("[71-I.QA3-FIX.R2] RPC response →", data);
 
       const result = data as { inserted: number };
       const eventName = events.find(e => e.id === activeEventId)?.name || '현재 행사';
@@ -146,10 +157,10 @@ export function UploadParticipantsModal({ open, onOpenChange, events }: UploadPa
         description: `${eventName}에 ${result.inserted}명의 참가자를 반영했습니다.`,
       });
 
-      // [71-I.QA3] Invalidate SWR cache for participants
+      // [71-I.QA3-FIX.R2] Invalidate SWR cache for participants
       if (agencyScope) {
         mutate(`participants_${agencyScope}_${activeEventId}`);
-        console.info("[71-I.QA3] SWR cache invalidated:", `participants_${agencyScope}_${activeEventId}`);
+        console.info("[71-I.QA3-FIX.R2] SWR cache invalidated:", `participants_${agencyScope}_${activeEventId}`);
       }
       mutate('event_progress_view');
       
@@ -158,7 +169,7 @@ export function UploadParticipantsModal({ open, onOpenChange, events }: UploadPa
       setParsedRows([]);
       onOpenChange(false);
     } catch (error: any) {
-      console.error("[71-I.QA3] Upload failed →", error);
+      console.error("[71-I.QA3-FIX.R2] Upload failed →", error);
       toast({
         title: "업로드 실패",
         description: error.message ?? "알 수 없는 오류입니다.",
@@ -180,12 +191,12 @@ export function UploadParticipantsModal({ open, onOpenChange, events }: UploadPa
         </DialogHeader>
 
         <div className="space-y-6 py-4">
-          {/* [LOCKED][71-I.QA3] Event auto-detected from route - no manual selection */}
+          {/* [LOCKED][71-I.QA3-FIX.R2] Event auto-detected from route - no manual selection, text removed */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <Label className="text-sm text-muted-foreground">행사</Label>
               <span className="text-sm font-medium">
-                {events.find(e => e.id === activeEventId)?.name || '현재 행사'}
+                {events.find(e => e.id === activeEventId)?.name || activeEventId.slice(0, 8)}
               </span>
             </div>
           </div>
