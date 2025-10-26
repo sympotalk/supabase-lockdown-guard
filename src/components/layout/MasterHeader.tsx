@@ -24,10 +24,15 @@ export function MasterHeader() {
   const { user, role, agencyScope } = useUser();
   const [currentAgencyName, setCurrentAgencyName] = useState<string>("");
 
+  // [LOCKED] Do not remove: Calculate agency view mode status
+  const isAgencyView =
+    (role === "master" && agencyScope && agencyScope !== "master") ||
+    (role === "agency_owner" && agencyScope);
+
   // [LOCKED] Do not remove: Fetch agency name for agency view badge
   useEffect(() => {
     const fetchAgencyName = async () => {
-      if (agencyScope && role === "master") {
+      if (agencyScope && isAgencyView) {
         const { data } = await supabase
           .from("agency_summary")
           .select("name")
@@ -87,13 +92,13 @@ export function MasterHeader() {
             )}
           </Button>
 
-          {/* [LOCKED] Do not remove: Agency view badge for context clarity */}
-          {agencyScope && role === "master" && (
+          {/* [LOCKED] Do not remove: Agency view badge visibility fix */}
+          {isAgencyView && currentAgencyName && (
             <Badge 
               variant="outline" 
               className="ml-2 text-xs border-primary text-primary bg-primary/10 font-medium"
             >
-              에이전시 뷰 · {currentAgencyName || "불명"}
+              에이전시 뷰 · {currentAgencyName}
             </Badge>
           )}
 
