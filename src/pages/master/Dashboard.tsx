@@ -1,82 +1,39 @@
-import { useState, useEffect } from "react";
+import { lazy, Suspense } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { RefreshCw, Radio } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { SystemHealthCards } from "@/components/dashboard/SystemHealthCards";
-import { AgencyActivityCards } from "@/components/dashboard/AgencyActivityCards";
-import { DataQualityCards } from "@/components/dashboard/DataQualityCards";
-import { FunctionHealthTable } from "@/components/dashboard/FunctionHealthTable";
-import { ErrorLogTable } from "@/components/dashboard/ErrorLogTable";
-import { QAReportTable } from "@/components/dashboard/QAReportTable";
-import { SystemInsightBoard } from "@/components/dashboard/SystemInsightBoard";
-import { AIInsightsPanel } from "@/components/dashboard/AIInsightsPanel";
-import { SystemHealthMonitor } from "@/components/dashboard/SystemHealthMonitor";
-import { QAReportSummary } from "@/components/dashboard/QAReportSummary";
-import { OpsExecutionHistory } from "@/components/dashboard/OpsExecutionHistory";
-import { QuickActionsPanel } from "@/components/dashboard/QuickActionsPanel";
+import { MasterProvider, useMaster } from "@/contexts/MasterContext";
+import { Skeleton } from "@/components/ui/skeleton";
 import { masterRealtimeHub } from "@/lib/masterRealtimeHub";
 
-export default function MasterDashboard() {
+// Lazy load tab components
+const OverviewTab = lazy(() => import("@/components/dashboard/OverviewTab").then(m => ({ default: m.OverviewTab })));
+const AnomalyTab = lazy(() => import("@/components/dashboard/AnomalyTab").then(m => ({ default: m.AnomalyTab })));
+const AutomationTab = lazy(() => import("@/components/dashboard/AutomationTab").then(m => ({ default: m.AutomationTab })));
+const QATab = lazy(() => import("@/components/dashboard/QATab").then(m => ({ default: m.QATab })));
+
+function TabSkeleton() {
+  return (
+    <div className="space-y-6">
+      <Skeleton className="h-32 w-full" />
+      <div className="grid grid-cols-2 gap-4">
+        <Skeleton className="h-48 w-full" />
+        <Skeleton className="h-48 w-full" />
+      </div>
+    </div>
+  );
+}
+
+function DashboardContent() {
   const navigate = useNavigate();
-  const [refreshKey, setRefreshKey] = useState(0);
-  const [isRealtimeConnected, setIsRealtimeConnected] = useState(false);
-  const [isStaticMode, setIsStaticMode] = useState(false);
-
-  useEffect(() => {
-    console.log("[MasterDashboard] Initializing Realtime Hub");
-
-    // Register refresh callbacks for each section
-    masterRealtimeHub.registerRefreshCallback("A", () => {
-      console.log("[MasterDashboard] Refreshing Section A");
-      setRefreshKey(prev => prev + 1);
-    });
-    
-    masterRealtimeHub.registerRefreshCallback("B", () => {
-      console.log("[MasterDashboard] Refreshing Section B");
-      setRefreshKey(prev => prev + 1);
-    });
-    
-    masterRealtimeHub.registerRefreshCallback("C", () => {
-      console.log("[MasterDashboard] Refreshing Section C");
-      setRefreshKey(prev => prev + 1);
-    });
-    
-    masterRealtimeHub.registerRefreshCallback("D", () => {
-      console.log("[MasterDashboard] Refreshing Section D");
-      setRefreshKey(prev => prev + 1);
-    });
-    
-    masterRealtimeHub.registerRefreshCallback("E", () => {
-      console.log("[MasterDashboard] Refreshing Section E");
-      setRefreshKey(prev => prev + 1);
-    });
-    
-    masterRealtimeHub.registerRefreshCallback("F", () => {
-      console.log("[MasterDashboard] Refreshing Section F");
-      setRefreshKey(prev => prev + 1);
-    });
-
-    // Connect to realtime
-    masterRealtimeHub.connect();
-    setIsRealtimeConnected(masterRealtimeHub.isConnected());
-
-    // Check static mode status
-    const checkStaticMode = setInterval(() => {
-      setIsStaticMode(masterRealtimeHub.isInStaticMode());
-    }, 1000);
-
-    return () => {
-      console.log("[MasterDashboard] Cleaning up Realtime Hub");
-      clearInterval(checkStaticMode);
-      masterRealtimeHub.disconnect();
-    };
-  }, []);
+  const { isRealtimeConnected, refresh } = useMaster();
+  const isStaticMode = masterRealtimeHub.isInStaticMode();
 
   const handleRefresh = () => {
     console.log("[MasterDashboard] Manual refresh triggered");
-    setRefreshKey(prev => prev + 1);
+    refresh();
   };
 
   const handleReconnect = () => {
@@ -84,7 +41,6 @@ export default function MasterDashboard() {
     masterRealtimeHub.resetStaticMode();
     masterRealtimeHub.disconnect();
     masterRealtimeHub.connect();
-    setIsRealtimeConnected(masterRealtimeHub.isConnected());
   };
 
   return (
@@ -157,73 +113,41 @@ export default function MasterDashboard() {
         </TabsList>
 
         {/* Overview Tab */}
-        <TabsContent value="overview" className="space-y-6">
-          <SystemInsightBoard key={`insights-${refreshKey}`} />
-          
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-1">
-              <QuickActionsPanel key={`actions-${refreshKey}`} />
-            </div>
-            <div className="lg:col-span-2">
-              <OpsExecutionHistory key={`ops-${refreshKey}`} />
-            </div>
-          </div>
-
-          <SystemHealthCards key={`health-${refreshKey}`} />
-          <AgencyActivityCards key={`activity-${refreshKey}`} />
+        <TabsContent value="overview">
+          <Suspense fallback={<TabSkeleton />}>
+            <OverviewTab />
+          </Suspense>
         </TabsContent>
 
         {/* Anomaly Detection Tab */}
-        <TabsContent value="anomaly" className="space-y-6">
-          <div className="space-y-4">
-            <h2 className="text-[18px] font-semibold text-foreground">🤖 AI Anomaly Detection</h2>
-            <AIInsightsPanel key={`ai-insights-${refreshKey}`} />
-          </div>
-          
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="space-y-4">
-              <h2 className="text-[18px] font-semibold text-foreground">오류 로그 요약</h2>
-              <ErrorLogTable key={`errors-${refreshKey}`} />
-            </div>
-            <div className="space-y-4">
-              <h2 className="text-[18px] font-semibold text-foreground">시스템 상태</h2>
-              <SystemHealthMonitor key={`health-monitor-${refreshKey}`} />
-            </div>
-          </div>
+        <TabsContent value="anomaly">
+          <Suspense fallback={<TabSkeleton />}>
+            <AnomalyTab />
+          </Suspense>
         </TabsContent>
 
         {/* Automation Status Tab */}
-        <TabsContent value="automation" className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="space-y-4">
-              <h2 className="text-[18px] font-semibold text-foreground">데이터 품질 검증</h2>
-              <DataQualityCards key={`quality-${refreshKey}`} />
-            </div>
-            <div className="space-y-4">
-              <h2 className="text-[18px] font-semibold text-foreground">자동화 모니터링</h2>
-              <FunctionHealthTable key={`functions-${refreshKey}`} />
-            </div>
-          </div>
-
-          <div className="space-y-4">
-            <h2 className="text-[18px] font-semibold text-foreground">⚡ System Health Monitor</h2>
-            <SystemHealthMonitor key={`health-monitor-2-${refreshKey}`} />
-          </div>
+        <TabsContent value="automation">
+          <Suspense fallback={<TabSkeleton />}>
+            <AutomationTab />
+          </Suspense>
         </TabsContent>
 
         {/* QA Reports Tab */}
-        <TabsContent value="qa" className="space-y-6">
-          <div className="space-y-4">
-            <h2 className="text-[18px] font-semibold text-foreground">📊 QA 리포트 및 이상 감지</h2>
-            <QAReportSummary key={`qa-report-${refreshKey}`} />
-          </div>
-
-          <div className="space-y-4">
-            <h2 className="text-[18px] font-semibold text-foreground">최근 QA 리포트</h2>
-            <QAReportTable key={`qa-${refreshKey}`} />
-          </div>
+        <TabsContent value="qa">
+          <Suspense fallback={<TabSkeleton />}>
+            <QATab />
+          </Suspense>
         </TabsContent>
       </Tabs>
     </div>
+  );
+}
+
+export default function MasterDashboard() {
+  return (
+    <MasterProvider>
+      <DashboardContent />
+    </MasterProvider>
   );
 }
