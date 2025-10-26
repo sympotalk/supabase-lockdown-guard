@@ -29,10 +29,10 @@ export function useUnifiedParticipant(eventId: string | null | undefined, agency
   const [loading, setLoading] = useState(true);
 
   const load = async () => {
+    // [LOCKED][71-D.FIXFLOW.STABLE] Do not return empty array early - keep loading true
     if (!eventId && !agencyId) {
-      console.warn("[useUnifiedParticipant] Skipped loading — no eventId or agencyId provided");
-      setData([]);
-      setLoading(false);
+      console.warn("[useUnifiedParticipant] Waiting for scope - no eventId or agencyId provided");
+      // Keep loading true to prevent empty flash
       return;
     }
 
@@ -124,9 +124,9 @@ export function useUnifiedParticipant(eventId: string | null | undefined, agency
       )
       .on(
         "postgres_changes",
-        { event: "*", schema: "public", table: "rooming" },
+        { event: "*", schema: "public", table: "rooming_participants" },
         (payload) => {
-          console.log("[Realtime] Rooming changed →", payload.eventType);
+          console.log("[Realtime] Rooming_participants changed →", payload.eventType);
           load();
         }
       )

@@ -1,4 +1,4 @@
-// [71-B.STABLE] Agency Dashboard Core — Progress-first, Staff-centered
+// [LOCKED][71-D.FIXFLOW.STABLE] Do not remove or inline this block without architect/QA approval.
 import { useMemo, useState } from "react";
 import { Calendar, Users, Upload, Hotel, Activity, CheckCircle2, Clock, BarChart3 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Spinner } from "@/components/pd/Spinner";
-import { useEventProgress, useEventCounts } from "@/hooks/useAgencyDashboard";
+import { useAgencyData } from "@/context/AgencyDataContext";
 import { UploadParticipantsModal } from "@/components/dashboard/UploadParticipantsModal";
 import CreateEventModal from "@/components/events/CreateEventModal";
 import {
@@ -24,14 +24,22 @@ import { ko } from "date-fns/locale";
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const { data: eventProgress, isLoading: progressLoading } = useEventProgress();
-  const { data: counts, isLoading: countsLoading } = useEventCounts();
+  
+  // [LOCKED][71-D.FIXFLOW.STABLE] Use agency-scoped hooks via context
+  const { eventProgress, counts } = useAgencyData();
+  const { data: eventProgressData, isLoading: progressLoading } = eventProgress;
+  const { data: countsData, isLoading: countsLoading } = counts;
+  
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
   const [createModalOpen, setCreateModalOpen] = useState(false);
 
-  // Sort events: active → upcoming → completed
+  if (process.env.NODE_ENV !== 'production') {
+    console.log('[71-D.FIXFLOW] Dashboard render - events:', eventProgressData?.length, 'counts:', countsData);
+  }
+
+  // [LOCKED][71-D.FIXFLOW.STABLE] Sort events: active → upcoming → completed
   const sortedEvents = useMemo(() => {
-    if (!eventProgress) return [];
+    if (!eventProgressData) return [];
     
     const statusOrder = { 
       '진행중': 0, 
@@ -42,7 +50,7 @@ export default function Dashboard() {
       'completed': 2 
     };
     
-    return [...eventProgress].sort((a, b) => {
+    return [...eventProgressData].sort((a, b) => {
       const orderA = statusOrder[a.status?.toLowerCase() as keyof typeof statusOrder] ?? 3;
       const orderB = statusOrder[b.status?.toLowerCase() as keyof typeof statusOrder] ?? 3;
       
@@ -51,7 +59,7 @@ export default function Dashboard() {
       // Within same status, sort by start_date descending
       return new Date(b.start_date).getTime() - new Date(a.start_date).getTime();
     });
-  }, [eventProgress]);
+  }, [eventProgressData]);
 
   const loading = progressLoading || countsLoading;
 
@@ -140,19 +148,19 @@ export default function Dashboard() {
       <div className="grid gap-6 md:grid-cols-3">
         <StatCard
           title="진행 중"
-          value={String(counts?.active || 0)}
+          value={String(countsData?.active || 0)}
           description="현재 진행 중인 행사"
           icon={Activity}
         />
         <StatCard
           title="예정"
-          value={String(counts?.upcoming || 0)}
+          value={String(countsData?.upcoming || 0)}
           description="앞으로 진행될 행사"
           icon={Clock}
         />
         <StatCard
           title="완료"
-          value={String(counts?.completed || 0)}
+          value={String(countsData?.completed || 0)}
           description="종료된 행사"
           icon={CheckCircle2}
         />

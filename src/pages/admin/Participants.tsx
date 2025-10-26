@@ -1,5 +1,5 @@
-// Phase 3.8-A — Participants Scope Sync
-import { Plus, Search, Filter, Phone, MessageSquare, User, BedDouble, RefreshCw, X } from "lucide-react";
+// [LOCKED][71-D.FIXFLOW.STABLE] Do not remove or inline this block without architect/QA approval.
+import { Plus, Search, Filter, Phone, MessageSquare, User, BedDouble, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -65,18 +65,26 @@ export default function Participants() {
     loadEvents();
   }, [agencyScope]);
 
-  const { data: participants, loading, refresh } = useUnifiedParticipant(selectedEventId, agencyScope);
-
-  // Empty state for master without agency selection
-  if (role === "master" && !agencyScope) {
+  // [LOCKED][71-D.FIXFLOW.STABLE] Guard against missing scope - prevents freeze
+  if (!agencyScope) {
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('[71-D.FIXFLOW] agencyScope=null, route=/admin/participants, role=', role);
+    }
     return (
-      <div className="flex flex-col items-center justify-center h-96 text-gray-500">
-        <p className="text-lg mb-4">먼저 에이전시를 선택하세요.</p>
-        <Button onClick={() => navigate("/master/dashboard")}>
-          마스터 대시보드로 이동
-        </Button>
+      <div className="flex items-center justify-center h-96">
+        <div className="text-center">
+          <LoadingSkeleton type="card" count={1} />
+          <p className="mt-4 text-muted-foreground">데이터를 준비 중입니다...</p>
+        </div>
       </div>
     );
+  }
+
+  // [LOCKED][71-D.FIXFLOW.STABLE] Only call hook after guard passes
+  const { data: participants, loading, refresh } = useUnifiedParticipant(selectedEventId, agencyScope);
+
+  if (process.env.NODE_ENV !== 'production') {
+    console.log('[71-D.FIXFLOW] Participants loaded:', participants?.length, 'loading:', loading);
   }
 
   return (
