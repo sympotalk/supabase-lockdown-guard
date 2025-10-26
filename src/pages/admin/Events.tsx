@@ -1,12 +1,11 @@
-// [LOCKED][71-G.UNIFY.EVENTTABS.REBUILD.UI] Event list rebuilt with SympoHub Blue cards
+// [LOCKED][71-H2.REBUILD.EVENTCARD.STATS.LINE] Event list rebuilt to horizontal line cards with stats
 import { useEffect, useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
-import { Plus, Users, Calendar, User } from "lucide-react";
+import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
 import CreateEventModal from "@/components/events/CreateEventModal";
+import { EditEventModal } from "@/components/events/EditEventModal";
 import { useUser } from "@/context/UserContext";
 import { LoadingSkeleton } from "@/components/pd/LoadingSkeleton";
 import { supabase } from "@/integrations/supabase/client";
@@ -20,8 +19,8 @@ interface Event {
   location: string | null;
   status: string | null;
   participants_count?: number;
-  progress_rate?: number;
-  manager_name?: string;
+  rooming_rate?: number;
+  form_rate?: number;
 }
 
 export default function Events() {
@@ -29,6 +28,8 @@ export default function Events() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const [createModalOpen, setCreateModalOpen] = useState(false);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [editingEvent, setEditingEvent] = useState<Event | null>(null);
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -63,22 +64,38 @@ export default function Events() {
 
       if (eventsError) throw eventsError;
 
-      // Aggregate participants count and calculate progress for each event
+      // Aggregate stats for each event
       const eventsWithCounts = await Promise.all(
         (eventsData || []).map(async (event) => {
-          const { count } = await supabase
+          // Participant count
+          const { count: participantCount } = await supabase
             .from("participants")
             .select("*", { count: "exact", head: true })
             .eq("event_id", event.id);
 
-          // Calculate progress based on participant count (example: max 100 participants = 100%)
-          const progress_rate = count ? Math.min((count / 100) * 100, 100) : 0;
+          // Rooming rate - count participants with room assignments
+          const { data: roomingData } = await supabase
+            .from("participants")
+            .select("room_number", { count: "exact", head: false })
+            .eq("event_id", event.id)
+            .not("room_number", "is", null);
+
+          const roomedCount = roomingData?.length || 0;
+          const rooming_rate = participantCount ? (roomedCount / participantCount * 100) : 0;
+
+          // Form completion rate
+          const { count: formCount } = await supabase
+            .from("form_responses")
+            .select("*", { count: "exact", head: true })
+            .eq("event_id", event.id);
+
+          const form_rate = participantCount ? (formCount || 0) / participantCount * 100 : 0;
 
           return {
             ...event,
-            participants_count: count || 0,
-            progress_rate,
-            manager_name: "담당자", // TODO: Fetch actual manager name from user_roles
+            participants_count: participantCount || 0,
+            rooming_rate,
+            form_rate,
           };
         })
       );
@@ -140,15 +157,10 @@ export default function Events() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="w-full max-w-6xl mx-auto p-6 space-y-4">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-foreground">행사 관리</h1>
-          <p className="mt-2 text-muted-foreground">
-            모든 행사를 관리하고 새로운 행사를 등록하세요
-          </p>
-        </div>
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-2xl font-semibold text-foreground">행사 관리</h1>
         <Button
           size="lg"
           className="gap-2"
@@ -170,109 +182,86 @@ export default function Events() {
         }}
       />
 
-      {/* Event Cards Grid */}
+      {editingEvent && (
+        <EditEventModal
+          open={editModalOpen}
+          onOpenChange={setEditModalOpen}
+          event={editingEvent}
+          onUpdated={() => loadEvents()}
+        />
+      )}
+
+      {/* Event Line Cards */}
       {loading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-          {[1, 2, 3, 4, 5, 6].map((i) => (
-            <Card key={i} className="rounded-2xl">
-              <CardContent className="p-6">
-                <LoadingSkeleton type="card" count={1} />
-              </CardContent>
-            </Card>
+        <div className="space-y-3">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="bg-card border border-border rounded-xl p-4">
+              <LoadingSkeleton type="card" count={1} />
+            </div>
           ))}
         </div>
       ) : events.length === 0 ? (
-        <Card className="rounded-2xl shadow-card">
-          <CardContent className="py-16 text-center">
-            <p className="text-muted-foreground text-lg">등록된 행사가 없습니다.</p>
-            <Button
-              variant="outline"
-              className="mt-4"
-              onClick={() => setCreateModalOpen(true)}
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              첫 행사 등록하기
-            </Button>
-          </CardContent>
-        </Card>
+        <div className="bg-card border border-border rounded-xl p-16 text-center">
+          <p className="text-muted-foreground text-lg">등록된 행사가 없습니다.</p>
+          <Button
+            variant="outline"
+            className="mt-4"
+            onClick={() => setCreateModalOpen(true)}
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            첫 행사 등록하기
+          </Button>
+        </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div className="space-y-3">
           {events.map((event) => (
-            <Card
+            <div
               key={event.id}
-              className="rounded-2xl border border-border shadow-card hover:shadow-card-hover transition-all duration-200 cursor-pointer group hover:scale-[1.02]"
               onClick={() => navigate(`/admin/events/${event.id}/participants`)}
+              className="flex items-center justify-between bg-card hover:bg-accent/50 border border-border rounded-xl shadow-sm p-4 transition-all cursor-pointer"
             >
-              <CardHeader className="flex flex-row justify-between items-start pb-3 space-y-0">
-                <h3 className="text-lg font-semibold text-primary line-clamp-2 flex-1">
-                  {event.name}
-                </h3>
+              {/* 왼쪽: 행사정보 */}
+              <div className="flex flex-col w-1/3">
+                <div className="text-base font-semibold text-primary">{event.name}</div>
+                <div className="text-sm text-muted-foreground">
+                  {formatDateRange(event.start_date, event.end_date)}
+                </div>
+              </div>
+
+              {/* 중앙: 통계 정보 */}
+              <div className="flex items-center justify-between w-1/3 text-sm text-muted-foreground gap-4">
+                <div>
+                  <span className="font-semibold text-foreground">{event.participants_count || 0}</span> 명 참가
+                </div>
+                <div>
+                  <span className="font-semibold text-foreground">{Math.round(event.rooming_rate || 0)}%</span> 객실 배정
+                </div>
+                <div>
+                  <span className="font-semibold text-foreground">{Math.round(event.form_rate || 0)}%</span> 설문 완료
+                </div>
+              </div>
+
+              {/* 오른쪽: 상태 및 수정 */}
+              <div className="flex items-center gap-3">
                 <Badge
                   variant={getStatusBadgeVariant(event.status)}
-                  className="ml-2 shrink-0"
                 >
                   {getStatusLabel(event.status)}
                 </Badge>
-              </CardHeader>
-              
-              <CardContent className="space-y-3 text-sm pb-4">
-                <div className="flex justify-between items-center">
-                  <span className="text-muted-foreground flex items-center gap-2">
-                    <Calendar className="h-4 w-4" />
-                    일정
-                  </span>
-                  <span className="font-medium text-foreground">
-                    {formatDateRange(event.start_date, event.end_date)}
-                  </span>
-                </div>
 
-                <div className="flex justify-between items-center">
-                  <span className="text-muted-foreground flex items-center gap-2">
-                    <Users className="h-4 w-4" />
-                    참가자
-                  </span>
-                  <span className="font-medium text-foreground">
-                    {event.participants_count || 0}명
-                  </span>
-                </div>
-
-                <div className="flex justify-between items-center">
-                  <span className="text-muted-foreground flex items-center gap-2">
-                    <User className="h-4 w-4" />
-                    담당자
-                  </span>
-                  <span className="font-medium text-foreground">
-                    {event.manager_name || "미지정"}
-                  </span>
-                </div>
-
-                <div className="pt-2 space-y-1">
-                  <div className="flex justify-between text-xs">
-                    <span className="text-muted-foreground">진행률</span>
-                    <span className="font-medium text-primary">
-                      {Math.round(event.progress_rate || 0)}%
-                    </span>
-                  </div>
-                  <Progress
-                    value={event.progress_rate || 0}
-                    className="h-2 bg-muted"
-                  />
-                </div>
-              </CardContent>
-
-              <CardFooter className="pt-0 pb-4">
                 <Button
-                  variant="default"
-                  className="w-full group-hover:bg-primary-hover"
+                  variant="outline"
+                  size="sm"
                   onClick={(e) => {
                     e.stopPropagation();
-                    navigate(`/admin/events/${event.id}/participants`);
+                    setEditingEvent(event);
+                    setEditModalOpen(true);
                   }}
                 >
-                  관리하기
+                  수정
                 </Button>
-              </CardFooter>
-            </Card>
+              </div>
+            </div>
           ))}
         </div>
       )}
