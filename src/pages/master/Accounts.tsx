@@ -49,47 +49,32 @@ export default function Accounts() {
       if (summaryError) throw summaryError;
       setSummary(summaryData);
 
-      // Load all users with agency info
+      // Load users directly from master_users (no join)
       const { data: usersData, error: usersError } = await supabase
-        .from("user_roles")
-        .select(`
-          user_id,
-          role,
-          agency_id,
-          agencies!inner(
-            name,
-            is_active
-          )
-        `)
-        .order("role", { ascending: false });
+        .from("master_users")
+        .select("id, email, role, agency, last_login, active")
+        .order("last_login", { ascending: false, nullsFirst: false });
 
-      if (usersError) throw usersError;
+      if (usersError) {
+        console.warn('[Accounts] Load skipped:', usersError.message);
+        setUsers([]);
+        return;
+      }
 
-      // Get auth user details
-      const { data: authListData } = await supabase.auth.admin.listUsers();
-      const authUsers = authListData?.users || [];
-
-      const enrichedUsers: AgencyUser[] = (usersData || []).map((u: any) => {
-        const authUser = authUsers.find((au: any) => au.id === u.user_id);
-        return {
-          id: u.user_id,
-          email: authUser?.email || "Unknown",
-          role: u.role,
-          agency: u.agencies?.name || "Unknown",
-          agency_id: u.agency_id,
-          is_active: u.agencies?.is_active || false,
-          last_sign_in_at: authUser?.last_sign_in_at || null,
-        };
-      });
+      const enrichedUsers: AgencyUser[] = (usersData || []).map((u: any) => ({
+        id: u.id,
+        email: u.email || "Unknown",
+        role: u.role || "staff",
+        agency: u.agency || "Unknown",
+        agency_id: "",
+        is_active: u.active ?? true,
+        last_sign_in_at: u.last_login || null,
+      }));
 
       setUsers(enrichedUsers);
     } catch (error) {
-      errorSys("계정 데이터 로드 실패:", error);
-      toast({
-        title: "오류",
-        description: "계정 데이터를 불러오는 중 오류가 발생했습니다.",
-        variant: "destructive",
-      });
+      console.warn('[Accounts] Error loading account data:', error);
+      setUsers([]);
     }
 
     setLoading(false);
