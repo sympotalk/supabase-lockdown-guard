@@ -31,6 +31,7 @@ import AgencyProfile from "./pages/agency/Profile";
 import AgencySettings from "./pages/agency/Settings";
 import AgencyNotifications from "./pages/agency/Notifications";
 import AgencySecurity from "./pages/agency/Security";
+import AgencyView from "./pages/agency/AgencyView";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -84,6 +85,16 @@ const App = () => (
               <Route path="settings" element={<AdminSettings />} />
               <Route index element={<Navigate to="dashboard" replace />} />
             </Route>
+
+            {/* [LOCKED] Agency view route - accessible by master for viewing agency details */}
+            <Route
+              path="/agency/:id"
+              element={
+                <ProtectedRoute allowedRoles={["master"]}>
+                  <AgencyView />
+                </ProtectedRoute>
+              }
+            />
 
             {/* Agency user-specific routes */}
             <Route

@@ -176,8 +176,13 @@ export default function MasterAgencies() {
               </TableRow>
             </TableHeader>
             <TableBody>
+              {/* [LOCKED] Do not remove: Required for /agency/:id navigation */}
               {filteredAgencies.map((agency) => (
-                <TableRow key={agency.id}>
+                <TableRow 
+                  key={agency.id}
+                  className="hover:bg-muted/50 cursor-pointer transition-colors"
+                  onClick={() => navigate(`/agency/${agency.id}`)}
+                >
                   <TableCell className="font-medium text-[13px]">
                     {agency.name}
                   </TableCell>
@@ -195,7 +200,7 @@ export default function MasterAgencies() {
                       {agency.is_active ? "활성" : "비활성"}
                     </Badge>
                   </TableCell>
-                  <TableCell>
+                  <TableCell onClick={(e) => e.stopPropagation()}>
                     <div className="flex gap-2 justify-end">
                       {canManage && (
                         <>
