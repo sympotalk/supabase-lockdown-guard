@@ -54,8 +54,17 @@ export function MasterProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     console.log("[MasterContext] Initializing with SWR-based data fetching");
 
-    // Preload data immediately
-    preloadMasterData();
+    // [3.14-MD.OPTIMIZE.R2] Preload data only once using global flag
+    const loadOnce = async () => {
+      if (!(window as any).__masterPreloaded) {
+        (window as any).__masterPreloaded = true;
+        await preloadMasterData();
+        console.log("[3.14-MD.OPTIMIZE] preloadMasterData executed once");
+      } else {
+        console.log("[3.14-MD.OPTIMIZE] preload skipped (already loaded)");
+      }
+    };
+    loadOnce();
 
     // Setup unified realtime callback
     masterRealtimeHub.registerUnifiedCallback((tag) => {
@@ -63,21 +72,20 @@ export function MasterProvider({ children }: { children: ReactNode }) {
       refresh();
     });
 
-    // Connect to realtime in background (non-blocking)
-    if (typeof requestIdleCallback !== 'undefined') {
-      requestIdleCallback(() => {
-        console.log("[MasterContext] Connecting realtime hub (idle callback)");
+    // [3.14-MD.OPTIMIZE.R2] Delay realtime connection by 2 seconds to avoid blocking initial render
+    const realtimeTimer = setTimeout(() => {
+      if (typeof requestIdleCallback !== 'undefined') {
+        requestIdleCallback(() => {
+          console.log("[3.14-MD.OPTIMIZE] Connecting realtime hub (idle + delayed)");
+          masterRealtimeHub.connect();
+          setIsRealtimeConnected(masterRealtimeHub.isConnected());
+        });
+      } else {
+        console.log("[3.14-MD.OPTIMIZE] Connecting realtime hub (setTimeout fallback)");
         masterRealtimeHub.connect();
         setIsRealtimeConnected(masterRealtimeHub.isConnected());
-      });
-    } else {
-      // Fallback for browsers without requestIdleCallback
-      setTimeout(() => {
-        console.log("[MasterContext] Connecting realtime hub (setTimeout fallback)");
-        masterRealtimeHub.connect();
-        setIsRealtimeConnected(masterRealtimeHub.isConnected());
-      }, 0);
-    }
+      }
+    }, 2000); // 2 second delay
 
     // Check realtime status periodically
     const statusInterval = setInterval(() => {
@@ -87,6 +95,7 @@ export function MasterProvider({ children }: { children: ReactNode }) {
 
     return () => {
       console.log("[MasterContext] Cleaning up");
+      clearTimeout(realtimeTimer);
       clearInterval(statusInterval);
       masterRealtimeHub.disconnect();
     };

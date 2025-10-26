@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect } from "react";
+import { lazy, Suspense } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { RefreshCw, Radio } from "lucide-react";
@@ -7,7 +7,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { MasterProvider, useMaster } from "@/contexts/MasterContext";
 import { Skeleton } from "@/components/ui/skeleton";
 import { masterRealtimeHub } from "@/lib/masterRealtimeHub";
-import { preloadMasterData } from "@/hooks/useMasterData";
 
 // Lazy load tab components with preloading
 const OverviewTab = lazy(() => 
@@ -40,11 +39,7 @@ function DashboardContent() {
   const { isRealtimeConnected, refresh } = useMaster();
   const isStaticMode = masterRealtimeHub.isInStaticMode();
 
-  // Preload data on mount for faster initial render
-  useEffect(() => {
-    console.log("[MasterDashboard] Preloading data on mount");
-    preloadMasterData();
-  }, []);
+  // [3.14-MD.OPTIMIZE.R2] Preload removed - handled by MasterContext once
 
   const handleRefresh = () => {
     console.log("[MasterDashboard] Manual refresh triggered");

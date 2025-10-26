@@ -3,12 +3,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { validateSystemInsights } from "@/lib/masterDashboardValidation";
 import { MasterMetricsUI, AIInsightUI, QAReportUI } from "@/types/masterUI";
 
-// SWR configuration for master dashboard
+// [3.14-MD.OPTIMIZE.R2] SWR configuration optimized for master dashboard
 const swrConfig = {
   revalidateOnFocus: false,
   revalidateOnReconnect: true,
-  dedupingInterval: 30000, // 30s deduplication
-  refreshInterval: 60000, // 60s polling
+  dedupingInterval: 60000, // 60s deduplication
+  keepPreviousData: true,
+  focusThrottleInterval: 120000, // 120s focus throttle
+  // refreshInterval removed - no background polling
 };
 
 /**
@@ -98,34 +100,23 @@ export function useQAReports() {
 }
 
 /**
- * Preload all master dashboard data
+ * [3.14-MD.OPTIMIZE.R2] Preload all master dashboard data in parallel
  * Call this early to start fetching before components mount
  */
-export function preloadMasterData() {
-  console.log("[useMasterData] Preloading master data");
+export async function preloadMasterData() {
+  console.time("[3.14-MD.OPTIMIZE] preloadMasterData");
+  console.log("[useMasterData] Preloading master data (parallel)");
   
-  // Queue preloads sequentially to avoid overwhelming Supabase
-  const tasks = [
-    () => validateSystemInsights(),
-    () => supabase.from("ai_insights").select("*").eq("status", "active").limit(10),
-    () => supabase.from("qa_reports").select("*").limit(20),
-  ];
-
-  // Execute sequentially with small delays
-  const executeQueue = async () => {
-    for (let i = 0; i < tasks.length; i++) {
-      try {
-        await new Promise((resolve) => {
-          setTimeout(async () => {
-            await tasks[i]();
-            resolve(null);
-          }, i * 100); // 100ms stagger
-        });
-      } catch (err) {
-        console.error(`[useMasterData] Preload task ${i} failed:`, err);
-      }
-    }
-  };
-
-  return executeQueue();
+  try {
+    // Execute all tasks in parallel for faster loading
+    await Promise.all([
+      validateSystemInsights(),
+      supabase.from("ai_insights").select("*").eq("status", "active").limit(10),
+      supabase.from("qa_reports").select("*").limit(20),
+    ]);
+    console.timeEnd("[3.14-MD.OPTIMIZE] preloadMasterData");
+  } catch (err) {
+    console.error("[useMasterData] Preload failed:", err);
+    console.timeEnd("[3.14-MD.OPTIMIZE] preloadMasterData");
+  }
 }

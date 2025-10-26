@@ -288,6 +288,7 @@ export async function validateQAReports(): Promise<ValidationResult<Array<any>>>
 }
 
 // System Insights Validation (Phase 3.9-L)
+// [3.14-MD.OPTIMIZE.R2] System Insights with 120s cache TTL
 export async function validateSystemInsights(): Promise<ValidationResult<{
   healthRate: number;
   activeChannels: number;
@@ -298,14 +299,14 @@ export async function validateSystemInsights(): Promise<ValidationResult<{
 }>> {
   const cacheKey = generateCacheKey("system_insights");
   
-  // Try cache first (60 second TTL)
-  const cached = await getCachedData<any>(cacheKey, 60);
+  // [3.14-MD.OPTIMIZE.R2] Extended cache TTL to 120 seconds
+  const cached = await getCachedData<any>(cacheKey, 120);
   if (cached) {
-    logSys("Using cached system insights");
+    logSys("[3.14-MD.OPTIMIZE] Using cached system insights");
     return { data: cached, isMock: cached.isMock || false };
   }
 
-  logSys("Calculating comprehensive system insights...");
+  logSys("[3.14-MD.OPTIMIZE] Calculating comprehensive system insights...");
   
   try {
     // Run all validations in parallel
