@@ -4,6 +4,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Users, Building2, Activity, Mail, Shield, UserPlus } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "@/hooks/use-toast";
@@ -31,10 +34,61 @@ export default function Accounts() {
   const [summary, setSummary] = useState<AccountSummary | null>(null);
   const [users, setUsers] = useState<AgencyUser[]>([]);
   const [loading, setLoading] = useState(true);
+  const [inviteOpen, setInviteOpen] = useState(false);
+  const [newEmail, setNewEmail] = useState("");
+  const [selectedAgency, setSelectedAgency] = useState("");
+  const [agencies, setAgencies] = useState<any[]>([]);
 
   useEffect(() => {
     loadAccountData();
+    loadAgencies();
   }, []);
+
+  const loadAgencies = async () => {
+    const { data } = await supabase
+      .from("agencies")
+      .select("id, name")
+      .eq("is_active", true);
+    
+    setAgencies(data || []);
+  };
+
+  const handleInvite = async () => {
+    if (!newEmail || !selectedAgency) {
+      toast({
+        title: "입력 오류",
+        description: "이메일과 에이전시를 모두 선택해주세요.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const { error } = await supabase.rpc("invite_master_user", {
+        p_email: newEmail,
+        p_agency_id: selectedAgency,
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "초대 완료",
+        description: `${newEmail} 사용자가 초대되었습니다.`,
+      });
+
+      setInviteOpen(false);
+      setNewEmail("");
+      setSelectedAgency("");
+      loadAccountData();
+    } catch (error) {
+      errorSys("사용자 초대 실패:", error);
+      toast({
+        title: "초대 실패",
+        description: "사용자 초대 중 오류가 발생했습니다.",
+        variant: "destructive",
+      });
+    }
+  };
 
   const loadAccountData = async () => {
     setLoading(true);
@@ -109,10 +163,48 @@ export default function Accounts() {
             전체 시스템 사용자 및 에이전시 계정 관리
           </p>
         </div>
-        <Button>
-          <UserPlus className="h-4 w-4 mr-2" />
-          사용자 초대
-        </Button>
+        <Dialog open={inviteOpen} onOpenChange={setInviteOpen}>
+          <DialogTrigger asChild>
+            <Button>
+              <UserPlus className="h-4 w-4 mr-2" />
+              사용자 초대
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>새 사용자 초대</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">이메일</label>
+                <Input
+                  type="email"
+                  placeholder="user@example.com"
+                  value={newEmail}
+                  onChange={(e) => setNewEmail(e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">에이전시</label>
+                <Select value={selectedAgency} onValueChange={setSelectedAgency}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="에이전시 선택" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {agencies.map((agency) => (
+                      <SelectItem key={agency.id} value={agency.id}>
+                        {agency.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <Button onClick={handleInvite} className="w-full">
+                초대 보내기
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
 
       {/* Summary Cards */}

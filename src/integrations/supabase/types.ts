@@ -6457,6 +6457,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      invite_master_user: {
+        Args: { p_agency_id: string; p_email: string }
+        Returns: Json
+      }
       log_policy_test: {
         Args: {
           _action: string

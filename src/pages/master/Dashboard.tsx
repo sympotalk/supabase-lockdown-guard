@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { RefreshCw, Radio } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { SystemHealthCards } from "@/components/dashboard/SystemHealthCards";
 import { AgencyActivityCards } from "@/components/dashboard/AgencyActivityCards";
 import { DataQualityCards } from "@/components/dashboard/DataQualityCards";
@@ -146,72 +147,83 @@ export default function MasterDashboard() {
         </div>
       </div>
 
-      {/* System Insight Board */}
-      <SystemInsightBoard key={`insights-${refreshKey}`} />
+      {/* Tabbed Dashboard */}
+      <Tabs defaultValue="overview" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-4 gap-4">
+          <TabsTrigger value="overview" className="text-sm">시스템 요약</TabsTrigger>
+          <TabsTrigger value="anomaly" className="text-sm">이상 감지</TabsTrigger>
+          <TabsTrigger value="automation" className="text-sm">자동화 상태</TabsTrigger>
+          <TabsTrigger value="qa" className="text-sm">QA 리포트</TabsTrigger>
+        </TabsList>
 
-      {/* AI Anomaly Insights */}
-      <section className="space-y-4">
-        <h2 className="text-[18px] font-semibold text-foreground">🤖 AI Anomaly Detection</h2>
-        <AIInsightsPanel key={`ai-insights-${refreshKey}`} />
-      </section>
+        {/* Overview Tab */}
+        <TabsContent value="overview" className="space-y-6">
+          <SystemInsightBoard key={`insights-${refreshKey}`} />
+          
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-1">
+              <QuickActionsPanel key={`actions-${refreshKey}`} />
+            </div>
+            <div className="lg:col-span-2">
+              <OpsExecutionHistory key={`ops-${refreshKey}`} />
+            </div>
+          </div>
 
-      {/* System Health Monitor */}
-      <section className="space-y-4">
-        <h2 className="text-[18px] font-semibold text-foreground">⚡ System Health Monitor</h2>
-        <SystemHealthMonitor key={`health-monitor-${refreshKey}`} />
-      </section>
+          <SystemHealthCards key={`health-${refreshKey}`} />
+          <AgencyActivityCards key={`activity-${refreshKey}`} />
+        </TabsContent>
 
-      {/* QA Report Summary */}
-      <section className="space-y-4">
-        <h2 className="text-[18px] font-semibold text-foreground">📊 QA 리포트 및 이상 감지</h2>
-        <QAReportSummary key={`qa-report-${refreshKey}`} />
-      </section>
+        {/* Anomaly Detection Tab */}
+        <TabsContent value="anomaly" className="space-y-6">
+          <div className="space-y-4">
+            <h2 className="text-[18px] font-semibold text-foreground">🤖 AI Anomaly Detection</h2>
+            <AIInsightsPanel key={`ai-insights-${refreshKey}`} />
+          </div>
+          
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="space-y-4">
+              <h2 className="text-[18px] font-semibold text-foreground">오류 로그 요약</h2>
+              <ErrorLogTable key={`errors-${refreshKey}`} />
+            </div>
+            <div className="space-y-4">
+              <h2 className="text-[18px] font-semibold text-foreground">시스템 상태</h2>
+              <SystemHealthMonitor key={`health-monitor-${refreshKey}`} />
+            </div>
+          </div>
+        </TabsContent>
 
-      {/* Quick Actions & Ops History */}
-      <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-1">
-          <QuickActionsPanel key={`actions-${refreshKey}`} />
-        </div>
-        <div className="lg:col-span-2">
-          <OpsExecutionHistory key={`ops-${refreshKey}`} />
-        </div>
-      </section>
+        {/* Automation Status Tab */}
+        <TabsContent value="automation" className="space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="space-y-4">
+              <h2 className="text-[18px] font-semibold text-foreground">데이터 품질 검증</h2>
+              <DataQualityCards key={`quality-${refreshKey}`} />
+            </div>
+            <div className="space-y-4">
+              <h2 className="text-[18px] font-semibold text-foreground">자동화 모니터링</h2>
+              <FunctionHealthTable key={`functions-${refreshKey}`} />
+            </div>
+          </div>
 
-      {/* Section A: System Health Overview */}
-      <section className="space-y-4">
-        <h2 className="text-[18px] font-semibold text-foreground">시스템 상태 요약</h2>
-        <SystemHealthCards key={`health-${refreshKey}`} />
-      </section>
+          <div className="space-y-4">
+            <h2 className="text-[18px] font-semibold text-foreground">⚡ System Health Monitor</h2>
+            <SystemHealthMonitor key={`health-monitor-2-${refreshKey}`} />
+          </div>
+        </TabsContent>
 
-      {/* Section B: Agency Activity Snapshot */}
-      <section className="space-y-4">
-        <h2 className="text-[18px] font-semibold text-foreground">에이전시 운영 현황</h2>
-        <AgencyActivityCards key={`activity-${refreshKey}`} />
-      </section>
+        {/* QA Reports Tab */}
+        <TabsContent value="qa" className="space-y-6">
+          <div className="space-y-4">
+            <h2 className="text-[18px] font-semibold text-foreground">📊 QA 리포트 및 이상 감지</h2>
+            <QAReportSummary key={`qa-report-${refreshKey}`} />
+          </div>
 
-      {/* Sections C & D: Data Quality & Function Health */}
-      <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="space-y-4">
-          <h2 className="text-[18px] font-semibold text-foreground">데이터 품질 검증</h2>
-          <DataQualityCards key={`quality-${refreshKey}`} />
-        </div>
-        <div className="space-y-4">
-          <h2 className="text-[18px] font-semibold text-foreground">자동화 모니터링</h2>
-          <FunctionHealthTable key={`functions-${refreshKey}`} />
-        </div>
-      </section>
-
-      {/* Sections E & F: Error Logs & QA Reports */}
-      <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="space-y-4">
-          <h2 className="text-[18px] font-semibold text-foreground">오류 로그 요약</h2>
-          <ErrorLogTable key={`errors-${refreshKey}`} />
-        </div>
-        <div className="space-y-4">
-          <h2 className="text-[18px] font-semibold text-foreground">QA 리포트</h2>
-          <QAReportTable key={`qa-${refreshKey}`} />
-        </div>
-      </section>
+          <div className="space-y-4">
+            <h2 className="text-[18px] font-semibold text-foreground">최근 QA 리포트</h2>
+            <QAReportTable key={`qa-${refreshKey}`} />
+          </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

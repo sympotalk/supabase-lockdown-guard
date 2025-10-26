@@ -48,12 +48,13 @@ export default function QAReports() {
     logSys("Loading QA reports...");
 
     try {
-      // Load all reports
+      // Load all reports with explicit error handling
       const { data: reportsData, error: reportsError } = await supabase
         .from("qa_reports" as any)
         .select("*")
         .order("generated_at", { ascending: false })
-        .limit(50);
+        .limit(50)
+        .throwOnError();
 
       if (reportsError) throw reportsError;
 
