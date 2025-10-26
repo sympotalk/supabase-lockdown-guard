@@ -85,12 +85,12 @@ export function DataQualityCards() {
   const needsCorrection = quality.aiMappingSuccess < 90 || quality.duplicatesDetected > 5;
 
   return (
-    <Card className="shadow-md rounded-[16px]">
-      <CardContent className="p-6">
-        <div className="flex items-center justify-between mb-6">
+    <Card className="shadow-md rounded-2xl border-border">
+      <CardContent className="p-4">
+        <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <Shield className="h-5 w-5 text-primary" />
-            <h3 className="text-[18px] font-semibold">데이터 품질 및 동기화</h3>
+            <h3 className="text-[14px] font-semibold">품질 지표</h3>
           </div>
           {needsCorrection && (
             <Badge variant="secondary" className="gap-1">

@@ -76,11 +76,11 @@ export function QAReportTable() {
   }
 
   return (
-    <Card className="shadow-md rounded-[16px]">
-      <CardContent className="p-6">
-        <div className="flex items-center gap-2 mb-6">
+    <Card className="shadow-md rounded-2xl border-border">
+      <CardContent className="p-4">
+        <div className="flex items-center gap-2 mb-4">
           <FileText className="h-5 w-5 text-primary" />
-          <h3 className="text-[18px] font-semibold">QA 리포트 히스토리</h3>
+          <h3 className="text-[14px] font-semibold">품질 검증 기록</h3>
         </div>
 
         {reports.length === 0 ? (

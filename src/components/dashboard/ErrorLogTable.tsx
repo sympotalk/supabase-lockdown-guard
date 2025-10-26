@@ -61,11 +61,11 @@ export function ErrorLogTable() {
   }
 
   return (
-    <Card className="shadow-md rounded-[16px]">
-      <CardContent className="p-6">
-        <div className="flex items-center gap-2 mb-6">
+    <Card className="shadow-md rounded-2xl border-border">
+      <CardContent className="p-4">
+        <div className="flex items-center gap-2 mb-4">
           <AlertTriangle className="h-5 w-5 text-primary" />
-          <h3 className="text-[18px] font-semibold">에러/경고 로그 요약</h3>
+          <h3 className="text-[14px] font-semibold">최근 로그 (10건)</h3>
         </div>
 
         <div className="space-y-2">

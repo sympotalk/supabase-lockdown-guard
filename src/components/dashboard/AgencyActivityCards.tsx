@@ -136,8 +136,8 @@ export function AgencyActivityCards() {
     <div className="space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* B1: Active Agencies */}
-        <Card className="shadow-md rounded-[16px]">
-          <CardContent className="p-6">
+        <Card className="shadow-md rounded-2xl border-border">
+          <CardContent className="p-4">
             <div className="flex items-center gap-3 mb-3">
               <div className="h-10 w-10 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
                 <Users className="h-5 w-5 text-blue-600 dark:text-blue-400" />
@@ -149,8 +149,8 @@ export function AgencyActivityCards() {
         </Card>
 
         {/* B2: Recent Events */}
-        <Card className="shadow-md rounded-[16px]">
-          <CardContent className="p-6">
+        <Card className="shadow-md rounded-2xl border-border">
+          <CardContent className="p-4">
             <div className="flex items-center gap-3 mb-3">
               <div className="h-10 w-10 rounded-lg bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
                 <Calendar className="h-5 w-5 text-green-600 dark:text-green-400" />
@@ -162,8 +162,8 @@ export function AgencyActivityCards() {
         </Card>
 
         {/* B3: Total Participants */}
-        <Card className="shadow-md rounded-[16px]">
-          <CardContent className="p-6">
+        <Card className="shadow-md rounded-2xl border-border">
+          <CardContent className="p-4">
             <div className="flex items-center gap-3 mb-3">
               <div className="h-10 w-10 rounded-lg bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
                 <TrendingUp className="h-5 w-5 text-purple-600 dark:text-purple-400" />
@@ -175,8 +175,8 @@ export function AgencyActivityCards() {
         </Card>
 
         {/* B4: Recent Uploads */}
-        <Card className="shadow-md rounded-[16px]">
-          <CardContent className="p-6">
+        <Card className="shadow-md rounded-2xl border-border">
+          <CardContent className="p-4">
             <div className="flex items-center gap-3 mb-3">
               <div className="h-10 w-10 rounded-lg bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center">
                 <Upload className="h-5 w-5 text-orange-600 dark:text-orange-400" />
@@ -189,9 +189,9 @@ export function AgencyActivityCards() {
       </div>
 
       {/* B5: Top 3 Active Agencies Table */}
-      <Card className="shadow-md rounded-[16px]">
-        <CardContent className="p-6">
-          <h3 className="text-[16px] font-semibold mb-4">최근 활동 에이전시 TOP 3</h3>
+      <Card className="shadow-md rounded-2xl border-border">
+        <CardContent className="p-4">
+          <h3 className="text-[14px] font-semibold mb-4">최근 활동 에이전시 TOP 3</h3>
           {topAgencies.length === 0 ? (
             <p className="text-[14px] text-muted-foreground text-center py-4">활동 데이터가 없습니다.</p>
           ) : (

@@ -19,7 +19,7 @@ export default function MasterDashboard() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -47,28 +47,40 @@ export default function MasterDashboard() {
       </div>
 
       {/* Section A: System Health Overview */}
-      <div>
-        <h2 className="text-[16px] font-semibold mb-4">시스템 상태 요약</h2>
+      <section className="space-y-4">
+        <h2 className="text-[18px] font-semibold text-foreground">시스템 상태 요약</h2>
         <SystemHealthCards key={`health-${refreshKey}`} />
-      </div>
+      </section>
 
       {/* Section B: Agency Activity Snapshot */}
-      <div>
-        <h2 className="text-[16px] font-semibold mb-4">에이전시 운영 현황</h2>
+      <section className="space-y-4">
+        <h2 className="text-[18px] font-semibold text-foreground">에이전시 운영 현황</h2>
         <AgencyActivityCards key={`activity-${refreshKey}`} />
-      </div>
+      </section>
 
       {/* Sections C & D: Data Quality & Function Health */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <DataQualityCards key={`quality-${refreshKey}`} />
-        <FunctionHealthTable key={`functions-${refreshKey}`} />
-      </div>
+      <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="space-y-4">
+          <h2 className="text-[18px] font-semibold text-foreground">데이터 품질 검증</h2>
+          <DataQualityCards key={`quality-${refreshKey}`} />
+        </div>
+        <div className="space-y-4">
+          <h2 className="text-[18px] font-semibold text-foreground">자동화 모니터링</h2>
+          <FunctionHealthTable key={`functions-${refreshKey}`} />
+        </div>
+      </section>
 
       {/* Sections E & F: Error Logs & QA Reports */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <ErrorLogTable key={`errors-${refreshKey}`} />
-        <QAReportTable key={`qa-${refreshKey}`} />
-      </div>
+      <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="space-y-4">
+          <h2 className="text-[18px] font-semibold text-foreground">오류 로그 요약</h2>
+          <ErrorLogTable key={`errors-${refreshKey}`} />
+        </div>
+        <div className="space-y-4">
+          <h2 className="text-[18px] font-semibold text-foreground">QA 리포트</h2>
+          <QAReportTable key={`qa-${refreshKey}`} />
+        </div>
+      </section>
     </div>
   );
 }
