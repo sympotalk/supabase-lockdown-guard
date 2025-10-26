@@ -1,26 +1,61 @@
-// [LOCKED][71-H.STABLE] Unified Event Tabs Layout
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useParams, useNavigate, useLocation, Outlet } from "react-router-dom";
+// [LOCKED][71-H5.UNIFIED-DETAIL.LAYOUT] Unified Event Tabs with State-based Switching
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { useParams, useNavigate } from "react-router-dom";
 import { useUser } from "@/context/UserContext";
-import { useEffect } from "react";
+import { useState, useEffect } from "react";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import ParticipantsTab from "@/pages/admin/event-detail/ParticipantsTab";
+import RoomingTab from "@/pages/admin/event-detail/RoomingTab";
+import MessagesTab from "@/pages/admin/event-detail/MessagesTab";
+import FormsTab from "@/pages/admin/event-detail/FormsTab";
+import { supabase } from "@/integrations/supabase/client";
+import { format } from "date-fns";
 
 export default function EventDetailLayout() {
   const { eventId } = useParams();
   const { agencyScope } = useUser();
   const navigate = useNavigate();
-  const location = useLocation();
+  
+  // [71-H5] State-based tab switching with localStorage persistence
+  const [tab, setTab] = useState<string>(() => {
+    return localStorage.getItem(`event_detail_tab_${eventId}`) || "participants";
+  });
+  
+  const [event, setEvent] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
-  // Extract current tab from URL
-  const currentTab = location.pathname.split("/").pop() || "participants";
-
+  // Load event data
   useEffect(() => {
-    // Default to participants tab if at base event route
-    if (location.pathname === `/admin/events/${eventId}`) {
-      navigate(`/admin/events/${eventId}/participants`, { replace: true });
+    const loadEvent = async () => {
+      if (!eventId || !agencyScope) return;
+      
+      const { data, error } = await supabase
+        .from("events")
+        .select("*")
+        .eq("id", eventId)
+        .eq("agency_id", agencyScope)
+        .single();
+      
+      if (error) {
+        console.error("[71-H5] Failed to load event:", error);
+        setLoading(false);
+        return;
+      }
+      
+      setEvent(data);
+      setLoading(false);
+    };
+    
+    loadEvent();
+  }, [eventId, agencyScope]);
+
+  // Persist tab selection
+  useEffect(() => {
+    if (eventId) {
+      localStorage.setItem(`event_detail_tab_${eventId}`, tab);
     }
-  }, [location.pathname, eventId, navigate]);
+  }, [tab, eventId]);
 
   if (!agencyScope) {
     return (
@@ -30,9 +65,21 @@ export default function EventDetailLayout() {
     );
   }
 
-  const handleTabChange = (value: string) => {
-    navigate(`/admin/events/${eventId}/${value}`);
-  };
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-[60vh] text-muted-foreground">
+        행사 정보를 불러오는 중입니다...
+      </div>
+    );
+  }
+
+  if (!event) {
+    return (
+      <div className="flex items-center justify-center h-[60vh] text-muted-foreground">
+        행사를 찾을 수 없습니다.
+      </div>
+    );
+  }
 
   return (
     <div className="w-full max-w-7xl mx-auto px-6 py-8 space-y-6">
@@ -45,11 +92,18 @@ export default function EventDetailLayout() {
           >
             <ArrowLeft className="h-5 w-5" />
           </Button>
-          <h1 className="text-2xl font-semibold text-foreground">행사 상세 관리</h1>
+          <div>
+            <h1 className="text-2xl font-semibold text-primary">
+              {event.name}
+            </h1>
+            <p className="text-sm text-muted-foreground mt-1">
+              {format(new Date(event.start_date), "yyyy.MM.dd")} ~ {format(new Date(event.end_date), "yyyy.MM.dd")}
+            </p>
+          </div>
         </div>
       </div>
 
-      <Tabs value={currentTab} onValueChange={handleTabChange} className="w-full">
+      <Tabs value={tab} onValueChange={setTab} className="w-full">
         <TabsList className="flex space-x-3 border-b border-border pb-2 bg-transparent h-auto rounded-none">
           <TabsTrigger 
             value="participants"
@@ -78,8 +132,18 @@ export default function EventDetailLayout() {
         </TabsList>
 
         <div className="rounded-2xl bg-card shadow-card p-6 mt-4">
-          {/* Outlet renders the selected tab component */}
-          <Outlet />
+          <TabsContent value="participants" className="mt-0">
+            <ParticipantsTab />
+          </TabsContent>
+          <TabsContent value="rooming" className="mt-0">
+            <RoomingTab />
+          </TabsContent>
+          <TabsContent value="messages" className="mt-0">
+            <MessagesTab />
+          </TabsContent>
+          <TabsContent value="forms" className="mt-0">
+            <FormsTab />
+          </TabsContent>
         </div>
       </Tabs>
     </div>

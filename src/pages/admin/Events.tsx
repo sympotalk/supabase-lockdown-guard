@@ -194,7 +194,7 @@ export default function Events() {
             return (
               <div
                 key={event.id}
-                onClick={() => navigate(`/admin/events/${event.id}/participants`)}
+                onClick={() => navigate(`/admin/events/${event.id}`)}
                 className="flex items-center justify-between bg-card hover:bg-accent/50 border border-border rounded-xl shadow-sm p-4 transition-all cursor-pointer"
               >
                 {/* 왼쪽: 행사정보 */}

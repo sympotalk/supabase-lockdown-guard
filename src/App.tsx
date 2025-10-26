@@ -83,13 +83,8 @@ const App = () => (
               <Route path="events" element={<Events />} />
               <Route path="events/:eventId/overview" element={<EventOverview />} />
               
-              {/* [LOCKED][71-H.STABLE] Event detail with integrated tabs */}
-              <Route path="events/:eventId" element={<EventDetailLayout />}>
-                <Route path="participants" element={<ParticipantsTab />} />
-                <Route path="rooming" element={<RoomingTab />} />
-                <Route path="messages" element={<MessagesTab />} />
-                <Route path="forms" element={<FormsTab />} />
-              </Route>
+              {/* [LOCKED][71-H5.UNIFIED-DETAIL.LAYOUT] Event detail with state-based tabs */}
+              <Route path="events/:eventId" element={<EventDetailLayout />} />
               
               {/* [LOCKED][71-G.FIX.ROUTING.R1 + 71-H.STABLE] Redirect old routes to unified event list */}
               <Route path="participants" element={<Navigate to="/admin/events" replace />} />
