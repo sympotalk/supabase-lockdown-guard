@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
+// [LOCKED][71-H.STABLE] Hide tab-merged items (moved to event detail tabs)
 const menuItems = [
   {
     title: "대시보드",
@@ -21,26 +22,27 @@ const menuItems = [
     icon: Calendar,
     url: "/admin/events",
   },
-  {
-    title: "참가자 관리",
-    icon: Users,
-    url: "/admin/participants",
-  },
-  {
-    title: "숙박 및 룸핑",
-    icon: Hotel,
-    url: "/admin/rooming",
-  },
-  {
-    title: "문자·알림 발송",
-    icon: MessageSquare,
-    url: "/admin/messages",
-  },
-  {
-    title: "설문·초청장",
-    icon: FileText,
-    url: "/admin/forms",
-  },
+  // [LOCKED][71-H.STABLE] 참가자, 숙박, 문자, 설문 항목은 상단 탭으로 이동 → 주석 처리
+  // {
+  //   title: "참가자 관리",
+  //   icon: Users,
+  //   url: "/admin/participants",
+  // },
+  // {
+  //   title: "숙박 및 룸핑",
+  //   icon: Hotel,
+  //   url: "/admin/rooming",
+  // },
+  // {
+  //   title: "문자·알림 발송",
+  //   icon: MessageSquare,
+  //   url: "/admin/messages",
+  // },
+  // {
+  //   title: "설문·초청장",
+  //   icon: FileText,
+  //   url: "/admin/forms",
+  // },
   {
     title: "계정 관리",
     icon: Building2,

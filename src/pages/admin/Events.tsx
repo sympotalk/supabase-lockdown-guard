@@ -201,7 +201,7 @@ export default function Events() {
             <Card
               key={event.id}
               className="rounded-2xl border border-border shadow-card hover:shadow-card-hover transition-all duration-200 cursor-pointer group hover:scale-[1.02]"
-              onClick={() => navigate(`/admin/events/${event.id}/overview`)}
+              onClick={() => navigate(`/admin/events/${event.id}/participants`)}
             >
               <CardHeader className="flex flex-row justify-between items-start pb-3 space-y-0">
                 <h3 className="text-lg font-semibold text-primary line-clamp-2 flex-1">
@@ -266,7 +266,7 @@ export default function Events() {
                   className="w-full group-hover:bg-primary-hover"
                   onClick={(e) => {
                     e.stopPropagation();
-                    navigate(`/admin/events/${event.id}/overview`);
+                    navigate(`/admin/events/${event.id}/participants`);
                   }}
                 >
                   관리하기

@@ -20,6 +20,11 @@ import MasterAlertHistory from "./pages/master/AlertHistory";
 import MasterQAReports from "./pages/master/QAReports";
 import Events from "./pages/admin/Events";
 import EventOverview from "./pages/admin/EventOverview";
+import EventDetailLayout from "./layouts/EventDetailLayout";
+import ParticipantsTab from "./pages/admin/event-detail/ParticipantsTab";
+import RoomingTab from "./pages/admin/event-detail/RoomingTab";
+import MessagesTab from "./pages/admin/event-detail/MessagesTab";
+import FormsTab from "./pages/admin/event-detail/FormsTab";
 import Participants from "./pages/admin/Participants";
 import Rooming from "./pages/admin/Rooming";
 import Messages from "./pages/admin/Messages";
@@ -77,11 +82,21 @@ const App = () => (
               <Route path="dashboard" element={<Dashboard />} />
               <Route path="events" element={<Events />} />
               <Route path="events/:eventId/overview" element={<EventOverview />} />
-              {/* [LOCKED][71-G.FIX.ROUTING.R1] Redirect old participant route to unified event list */}
+              
+              {/* [LOCKED][71-H.STABLE] Event detail with integrated tabs */}
+              <Route path="events/:eventId" element={<EventDetailLayout />}>
+                <Route path="participants" element={<ParticipantsTab />} />
+                <Route path="rooming" element={<RoomingTab />} />
+                <Route path="messages" element={<MessagesTab />} />
+                <Route path="forms" element={<FormsTab />} />
+              </Route>
+              
+              {/* [LOCKED][71-G.FIX.ROUTING.R1 + 71-H.STABLE] Redirect old routes to unified event list */}
               <Route path="participants" element={<Navigate to="/admin/events" replace />} />
-              <Route path="rooming" element={<Rooming />} />
-              <Route path="messages" element={<Messages />} />
-              <Route path="forms" element={<Forms />} />
+              <Route path="rooming" element={<Navigate to="/admin/events" replace />} />
+              <Route path="messages" element={<Navigate to="/admin/events" replace />} />
+              <Route path="forms" element={<Navigate to="/admin/events" replace />} />
+              
               <Route path="account" element={<Account />} />
               <Route path="settings" element={<AdminSettings />} />
               <Route index element={<Navigate to="dashboard" replace />} />
