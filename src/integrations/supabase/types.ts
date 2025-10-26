@@ -6129,6 +6129,14 @@ export type Database = {
     Functions: {
       assign_master_role: { Args: { user_email: string }; Returns: Json }
       cleanup_old_cache: { Args: never; Returns: undefined }
+      create_agency: {
+        Args: {
+          p_contact_email: string
+          p_manager_name: string
+          p_name: string
+        }
+        Returns: Json
+      }
       create_event_with_hotel:
         | {
             Args: {
@@ -6456,6 +6464,10 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      invite_agency_user: {
+        Args: { p_agency_id: string; p_email: string; p_role?: string }
+        Returns: Json
       }
       invite_master_user: {
         Args: { p_agency_id: string; p_email: string }

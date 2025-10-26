@@ -4,10 +4,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Users, Building2, Activity, Mail, Shield, UserPlus } from "lucide-react";
+import { InviteModal } from "@/components/accounts/InviteModal";
+import { AgencyCreateModal } from "@/components/accounts/AgencyCreateModal";
+import { Users, Building2, Activity, Mail, Shield, UserPlus, Plus } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "@/hooks/use-toast";
 import { logSys, errorSys } from "@/lib/consoleLogger";
@@ -30,14 +29,22 @@ interface AgencyUser {
   last_sign_in_at: string | null;
 }
 
+interface Agency {
+  id: string;
+  name: string;
+  contact_name: string;
+  contact_email: string;
+  is_active: boolean;
+  created_at: string;
+}
+
 export default function Accounts() {
   const [summary, setSummary] = useState<AccountSummary | null>(null);
   const [users, setUsers] = useState<AgencyUser[]>([]);
+  const [agencies, setAgencies] = useState<Agency[]>([]);
   const [loading, setLoading] = useState(true);
   const [inviteOpen, setInviteOpen] = useState(false);
-  const [newEmail, setNewEmail] = useState("");
-  const [selectedAgency, setSelectedAgency] = useState("");
-  const [agencies, setAgencies] = useState<any[]>([]);
+  const [agencyCreateOpen, setAgencyCreateOpen] = useState(false);
 
   useEffect(() => {
     loadAccountData();
@@ -45,48 +52,17 @@ export default function Accounts() {
   }, []);
 
   const loadAgencies = async () => {
-    const { data } = await supabase
-      .from("agencies")
-      .select("id, name")
-      .eq("is_active", true);
-    
-    setAgencies(data || []);
-  };
-
-  const handleInvite = async () => {
-    if (!newEmail || !selectedAgency) {
-      toast({
-        title: "입력 오류",
-        description: "이메일과 에이전시를 모두 선택해주세요.",
-        variant: "destructive",
-      });
-      return;
-    }
-
+    logSys("Loading agencies...");
     try {
-      const { error } = await supabase.rpc("invite_master_user", {
-        p_email: newEmail,
-        p_agency_id: selectedAgency,
-      });
+      const { data, error } = await supabase
+        .from("agencies")
+        .select("*")
+        .order("created_at", { ascending: false });
 
       if (error) throw error;
-
-      toast({
-        title: "초대 완료",
-        description: `${newEmail} 사용자가 초대되었습니다.`,
-      });
-
-      setInviteOpen(false);
-      setNewEmail("");
-      setSelectedAgency("");
-      loadAccountData();
+      setAgencies((data as any) || []);
     } catch (error) {
-      errorSys("사용자 초대 실패:", error);
-      toast({
-        title: "초대 실패",
-        description: "사용자 초대 중 오류가 발생했습니다.",
-        variant: "destructive",
-      });
+      errorSys("Failed to load agencies:", error);
     }
   };
 
@@ -163,54 +139,22 @@ export default function Accounts() {
             전체 시스템 사용자 및 에이전시 계정 관리
           </p>
         </div>
-        <Dialog open={inviteOpen} onOpenChange={setInviteOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <UserPlus className="h-4 w-4 mr-2" />
-              사용자 초대
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>새 사용자 초대</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4 py-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium">이메일</label>
-                <Input
-                  type="email"
-                  placeholder="user@example.com"
-                  value={newEmail}
-                  onChange={(e) => setNewEmail(e.target.value)}
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">에이전시</label>
-                <Select value={selectedAgency} onValueChange={setSelectedAgency}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="에이전시 선택" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {agencies.map((agency) => (
-                      <SelectItem key={agency.id} value={agency.id}>
-                        {agency.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <Button onClick={handleInvite} className="w-full">
-                초대 보내기
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
+        <div className="flex gap-3">
+          <Button onClick={() => setAgencyCreateOpen(true)}>
+            <Plus className="h-4 w-4 mr-2" />
+            에이전시 등록
+          </Button>
+          <Button variant="outline" onClick={() => setInviteOpen(true)}>
+            <UserPlus className="h-4 w-4 mr-2" />
+            사용자 초대
+          </Button>
+        </div>
       </div>
 
       {/* Summary Cards */}
       {summary && (
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <Card>
+          <Card className="shadow-md rounded-2xl">
             <CardContent className="pt-6">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
@@ -224,7 +168,7 @@ export default function Accounts() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="shadow-md rounded-2xl">
             <CardContent className="pt-6">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
@@ -238,7 +182,7 @@ export default function Accounts() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="shadow-md rounded-2xl">
             <CardContent className="pt-6">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
@@ -252,7 +196,7 @@ export default function Accounts() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="shadow-md rounded-2xl">
             <CardContent className="pt-6">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-orange-100 dark:bg-orange-900/30 rounded-lg">
@@ -268,8 +212,59 @@ export default function Accounts() {
         </div>
       )}
 
+      {/* Agencies Management */}
+      <Card className="shadow-md rounded-2xl">
+        <CardHeader>
+          <CardTitle className="text-[16px]">에이전시 관리</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {agencies.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              등록된 에이전시가 없습니다.
+            </div>
+          ) : (
+            <div className="rounded-md border">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>에이전시명</TableHead>
+                    <TableHead>담당자</TableHead>
+                    <TableHead>이메일</TableHead>
+                    <TableHead>등록일</TableHead>
+                    <TableHead>상태</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {agencies.map((agency) => (
+                    <TableRow key={agency.id}>
+                      <TableCell className="text-[14px] font-medium">
+                        {agency.name}
+                      </TableCell>
+                      <TableCell className="text-[13px]">
+                        {agency.contact_name || "-"}
+                      </TableCell>
+                      <TableCell className="text-[13px]">
+                        {agency.contact_email || "-"}
+                      </TableCell>
+                      <TableCell className="text-[12px] text-muted-foreground">
+                        {format(new Date(agency.created_at), "yyyy-MM-dd")}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={agency.is_active ? "default" : "secondary"}>
+                          {agency.is_active ? "활성" : "비활성"}
+                        </Badge>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
       {/* Users Table */}
-      <Card>
+      <Card className="shadow-md rounded-2xl">
         <CardHeader>
           <CardTitle className="text-[16px]">전체 사용자 목록</CardTitle>
         </CardHeader>
@@ -327,6 +322,21 @@ export default function Accounts() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Modals */}
+      <InviteModal
+        open={inviteOpen}
+        onOpenChange={setInviteOpen}
+        agencyId=""
+        isMaster={true}
+        agencies={agencies.map((a) => ({ id: a.id, name: a.name }))}
+        onSuccess={loadAccountData}
+      />
+      <AgencyCreateModal
+        open={agencyCreateOpen}
+        onOpenChange={setAgencyCreateOpen}
+        onSuccess={loadAgencies}
+      />
     </div>
   );
 }

@@ -26,6 +26,7 @@ import Messages from "./pages/admin/Messages";
 import Forms from "./pages/admin/Forms";
 import Account from "./pages/admin/Account";
 import AdminSettings from "./pages/admin/Settings";
+import AgencyAccount from "./pages/agency/Account";
 import AgencyProfile from "./pages/agency/Profile";
 import AgencySettings from "./pages/agency/Settings";
 import AgencyNotifications from "./pages/agency/Notifications";
@@ -90,6 +91,7 @@ const App = () => (
               element={
                 <ProtectedRoute allowedRoles={["staff", "admin", "agency_owner"]}>
                   <Routes>
+                    <Route path="account" element={<AgencyAccount />} />
                     <Route path="profile" element={<AgencyProfile />} />
                     <Route path="settings" element={<AgencySettings />} />
                     <Route path="notifications" element={<AgencyNotifications />} />
