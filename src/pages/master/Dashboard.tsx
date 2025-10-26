@@ -1,4 +1,4 @@
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { RefreshCw, Radio } from "lucide-react";
@@ -7,12 +7,21 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { MasterProvider, useMaster } from "@/contexts/MasterContext";
 import { Skeleton } from "@/components/ui/skeleton";
 import { masterRealtimeHub } from "@/lib/masterRealtimeHub";
+import { preloadMasterData } from "@/hooks/useMasterData";
 
-// Lazy load tab components
-const OverviewTab = lazy(() => import("@/components/dashboard/OverviewTab").then(m => ({ default: m.OverviewTab })));
-const AnomalyTab = lazy(() => import("@/components/dashboard/AnomalyTab").then(m => ({ default: m.AnomalyTab })));
-const AutomationTab = lazy(() => import("@/components/dashboard/AutomationTab").then(m => ({ default: m.AutomationTab })));
-const QATab = lazy(() => import("@/components/dashboard/QATab").then(m => ({ default: m.QATab })));
+// Lazy load tab components with preloading
+const OverviewTab = lazy(() => 
+  import("@/components/dashboard/OverviewTab").then(m => ({ default: m.OverviewTab }))
+);
+const AnomalyTab = lazy(() => 
+  import("@/components/dashboard/AnomalyTab").then(m => ({ default: m.AnomalyTab }))
+);
+const AutomationTab = lazy(() => 
+  import("@/components/dashboard/AutomationTab").then(m => ({ default: m.AutomationTab }))
+);
+const QATab = lazy(() => 
+  import("@/components/dashboard/QATab").then(m => ({ default: m.QATab }))
+);
 
 function TabSkeleton() {
   return (
@@ -30,6 +39,12 @@ function DashboardContent() {
   const navigate = useNavigate();
   const { isRealtimeConnected, refresh } = useMaster();
   const isStaticMode = masterRealtimeHub.isInStaticMode();
+
+  // Preload data on mount for faster initial render
+  useEffect(() => {
+    console.log("[MasterDashboard] Preloading data on mount");
+    preloadMasterData();
+  }, []);
 
   const handleRefresh = () => {
     console.log("[MasterDashboard] Manual refresh triggered");
