@@ -110,6 +110,13 @@ export type Database = {
             referencedRelation: "master_users"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "account_provisioning_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
         ]
       }
       activity_logs: {
@@ -207,6 +214,13 @@ export type Database = {
             columns: ["created_by"]
             isOneToOne: false
             referencedRelation: "master_users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agencies_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -347,6 +361,13 @@ export type Database = {
             referencedRelation: "master_users"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "agency_managers_master_id_fkey"
+            columns: ["master_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
         ]
       }
       agency_members: {
@@ -416,6 +437,13 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "master_users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agency_members_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -844,6 +872,13 @@ export type Database = {
             referencedRelation: "master_users"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "behavior_logs_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
         ]
       }
       changelogs: {
@@ -1152,6 +1187,13 @@ export type Database = {
             referencedRelation: "master_users"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "declaration_logs_declared_by_fkey"
+            columns: ["declared_by"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
         ]
       }
       deploy_logs: {
@@ -1299,10 +1341,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "edge_incidents_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "edge_incidents_resolved_by_fkey"
             columns: ["resolved_by"]
             isOneToOne: false
             referencedRelation: "master_users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "edge_incidents_resolved_by_fkey"
+            columns: ["resolved_by"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -1585,6 +1641,13 @@ export type Database = {
             columns: ["manager_id"]
             isOneToOne: false
             referencedRelation: "master_users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "events_manager_id_fkey"
+            columns: ["manager_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -2046,6 +2109,13 @@ export type Database = {
             referencedRelation: "master_users"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "forms_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
         ]
       }
       forms_comparison: {
@@ -2188,6 +2258,13 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "master_users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "guide_views_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -2643,10 +2720,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "invite_links_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "invite_links_used_by_fkey"
             columns: ["used_by"]
             isOneToOne: false
             referencedRelation: "master_users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invite_links_used_by_fkey"
+            columns: ["used_by"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -2733,6 +2824,13 @@ export type Database = {
             columns: ["created_by"]
             isOneToOne: false
             referencedRelation: "master_users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "logs_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -3107,6 +3205,13 @@ export type Database = {
             referencedRelation: "master_users"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "messages_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
         ]
       }
       module_insights: {
@@ -3471,10 +3576,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "participants_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "participants_last_modified_by_fkey"
             columns: ["last_modified_by"]
             isOneToOne: false
             referencedRelation: "master_users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "participants_last_modified_by_fkey"
+            columns: ["last_modified_by"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -3604,6 +3723,13 @@ export type Database = {
             referencedRelation: "master_users"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "participants_logs_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
         ]
       }
       participants_temp: {
@@ -3721,6 +3847,13 @@ export type Database = {
             referencedRelation: "master_users"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "phase_completion_log_completed_by_fkey"
+            columns: ["completed_by"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
         ]
       }
       profiles: {
@@ -3763,10 +3896,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "profiles_id_fkey"
+            columns: ["id"]
+            isOneToOne: true
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "profiles_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: true
             referencedRelation: "master_users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profiles_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "user_profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -4027,6 +4174,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "qa_alert_rules_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "qa_alert_rules_event_id_fkey"
             columns: ["event_id"]
             isOneToOne: false
@@ -4137,6 +4291,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "qa_events_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "qa_events_event_id_fkey"
             columns: ["event_id"]
             isOneToOne: false
@@ -4214,6 +4375,13 @@ export type Database = {
             columns: ["checked_by"]
             isOneToOne: false
             referencedRelation: "master_users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "qa_master_checklist_checked_by_fkey"
+            columns: ["checked_by"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -4438,6 +4606,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "remediation_rules_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "remediation_rules_runbook_id_fkey"
             columns: ["runbook_id"]
             isOneToOne: false
@@ -4531,6 +4706,13 @@ export type Database = {
             columns: ["created_by"]
             isOneToOne: false
             referencedRelation: "master_users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reports_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
             referencedColumns: ["id"]
           },
           {
@@ -4686,6 +4868,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "role_audit_actor_user_id_fkey"
+            columns: ["actor_user_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "role_audit_agency_id_fkey"
             columns: ["agency_id"]
             isOneToOne: false
@@ -4760,6 +4949,13 @@ export type Database = {
             columns: ["target_user_id"]
             isOneToOne: false
             referencedRelation: "master_users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "role_audit_target_user_id_fkey"
+            columns: ["target_user_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -5060,6 +5256,13 @@ export type Database = {
             referencedRelation: "master_users"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "room_types_local_last_edited_by_fkey"
+            columns: ["last_edited_by"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
         ]
       }
       room_types_temp: {
@@ -5287,6 +5490,13 @@ export type Database = {
             referencedRelation: "master_users"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "runbooks_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
         ]
       }
       security_audit_logs: {
@@ -5326,6 +5536,13 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "master_users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "security_audit_logs_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -5468,6 +5685,13 @@ export type Database = {
             referencedRelation: "master_users"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "training_guides_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
         ]
       }
       upload_logs: {
@@ -5588,6 +5812,13 @@ export type Database = {
             referencedRelation: "master_users"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "user_preferences_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
         ]
       }
       user_roles: {
@@ -5624,6 +5855,13 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: true
             referencedRelation: "master_users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_roles_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "user_profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -6247,6 +6485,13 @@ export type Database = {
             referencedRelation: "master_users"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "participants_last_modified_by_fkey"
+            columns: ["last_modified_by"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
         ]
       }
       qa_reports_latest: {
@@ -6325,7 +6570,27 @@ export type Database = {
             referencedRelation: "master_users"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "logs_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
         ]
+      }
+      user_profiles: {
+        Row: {
+          agency_id: string | null
+          agency_name: string | null
+          created_at: string | null
+          email: string | null
+          id: string | null
+          is_active: boolean | null
+          last_sign_in_at: string | null
+          role: Database["public"]["Enums"]["app_role"] | null
+        }
+        Relationships: []
       }
       v_event_room_summary: {
         Row: {
@@ -6478,6 +6743,13 @@ export type Database = {
             referencedRelation: "master_users"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "user_roles_user_id_fkey"
+            columns: ["id"]
+            isOneToOne: true
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
         ]
       }
       v_staff_performance: {
@@ -6497,6 +6769,13 @@ export type Database = {
             columns: ["staff_id"]
             isOneToOne: true
             referencedRelation: "master_users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profiles_id_fkey"
+            columns: ["staff_id"]
+            isOneToOne: true
+            referencedRelation: "user_profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -6548,6 +6827,16 @@ export type Database = {
       }
       fn_generate_qa_report: { Args: never; Returns: Json }
       fn_healthcheck_all: { Args: never; Returns: Json }
+      fn_manage_user_account: {
+        Args: {
+          p_action?: string
+          p_agency_id?: string
+          p_email?: string
+          p_role?: Database["public"]["Enums"]["app_role"]
+          p_user_id: string
+        }
+        Returns: Json
+      }
       generate_weekly_ops_reports: { Args: never; Returns: undefined }
       get_agencies_by_member: {
         Args: { keyword: string }

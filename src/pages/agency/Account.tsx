@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { AccountLayout } from "@/components/account/AccountLayout";
-import { ProfileForm } from "@/components/accounts/ProfileForm";
+import { AccountFormBase, AccountFormData } from "@/components/accounts/AccountFormBase";
 import { InviteModal } from "@/components/accounts/InviteModal";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -11,13 +11,7 @@ import { UserPlus, Users } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 
-interface UserProfile {
-  name?: string;
-  email?: string;
-  phone?: string;
-  agency?: string;
-  agency_id?: string;
-}
+// Removed UserProfile interface - using AccountFormData from AccountFormBase
 
 interface InvitedUser {
   id: string;
@@ -28,7 +22,7 @@ interface InvitedUser {
 }
 
 export default function AgencyAccount() {
-  const [profile, setProfile] = useState<UserProfile>({});
+  const [profile, setProfile] = useState<AccountFormData>({ email: "" });
   const [invites, setInvites] = useState<InvitedUser[]>([]);
   const [inviteOpen, setInviteOpen] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -58,12 +52,12 @@ export default function AgencyAccount() {
           .single();
 
         setProfile({
-          email: user.email,
-          agency: agencyData?.name,
+          email: user.email || "",
+          agency_name: agencyData?.name,
           agency_id: roleData.agency_id,
         });
       } else {
-        setProfile({ email: user.email });
+        setProfile({ email: user.email || "" });
       }
     } catch (error) {
       console.error("Failed to load profile:", error);
@@ -102,11 +96,12 @@ export default function AgencyAccount() {
         created_at: string;
       };
       
-      // Cast supabase client to any to completely bypass type checking for this query
+      // Query only non-master users from master_users table
       const result = await (supabase as any)
         .from("master_users")
         .select("id, email, role, created_at")
         .eq("agency", agencyData.name)
+        .neq("role", "master")
         .order("created_at", { ascending: false });
       
       const masterUsersData: MasterUserRow[] = result?.data || [];
@@ -126,7 +121,7 @@ export default function AgencyAccount() {
     setLoading(false);
   };
 
-  const handleSaveProfile = async (data: UserProfile) => {
+  const handleSaveProfile = async (data: AccountFormData) => {
     try {
       toast({
         title: "프로필 저장 완료",
@@ -153,10 +148,12 @@ export default function AgencyAccount() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <ProfileForm
+          <AccountFormBase
             user={profile}
             onSave={handleSaveProfile}
-            readOnly={["email", "agency"]}
+            readOnly={["email", "agency_name"]}
+            showRoleEdit={false}
+            variant="agency"
           />
 
           <Card className="shadow-md rounded-2xl">
