@@ -183,6 +183,7 @@ export type Database = {
           created_by: string | null
           id: string
           is_active: boolean | null
+          memo: string | null
           name: string
           updated_at: string | null
         }
@@ -194,6 +195,7 @@ export type Database = {
           created_by?: string | null
           id?: string
           is_active?: boolean | null
+          memo?: string | null
           name: string
           updated_at?: string | null
         }
@@ -205,6 +207,7 @@ export type Database = {
           created_by?: string | null
           id?: string
           is_active?: boolean | null
+          memo?: string | null
           name?: string
           updated_at?: string | null
         }
@@ -6848,6 +6851,10 @@ export type Database = {
             }
             Returns: Json
           }
+      fn_register_agency: {
+        Args: { p_email: string; p_memo?: string; p_name: string }
+        Returns: Json
+      }
       generate_weekly_ops_reports: { Args: never; Returns: undefined }
       get_agencies_by_member: {
         Args: { keyword: string }
