@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { logSys, errorSys } from "./consoleLogger";
 
 /**
  * Phase 3.10-A: Cache utilities
@@ -25,13 +26,13 @@ export async function getCachedData<T>(
     });
 
     if (error) {
-      console.error("[SYS] Cache read error:", error);
+      errorSys("Cache read error:", error);
       return null;
     }
 
     return data as T | null;
   } catch (err) {
-    console.error("[SYS] Cache fetch error:", err);
+    errorSys("Cache fetch error:", err);
     return null;
   }
 }
@@ -47,13 +48,13 @@ export async function setCachedData(key: string, payload: any): Promise<boolean>
     });
 
     if (error) {
-      console.error("[SYS] Cache write error:", error);
+      errorSys("Cache write error:", error);
       return false;
     }
 
     return true;
   } catch (err) {
-    console.error("[SYS] Cache save error:", err);
+    errorSys("Cache save error:", err);
     return false;
   }
 }
@@ -83,10 +84,10 @@ export async function clearCachePattern(pattern: string): Promise<void> {
       .like("key", `${pattern}%`);
 
     if (error) {
-      console.error("[SYS] Cache clear error:", error);
+      errorSys("Cache clear error:", error);
     }
   } catch (err) {
-    console.error("[SYS] Cache pattern clear error:", err);
+    errorSys("Cache pattern clear error:", err);
   }
 }
 
@@ -100,7 +101,7 @@ export async function prefetchCommonData(agencyScope?: string | null): Promise<v
     generateCacheKey("insights", agencyScope),
   ];
 
-  console.log("[SYS] Prefetching cache for keys:", prefetchKeys);
+  logSys("Prefetching cache for keys:", prefetchKeys);
   
   // Prefetch logic can be implemented here
   // For now, this is a placeholder for future optimization

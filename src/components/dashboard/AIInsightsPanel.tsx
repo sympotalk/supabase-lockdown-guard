@@ -7,6 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { AlertOctagon, AlertTriangle, Info, CheckCircle2, X } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "@/hooks/use-toast";
+import { logSys, errorSys } from "@/lib/consoleLogger";
 
 type Severity = "critical" | "warning" | "info";
 
@@ -45,7 +46,7 @@ export function AIInsightsPanel() {
         "postgres_changes",
         { event: "*", schema: "public", table: "ai_insights" },
         () => {
-          console.log("[AIInsights] Realtime update received");
+          logSys("AI Insights realtime update received");
           loadInsights();
         }
       )
@@ -58,7 +59,7 @@ export function AIInsightsPanel() {
 
   const loadInsights = async () => {
     setLoading(true);
-    console.log("[AIInsights] Loading active insights...");
+    logSys("Loading active AI insights...");
 
     try {
       // Get active insights from last 24 hours
@@ -86,7 +87,7 @@ export function AIInsightsPanel() {
       );
       setSummary(newSummary);
     } catch (error) {
-      console.error("[AIInsights] Error loading:", error);
+      errorSys("Error loading AI insights:", error);
       toast({
         title: "오류",
         description: "AI Insights를 불러오는데 실패했습니다.",
@@ -99,14 +100,14 @@ export function AIInsightsPanel() {
 
   const runDetection = async () => {
     setRunningDetection(true);
-    console.log("[AIInsights] Running anomaly detection...");
+    logSys("Running anomaly detection...");
 
     try {
       const { data, error } = await supabase.functions.invoke("ai-anomaly-detector");
 
       if (error) throw error;
 
-      console.log("[AIInsights] Detection result:", data);
+      logSys("Detection result:", data);
       
       toast({
         title: "검사 완료",
@@ -116,7 +117,7 @@ export function AIInsightsPanel() {
       // Reload insights
       await loadInsights();
     } catch (error) {
-      console.error("[AIInsights] Detection error:", error);
+      errorSys("Detection error:", error);
       toast({
         title: "검사 실패",
         description: "이상 감지 실행 중 오류가 발생했습니다.",
@@ -143,7 +144,7 @@ export function AIInsightsPanel() {
 
       await loadInsights();
     } catch (error) {
-      console.error("[AIInsights] Error resolving:", error);
+      errorSys("Error resolving insight:", error);
       toast({
         title: "오류",
         description: "상태 업데이트에 실패했습니다.",

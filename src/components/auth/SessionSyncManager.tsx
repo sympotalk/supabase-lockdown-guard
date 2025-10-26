@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 import { Loader2, CheckCircle, AlertCircle } from "lucide-react";
+import { logSys, errorSys } from "@/lib/consoleLogger";
 
 type RestoreState = "idle" | "restoring" | "success" | "error";
 
@@ -17,25 +18,25 @@ export default function SessionSyncManager() {
   useEffect(() => {
     // Skip session sync on auth pages
     if (isAuthPage) {
-      console.log("[SessionSync] Skipping on auth page");
+      logSys("SessionSync skipped on auth page");
       return;
     }
 
     const handleVisibilityChange = async () => {
       if (document.visibilityState === "visible") {
-        console.log("[SessionSync] Tab became visible, checking session...");
+        logSys("Tab became visible, checking session...");
         
         try {
           const { data: { session } } = await supabase.auth.getSession();
           
           if (!session) {
-            console.log("[SessionSync] No session found, attempting refresh...");
+            logSys("No session found, attempting refresh...");
             setRestoreState("restoring");
             
             const { data: refreshData, error } = await supabase.auth.refreshSession();
             
             if (error || !refreshData.session) {
-              console.error("[SessionSync] Refresh failed:", error);
+              errorSys("Session refresh failed:", error);
               setRestoreState("error");
               toast.error("세션이 만료되었습니다. 다시 로그인해주세요.");
               
@@ -43,7 +44,7 @@ export default function SessionSyncManager() {
                 window.location.href = "/auth/login";
               }, 2000);
             } else {
-              console.log("[SessionSync] Session restored successfully");
+              logSys("Session restored successfully");
               setRestoreState("success");
               toast.success("세션이 복원되었습니다!");
               
@@ -52,10 +53,10 @@ export default function SessionSyncManager() {
               }, 2000);
             }
           } else {
-            console.log("[SessionSync] Session is valid");
+            logSys("Session is valid");
           }
         } catch (error) {
-          console.error("[SessionSync] Error:", error);
+          errorSys("Session check error:", error);
           setRestoreState("error");
           toast.error("세션 확인 중 오류가 발생했습니다.");
         }

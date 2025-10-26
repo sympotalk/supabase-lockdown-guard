@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { getCachedData, setCachedData, generateCacheKey } from "./cacheUtils";
+import { logSys, warnSys, errorSys } from "./consoleLogger";
 
 // Mock Fallback Data Structures
 export const mockData = {
@@ -66,14 +67,14 @@ export async function validateSystemHealth(): Promise<ValidationResult<"healthy"
     const { error } = await supabase.from("agencies").select("id", { count: "exact", head: true });
     
     if (error) {
-      console.warn("[Phase 3.9-H] Supabase connection check failed:", error.message);
+      warnSys("Supabase connection check failed:", error.message);
       return { data: "down", isMock: true, error: error.message };
     }
     
-    console.log("✅ [Phase 3.9-H] Supabase connection successful");
+    logSys("Supabase connection successful");
     return { data: "healthy", isMock: false };
   } catch (err) {
-    console.error("[Phase 3.9-H] System health check exception:", err);
+    errorSys("System health check exception:", err);
     return { data: "down", isMock: true, error: String(err) };
   }
 }
@@ -82,11 +83,10 @@ export async function validateSystemHealth(): Promise<ValidationResult<"healthy"
 export async function validateRealtimeChannels(): Promise<ValidationResult<number>> {
   try {
     // TODO: Implement actual realtime channel monitoring when available
-    // For now, return mock data with clear indication
-    console.log("⚠️ [Phase 3.9-H] Realtime channel monitoring not yet implemented, using mock");
+    logSys("Realtime monitoring skipped — channel data not yet available");
     return { data: 3, isMock: true };
   } catch (err) {
-    console.error("[Phase 3.9-H] Realtime channels check failed:", err);
+    errorSys("Realtime channels check failed:", err);
     return { data: 0, isMock: true, error: String(err) };
   }
 }
@@ -95,10 +95,10 @@ export async function validateRealtimeChannels(): Promise<ValidationResult<numbe
 export async function validateFunctionCount(): Promise<ValidationResult<number>> {
   try {
     // TODO: Query functions_health table when available
-    console.log("⚠️ [Phase 3.9-H] functions_health table not yet available, using mock");
+    logSys("functions_health table not available — fallback to mock data");
     return { data: 12, isMock: true };
   } catch (err) {
-    console.error("[Phase 3.9-H] Function count check failed:", err);
+    errorSys("Function count check failed:", err);
     return { data: 0, isMock: true, error: String(err) };
   }
 }
@@ -112,14 +112,14 @@ export async function validateActiveAgencies(): Promise<ValidationResult<number>
       .eq("is_active", true);
 
     if (error) {
-      console.warn("[Phase 3.9-H] Active agencies query failed:", error.message);
+      warnSys("Active agencies query failed:", error.message);
       return { data: mockData.agencies.length, isMock: true, error: error.message };
     }
 
-    console.log(`✅ [Phase 3.9-H] Active agencies count = ${count}`);
+    logSys(`Active agencies count = ${count}`);
     return { data: count ?? 0, isMock: false };
   } catch (err) {
-    console.error("[Phase 3.9-H] Active agencies exception:", err);
+    errorSys("Active agencies exception:", err);
     return { data: mockData.agencies.length, isMock: true, error: String(err) };
   }
 }
@@ -136,14 +136,14 @@ export async function validateRecentEvents(): Promise<ValidationResult<number>> 
       .gte("created_at", sevenDaysAgo.toISOString());
 
     if (error) {
-      console.warn("[Phase 3.9-H] Recent events query failed:", error.message);
+      warnSys("Recent events query failed:", error.message);
       return { data: mockData.events.length, isMock: true, error: error.message };
     }
 
-    console.log(`✅ [Phase 3.9-H] Recent events (7 days) = ${count}`);
+    logSys(`Recent events (7 days) = ${count}`);
     return { data: count ?? 0, isMock: false };
   } catch (err) {
-    console.error("[Phase 3.9-H] Recent events exception:", err);
+    errorSys("Recent events exception:", err);
     return { data: mockData.events.length, isMock: true, error: String(err) };
   }
 }
@@ -156,14 +156,14 @@ export async function validateTotalParticipants(): Promise<ValidationResult<numb
       .select("*", { count: "exact", head: true });
 
     if (error) {
-      console.warn("[Phase 3.9-H] Total participants query failed:", error.message);
+      warnSys("Total participants query failed:", error.message);
       return { data: mockData.participants.length, isMock: true, error: error.message };
     }
 
-    console.log(`✅ [Phase 3.9-H] Total participants = ${count}`);
+    logSys(`Total participants = ${count}`);
     return { data: count ?? 0, isMock: false };
   } catch (err) {
-    console.error("[Phase 3.9-H] Total participants exception:", err);
+    errorSys("Total participants exception:", err);
     return { data: mockData.participants.length, isMock: true, error: String(err) };
   }
 }
@@ -181,14 +181,14 @@ export async function validateRecentUploads(): Promise<ValidationResult<number>>
       .gte("created_at", threeDaysAgo.toISOString());
 
     if (error) {
-      console.warn("[Phase 3.9-H] Recent uploads query failed:", error.message);
+      warnSys("Recent uploads query failed:", error.message);
       return { data: mockData.upload_logs.length, isMock: true, error: error.message };
     }
 
-    console.log(`✅ [Phase 3.9-H] Recent uploads (3 days) = ${data?.length ?? 0}`);
+    logSys(`Recent uploads (3 days) = ${data?.length ?? 0}`);
     return { data: data?.length ?? 0, isMock: false };
   } catch (err) {
-    console.error("[Phase 3.9-H] Recent uploads exception:", err);
+    errorSys("Recent uploads exception:", err);
     return { data: mockData.upload_logs.length, isMock: true, error: String(err) };
   }
 }
@@ -197,13 +197,13 @@ export async function validateRecentUploads(): Promise<ValidationResult<number>>
 export async function validateAIMappingStats(): Promise<ValidationResult<{ success: number; fail: number; total: number }>> {
   try {
     // TODO: Query participants_log when table is available
-    console.log("⚠️ [Phase 3.9-H] participants_log table not yet available, using mock");
+    logSys("participants_log table not available — fallback to mock data");
     return { 
       data: { success: 94, fail: 6, total: 100 }, 
       isMock: true 
     };
   } catch (err) {
-    console.error("[Phase 3.9-H] AI mapping stats exception:", err);
+    errorSys("AI mapping stats exception:", err);
     return { 
       data: { success: 0, fail: 0, total: 0 }, 
       isMock: true, 
@@ -216,12 +216,10 @@ export async function validateAIMappingStats(): Promise<ValidationResult<{ succe
 export async function validateDuplicateDetector(): Promise<ValidationResult<Array<{ name: string; event_id: string; count: number }>>> {
   try {
     // TODO: RPC not yet available in Supabase types
-    // const { data, error } = await supabase.rpc("duplicate_detector");
-    
-    console.log("⚠️ [Phase 3.9-H] duplicate_detector RPC not yet implemented, using mock");
+    logSys("duplicate_detector RPC not available — fallback to mock data");
     return { data: mockData.duplicate_detector, isMock: true };
   } catch (err) {
-    console.error("[Phase 3.9-H] Duplicate detector exception:", err);
+    errorSys("Duplicate detector exception:", err);
     return { data: mockData.duplicate_detector, isMock: true, error: String(err) };
   }
 }
@@ -230,7 +228,7 @@ export async function validateDuplicateDetector(): Promise<ValidationResult<Arra
 export async function validateFunctionMonitor(): Promise<ValidationResult<Array<any>>> {
   try {
     // TODO: Query functions_logs when table is available
-    console.log("⚠️ [Phase 3.9-H] functions_logs table not yet available, using mock");
+    logSys("functions_logs table not available — fallback to mock data");
     return { 
       data: [
         { name: "on_upload_trigger", status: "healthy", lastRun: "10.26 13:20", failureRate: 0.0 },
@@ -240,7 +238,7 @@ export async function validateFunctionMonitor(): Promise<ValidationResult<Array<
       isMock: true 
     };
   } catch (err) {
-    console.error("[Phase 3.9-H] Function monitor exception:", err);
+    errorSys("Function monitor exception:", err);
     return { data: [], isMock: true, error: String(err) };
   }
 }
@@ -249,10 +247,10 @@ export async function validateFunctionMonitor(): Promise<ValidationResult<Array<
 export async function validateErrorLogs(): Promise<ValidationResult<Array<any>>> {
   try {
     // TODO: error_logs table not yet available in Supabase types
-    console.log("⚠️ [Phase 3.9-H] error_logs table not yet available, using mock");
+    logSys("error_logs table not available — fallback to mock data");
     return { data: mockData.error_logs, isMock: true };
   } catch (err) {
-    console.error("[Phase 3.9-H] Error logs exception:", err);
+    errorSys("Error logs exception:", err);
     return { data: mockData.error_logs, isMock: true, error: String(err) };
   }
 }
@@ -261,10 +259,10 @@ export async function validateErrorLogs(): Promise<ValidationResult<Array<any>>>
 export async function validateQAReports(): Promise<ValidationResult<Array<any>>> {
   try {
     // TODO: qa_reports table not yet available in Supabase types
-    console.log("⚠️ [Phase 3.9-H] qa_reports table not yet available, using mock");
+    logSys("qa_reports table not available — fallback to mock data");
     return { data: mockData.qa_reports, isMock: true };
   } catch (err) {
-    console.error("[Phase 3.9-H] QA reports exception:", err);
+    errorSys("QA reports exception:", err);
     return { data: mockData.qa_reports, isMock: true, error: String(err) };
   }
 }
@@ -283,11 +281,11 @@ export async function validateSystemInsights(): Promise<ValidationResult<{
   // Try cache first (60 second TTL)
   const cached = await getCachedData<any>(cacheKey, 60);
   if (cached) {
-    console.log("[SYS] Using cached system insights");
+    logSys("Using cached system insights");
     return { data: cached, isMock: cached.isMock || false };
   }
 
-  console.log("[Phase 3.9-L] Calculating comprehensive system insights...");
+  logSys("Calculating comprehensive system insights...");
   
   try {
     // Run all validations in parallel
@@ -327,14 +325,14 @@ export async function validateSystemInsights(): Promise<ValidationResult<{
       errorRate,
     };
 
-    console.log("✅ [Phase 3.9-L] System insights calculated:", data);
+    logSys("System insights calculated:", data);
     
     // Cache the result
     await setCachedData(cacheKey, data);
     
     return { data, isMock };
   } catch (error) {
-    console.error("[Phase 3.9-L] Error calculating insights, using mock:", error);
+    errorSys("Error calculating insights, using mock:", error);
     return { data: mockData.system_insights, isMock: true, error: String(error) };
   }
 }
@@ -346,7 +344,7 @@ export async function runMasterDashboardValidation(): Promise<{
   mock: number;
   total: number;
 }> {
-  console.log("🔍 [Phase 3.9-H] Starting Master Dashboard validation...");
+  logSys("Starting Master Dashboard validation...");
   
   const results = await Promise.allSettled([
     validateSystemHealth(),
@@ -377,7 +375,7 @@ export async function runMasterDashboardValidation(): Promise<{
     return acc;
   }, { success: 0, failed: 0, mock: 0, total: results.length });
 
-  console.log(`✅ [Phase 3.9-H] Validation complete:`, stats);
+  logSys("Validation complete:", stats);
   
   return stats;
 }

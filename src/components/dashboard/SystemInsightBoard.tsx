@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { CheckCircle2, Radio, Brain, BarChart3, AlertTriangle, Users2, TrendingUp } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { validateSystemInsights } from "@/lib/masterDashboardValidation";
+import { logSys, errorSys } from "@/lib/consoleLogger";
 
 interface SystemInsights {
   healthRate: number;
@@ -40,7 +41,7 @@ export function SystemInsightBoard() {
   }, []);
 
   const loadInsights = async () => {
-    console.log("[SystemInsights] Loading comprehensive insights...");
+    logSys("Loading comprehensive insights...");
 
     try {
       const result = await validateSystemInsights();
@@ -55,7 +56,7 @@ export function SystemInsightBoard() {
         isMock: result.isMock,
       });
     } catch (error) {
-      console.error("[SystemInsights] Error loading:", error);
+      errorSys("Error loading insights:", error);
     }
 
     setLoading(false);
