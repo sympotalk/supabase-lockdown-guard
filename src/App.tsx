@@ -14,6 +14,7 @@ import Signup from "./pages/auth/Signup";
 import Dashboard from "./pages/admin/Dashboard";
 import MasterDashboard from "./pages/master/Dashboard";
 import MasterAgencies from "./pages/master/Agencies";
+import MasterAccounts from "./pages/master/Accounts";
 import MasterLogs from "./pages/master/Logs";
 import MasterAlertHistory from "./pages/master/AlertHistory";
 import Events from "./pages/admin/Events";
@@ -54,6 +55,7 @@ const App = () => (
             }>
               <Route path="dashboard" element={<MasterDashboard />} />
               <Route path="agencies" element={<MasterAgencies />} />
+              <Route path="accounts" element={<MasterAccounts />} />
               <Route path="logs" element={<MasterLogs />} />
               <Route path="alert-history" element={<MasterAlertHistory />} />
               <Route index element={<Navigate to="dashboard" replace />} />

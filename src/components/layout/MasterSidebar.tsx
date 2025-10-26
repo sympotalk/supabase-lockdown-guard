@@ -3,6 +3,7 @@ import {
   LayoutDashboard,
   Building2,
   ScrollText,
+  Users,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -16,6 +17,11 @@ const masterMenuItems = [
     title: "에이전시 관리",
     icon: Building2,
     url: "/master/agencies",
+  },
+  {
+    title: "계정 관리",
+    icon: Users,
+    url: "/master/accounts",
   },
   {
     title: "시스템 로그",

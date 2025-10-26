@@ -2014,6 +2014,39 @@ export type Database = {
         }
         Relationships: []
       }
+      functions_health: {
+        Row: {
+          created_at: string | null
+          error_message: string | null
+          function_name: string
+          id: string
+          last_checked: string | null
+          latency_ms: number | null
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          error_message?: string | null
+          function_name: string
+          id?: string
+          last_checked?: string | null
+          latency_ms?: number | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          error_message?: string | null
+          function_name?: string
+          id?: string
+          last_checked?: string | null
+          latency_ms?: number | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       guide_views: {
         Row: {
           guide_id: string
@@ -2560,6 +2593,82 @@ export type Database = {
           },
           {
             foreignKeyName: "logs_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "v_master_operations"
+            referencedColumns: ["agency_id"]
+          },
+        ]
+      }
+      master_accounts: {
+        Row: {
+          active_users: number | null
+          agency_id: string | null
+          agency_name: string | null
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          last_login: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          active_users?: number | null
+          agency_id?: string | null
+          agency_name?: string | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_login?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          active_users?: number | null
+          agency_id?: string | null
+          agency_name?: string | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_login?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "master_accounts_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agencies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "master_accounts_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agency_performance_summary"
+            referencedColumns: ["agency_id"]
+          },
+          {
+            foreignKeyName: "master_accounts_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agency_summary"
+            referencedColumns: ["agency_id"]
+          },
+          {
+            foreignKeyName: "master_accounts_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "dashboard_metrics"
+            referencedColumns: ["agency_id"]
+          },
+          {
+            foreignKeyName: "master_accounts_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "master_agency_overview"
+            referencedColumns: ["agency_id"]
+          },
+          {
+            foreignKeyName: "master_accounts_agency_id_fkey"
             columns: ["agency_id"]
             isOneToOne: false
             referencedRelation: "v_master_operations"
@@ -3797,6 +3906,39 @@ export type Database = {
           remediation_link?: string | null
           status?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      realtime_health: {
+        Row: {
+          channel_name: string
+          created_at: string | null
+          error_message: string | null
+          id: string
+          is_connected: boolean | null
+          last_event: string | null
+          message_count: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          channel_name: string
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          is_connected?: boolean | null
+          last_event?: string | null
+          message_count?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          channel_name?: string
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          is_connected?: boolean | null
+          last_event?: string | null
+          message_count?: number | null
+          updated_at?: string | null
         }
         Relationships: []
       }
@@ -5804,6 +5946,7 @@ export type Database = {
         Args: { p_brand?: string; p_hotel: string }
         Returns: undefined
       }
+      fn_healthcheck_all: { Args: never; Returns: Json }
       generate_weekly_ops_reports: { Args: never; Returns: undefined }
       get_agencies_by_member: {
         Args: { keyword: string }
@@ -6160,6 +6303,7 @@ export type Database = {
           source: string
         }[]
       }
+      rpc_get_master_account_summary: { Args: never; Returns: Json }
       rpc_get_merged_room_types: {
         Args: { p_agency_id: string; p_event_id: string }
         Returns: {

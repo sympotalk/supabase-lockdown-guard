@@ -80,11 +80,21 @@ export async function validateSystemHealth(): Promise<ValidationResult<"healthy"
 }
 
 // A2: Realtime Channel Count
+// A2: Realtime Channel Count
 export async function validateRealtimeChannels(): Promise<ValidationResult<number>> {
   try {
-    // TODO: Implement actual realtime channel monitoring when available
-    logSys("Realtime monitoring skipped — channel data not yet available");
-    return { data: 3, isMock: true };
+    const { count, error } = await supabase
+      .from("realtime_health")
+      .select("*", { count: "exact", head: true })
+      .eq("is_connected", true);
+
+    if (error) {
+      warnSys("Realtime channels query failed:", error.message);
+      return { data: 0, isMock: true, error: error.message };
+    }
+
+    logSys(`Active realtime channels = ${count ?? 0}`);
+    return { data: count ?? 0, isMock: false };
   } catch (err) {
     errorSys("Realtime channels check failed:", err);
     return { data: 0, isMock: true, error: String(err) };
@@ -92,11 +102,21 @@ export async function validateRealtimeChannels(): Promise<ValidationResult<numbe
 }
 
 // A3: Function/Trigger Count
+// A3: Function/Trigger Count
 export async function validateFunctionCount(): Promise<ValidationResult<number>> {
   try {
-    // TODO: Query functions_health table when available
-    logSys("functions_health table not available — fallback to mock data");
-    return { data: 12, isMock: true };
+    const { count, error } = await supabase
+      .from("functions_health")
+      .select("*", { count: "exact", head: true })
+      .eq("status", "healthy");
+
+    if (error) {
+      warnSys("Functions health query failed:", error.message);
+      return { data: 0, isMock: true, error: error.message };
+    }
+
+    logSys(`Healthy functions count = ${count ?? 0}`);
+    return { data: count ?? 0, isMock: false };
   } catch (err) {
     errorSys("Function count check failed:", err);
     return { data: 0, isMock: true, error: String(err) };
