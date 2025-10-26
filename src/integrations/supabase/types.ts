@@ -183,7 +183,6 @@ export type Database = {
           created_by: string | null
           id: string
           is_active: boolean | null
-          memo: string | null
           name: string
           updated_at: string | null
         }
@@ -195,7 +194,6 @@ export type Database = {
           created_by?: string | null
           id?: string
           is_active?: boolean | null
-          memo?: string | null
           name: string
           updated_at?: string | null
         }
@@ -207,7 +205,6 @@ export type Database = {
           created_by?: string | null
           id?: string
           is_active?: boolean | null
-          memo?: string | null
           name?: string
           updated_at?: string | null
         }
@@ -6830,6 +6827,15 @@ export type Database = {
       }
       fn_generate_qa_report: { Args: never; Returns: Json }
       fn_healthcheck_all: { Args: never; Returns: Json }
+      fn_manage_agency: {
+        Args: {
+          p_action: string
+          p_agency_id?: string
+          p_email?: string
+          p_name?: string
+        }
+        Returns: Json
+      }
       fn_manage_user_account:
         | {
             Args: {

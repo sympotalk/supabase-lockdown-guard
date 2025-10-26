@@ -8,14 +8,13 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Input } from "@/components/ui/input";
 import { Plus, Search, Edit, Trash2, RefreshCw } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
-import { NewAgencyModal } from "@/components/agency/NewAgencyModal";
+import { AgencyModal } from "@/components/agency/AgencyModal";
 import { format } from "date-fns";
 
 interface Agency {
   id: string;
   name: string;
   contact_email: string;
-  memo: string | null;
   is_active: boolean;
   created_at: string;
 }
@@ -26,9 +25,11 @@ export default function MasterAgencies() {
   const [agencies, setAgencies] = useState<Agency[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
-  const [createModalOpen, setCreateModalOpen] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editMode, setEditMode] = useState(false);
+  const [selectedAgency, setSelectedAgency] = useState<Agency | null>(null);
 
-  const canCreate = role === 'master';
+  const canManage = role === 'master';
 
   useEffect(() => {
     loadAgencies();
@@ -40,7 +41,7 @@ export default function MasterAgencies() {
 
     const { data, error } = await supabase
       .from("agencies")
-      .select("id, name, contact_email, memo, is_active, created_at")
+      .select("id, name, contact_email, is_active, created_at")
       .order("created_at", { ascending: false });
 
     if (error) {
@@ -59,20 +60,45 @@ export default function MasterAgencies() {
     setLoading(false);
   };
 
-  const editAgency = (agencyId: string) => {
-    toast({
-      title: "준비 중",
-      description: "에이전시 수정 기능은 곧 제공됩니다.",
-    });
-    // TODO: Implement edit modal
+  const handleCreateClick = () => {
+    setEditMode(false);
+    setSelectedAgency(null);
+    setModalOpen(true);
   };
 
-  const deleteAgency = (agencyId: string, name: string) => {
-    toast({
-      title: "준비 중",
-      description: "에이전시 삭제 기능은 곧 제공됩니다.",
-    });
-    // TODO: Implement delete confirmation
+  const handleEditClick = (agency: Agency) => {
+    setEditMode(true);
+    setSelectedAgency(agency);
+    setModalOpen(true);
+  };
+
+  const handleDeleteClick = async (agencyId: string, name: string) => {
+    // TODO: Implement proper delete confirmation dialog
+    const confirmed = window.confirm(`${name}을(를) 정말 삭제하시겠습니까?`);
+    if (!confirmed) return;
+
+    try {
+      const { error } = await supabase
+        .from("agencies")
+        .delete()
+        .eq("id", agencyId);
+
+      if (error) throw error;
+
+      toast({
+        title: "삭제 완료",
+        description: `${name}이(가) 삭제되었습니다.`,
+      });
+
+      loadAgencies();
+    } catch (error: any) {
+      console.error("[MasterAgencies] Delete failed:", error);
+      toast({
+        title: "삭제 실패",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
   };
 
   const filteredAgencies = agencies.filter(agency =>
@@ -91,8 +117,8 @@ export default function MasterAgencies() {
           </p>
         </div>
         <div className="flex gap-2">
-          {canCreate && (
-            <Button onClick={() => setCreateModalOpen(true)} size="sm">
+          {canManage && (
+            <Button onClick={handleCreateClick} size="sm">
               <Plus className="h-4 w-4 mr-2" />
               새 에이전시 등록
             </Button>
@@ -132,8 +158,8 @@ export default function MasterAgencies() {
             <p className="text-muted-foreground mb-2">
               {searchTerm ? "검색 결과가 없습니다." : "등록된 에이전시가 없습니다."}
             </p>
-            {!searchTerm && canCreate && (
-              <Button variant="outline" onClick={() => setCreateModalOpen(true)}>
+            {!searchTerm && canManage && (
+              <Button variant="outline" onClick={handleCreateClick}>
                 새 에이전시 등록
               </Button>
             )}
@@ -142,26 +168,18 @@ export default function MasterAgencies() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>🏢 에이전시명</TableHead>
-                <TableHead>👤 대표자 이메일</TableHead>
-                <TableHead>🕓 등록일</TableHead>
-                <TableHead>🗒 메모</TableHead>
-                <TableHead className="text-right">⚙️ 관리</TableHead>
+                <TableHead>에이전시명</TableHead>
+                <TableHead>대표 이메일</TableHead>
+                <TableHead>등록일</TableHead>
+                <TableHead>상태</TableHead>
+                <TableHead className="text-right">관리</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filteredAgencies.map((agency) => (
                 <TableRow key={agency.id}>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium text-[13px]">{agency.name}</span>
-                      <Badge 
-                        variant={agency.is_active ? "default" : "secondary"}
-                        className="text-xs"
-                      >
-                        {agency.is_active ? "활성" : "비활성"}
-                      </Badge>
-                    </div>
+                  <TableCell className="font-medium text-[13px]">
+                    {agency.name}
                   </TableCell>
                   <TableCell className="text-[13px]">
                     {agency.contact_email || "-"}
@@ -169,26 +187,35 @@ export default function MasterAgencies() {
                   <TableCell className="text-[12px] text-muted-foreground">
                     {format(new Date(agency.created_at), "yyyy-MM-dd")}
                   </TableCell>
-                  <TableCell className="text-[12px] text-muted-foreground max-w-[200px] truncate">
-                    {agency.memo || "-"}
+                  <TableCell>
+                    <Badge 
+                      variant={agency.is_active ? "default" : "secondary"}
+                      className="text-xs"
+                    >
+                      {agency.is_active ? "활성" : "비활성"}
+                    </Badge>
                   </TableCell>
                   <TableCell>
                     <div className="flex gap-2 justify-end">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => editAgency(agency.id)}
-                      >
-                        <Edit className="h-3 w-3 mr-1" />
-                        수정
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="destructive"
-                        onClick={() => deleteAgency(agency.id, agency.name)}
-                      >
-                        <Trash2 className="h-3 w-3" />
-                      </Button>
+                      {canManage && (
+                        <>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleEditClick(agency)}
+                          >
+                            <Edit className="h-3 w-3 mr-1" />
+                            수정
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            onClick={() => handleDeleteClick(agency.id, agency.name)}
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        </>
+                      )}
                     </div>
                   </TableCell>
                 </TableRow>
@@ -198,10 +225,12 @@ export default function MasterAgencies() {
         )}
       </div>
 
-      {/* Create Agency Modal */}
-      <NewAgencyModal
-        open={createModalOpen}
-        onOpenChange={setCreateModalOpen}
+      {/* Agency Modal (Create/Edit) */}
+      <AgencyModal
+        open={modalOpen}
+        onOpenChange={setModalOpen}
+        editMode={editMode}
+        agency={selectedAgency}
         onSuccess={loadAgencies}
       />
     </div>

@@ -9,38 +9,54 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 
-interface NewAgencyModalProps {
+interface AgencyModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  editMode?: boolean;
+  agency?: {
+    id: string;
+    name: string;
+    contact_email: string;
+  } | null;
   onSuccess: () => void;
 }
 
-export function NewAgencyModal({
+export function AgencyModal({
   open,
   onOpenChange,
+  editMode = false,
+  agency = null,
   onSuccess,
-}: NewAgencyModalProps) {
-  const [agencyName, setAgencyName] = useState("");
-  const [contactEmail, setContactEmail] = useState("");
-  const [memo, setMemo] = useState("");
+}: AgencyModalProps) {
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+
+  // Initialize fields when agency changes or modal opens
+  useEffect(() => {
+    if (open && editMode && agency) {
+      setName(agency.name);
+      setEmail(agency.contact_email);
+    } else if (open && !editMode) {
+      setName("");
+      setEmail("");
+    }
+  }, [open, editMode, agency]);
 
   // Reset all fields when modal closes
   useEffect(() => {
     if (!open) {
-      setAgencyName("");
-      setContactEmail("");
-      setMemo("");
+      setName("");
+      setEmail("");
     }
   }, [open]);
 
-  const handleRegister = async () => {
-    if (!agencyName.trim() || !contactEmail.trim()) {
+  const handleSubmit = async () => {
+    if (!name.trim() || !email.trim()) {
       toast({
         title: "입력 오류",
         description: "에이전시명과 대표 이메일을 입력해주세요.",
@@ -51,7 +67,7 @@ export function NewAgencyModal({
 
     // Basic email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(contactEmail)) {
+    if (!emailRegex.test(email)) {
       toast({
         title: "입력 오류",
         description: "올바른 이메일 형식을 입력해주세요.",
@@ -63,36 +79,39 @@ export function NewAgencyModal({
     setIsLoading(true);
 
     try {
-      console.log("[NewAgencyModal] Registering agency:", {
-        name: agencyName,
-        email: contactEmail,
+      console.log("[AgencyModal] Submitting:", {
+        action: editMode ? "update" : "create",
+        name,
+        email,
+        agencyId: agency?.id,
       });
 
-      const { data, error } = await supabase.rpc("fn_register_agency", {
-        p_name: agencyName,
-        p_email: contactEmail,
-        p_memo: memo.trim() || null,
+      const { data, error } = await supabase.rpc("fn_manage_agency", {
+        p_action: editMode ? "update" : "create",
+        p_agency_id: agency?.id || null,
+        p_name: name,
+        p_email: email,
       });
 
       if (error) {
-        console.error("[NewAgencyModal] RPC error:", error);
+        console.error("[AgencyModal] RPC error:", error);
         throw error;
       }
 
-      console.log("[NewAgencyModal] Agency registered:", data);
+      console.log("[AgencyModal] Success:", data);
 
       toast({
-        title: "에이전시 등록 완료",
-        description: `${agencyName}이(가) 등록되었습니다.`,
+        title: editMode ? "수정 완료" : "등록 완료",
+        description: `${name}이(가) ${editMode ? "수정" : "등록"}되었습니다.`,
       });
 
       onOpenChange(false);
       onSuccess();
     } catch (error: any) {
-      console.error("[NewAgencyModal] Failed to register agency:", error);
+      console.error("[AgencyModal] Failed:", error);
       toast({
-        title: "등록 실패",
-        description: error.message || "에이전시 등록 중 오류가 발생했습니다.",
+        title: "오류",
+        description: error.message || `에이전시 ${editMode ? "수정" : "등록"} 중 오류가 발생했습니다.`,
         variant: "destructive",
       });
     } finally {
@@ -104,9 +123,13 @@ export function NewAgencyModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="rounded-xl">
         <DialogHeader>
-          <DialogTitle>새 에이전시 등록</DialogTitle>
+          <DialogTitle>
+            {editMode ? "에이전시 수정" : "새 에이전시 등록"}
+          </DialogTitle>
           <DialogDescription>
-            새로운 에이전시를 등록합니다. (마스터 전용)
+            {editMode
+              ? "에이전시 정보를 수정합니다."
+              : "새로운 에이전시를 등록합니다. (마스터 전용)"}
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4 py-4">
@@ -117,37 +140,23 @@ export function NewAgencyModal({
             <Input
               id="agency-name"
               placeholder="절호의기획"
-              value={agencyName}
-              onChange={(e) => setAgencyName(e.target.value)}
+              value={name}
+              onChange={(e) => setName(e.target.value)}
               disabled={isLoading}
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="contact-email">
+            <Label htmlFor="agency-email">
               대표 이메일 <span className="text-destructive">*</span>
             </Label>
             <Input
-              id="contact-email"
+              id="agency-email"
               type="email"
               placeholder="contact@sympohub.io"
-              value={contactEmail}
-              onChange={(e) => setContactEmail(e.target.value)}
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               disabled={isLoading}
             />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="memo">메모 (선택)</Label>
-            <Textarea
-              id="memo"
-              placeholder="내부 참고용 메모"
-              value={memo}
-              onChange={(e) => setMemo(e.target.value)}
-              disabled={isLoading}
-              rows={3}
-            />
-            <p className="text-xs text-muted-foreground">
-              내부 참고용 메모입니다. 에이전시에는 공개되지 않습니다.
-            </p>
           </div>
         </div>
         <DialogFooter>
@@ -158,8 +167,14 @@ export function NewAgencyModal({
           >
             취소
           </Button>
-          <Button onClick={handleRegister} disabled={isLoading}>
-            {isLoading ? "등록 중..." : "등록"}
+          <Button onClick={handleSubmit} disabled={isLoading}>
+            {isLoading
+              ? editMode
+                ? "수정 중..."
+                : "등록 중..."
+              : editMode
+              ? "수정 완료"
+              : "등록"}
           </Button>
         </DialogFooter>
       </DialogContent>
