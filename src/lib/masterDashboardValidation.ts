@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { getCachedData, setCachedData, generateCacheKey } from "./cacheUtils";
 
 // Mock Fallback Data Structures
 export const mockData = {
@@ -277,6 +278,15 @@ export async function validateSystemInsights(): Promise<ValidationResult<{
   qaPassRate: number;
   errorRate: number;
 }>> {
+  const cacheKey = generateCacheKey("system_insights");
+  
+  // Try cache first (60 second TTL)
+  const cached = await getCachedData<any>(cacheKey, 60);
+  if (cached) {
+    console.log("[SYS] Using cached system insights");
+    return { data: cached, isMock: cached.isMock || false };
+  }
+
   console.log("[Phase 3.9-L] Calculating comprehensive system insights...");
   
   try {
@@ -318,6 +328,10 @@ export async function validateSystemInsights(): Promise<ValidationResult<{
     };
 
     console.log("✅ [Phase 3.9-L] System insights calculated:", data);
+    
+    // Cache the result
+    await setCachedData(cacheKey, data);
+    
     return { data, isMock };
   } catch (error) {
     console.error("[Phase 3.9-L] Error calculating insights, using mock:", error);

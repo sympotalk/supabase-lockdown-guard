@@ -4,6 +4,7 @@ import { useUser } from "@/context/UserContext";
 import { Spinner } from "@/components/pd/Spinner";
 import { MasterHeader } from "./MasterHeader";
 import { MasterSidebar } from "./MasterSidebar";
+import { CacheStatus } from "@/components/common/CacheStatus";
 
 export function MasterLayout() {
   const navigate = useNavigate();
@@ -40,6 +41,7 @@ export function MasterLayout() {
 
   return (
     <div className="min-h-screen w-full bg-background">
+      <CacheStatus />
       <MasterHeader />
       <div className="flex w-full pt-16">
         <MasterSidebar />

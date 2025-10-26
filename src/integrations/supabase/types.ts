@@ -4819,6 +4819,24 @@ export type Database = {
         }
         Relationships: []
       }
+      system_cache: {
+        Row: {
+          key: string
+          payload: Json
+          updated_at: string | null
+        }
+        Insert: {
+          key: string
+          payload: Json
+          updated_at?: string | null
+        }
+        Update: {
+          key?: string
+          payload?: Json
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       training_guides: {
         Row: {
           category: string
@@ -5752,6 +5770,7 @@ export type Database = {
     }
     Functions: {
       assign_master_role: { Args: { user_email: string }; Returns: Json }
+      cleanup_old_cache: { Args: never; Returns: undefined }
       create_event_with_hotel:
         | {
             Args: {
@@ -5822,6 +5841,10 @@ export type Database = {
           total_events: number
           total_logs: number
         }[]
+      }
+      get_cached_data: {
+        Args: { _key: string; _ttl_seconds?: number }
+        Returns: Json
       }
       get_deployment_health_summary: {
         Args: never
@@ -6107,6 +6130,10 @@ export type Database = {
       }
       normalize_korean: { Args: { text_input: string }; Returns: string }
       normalize_role_type: { Args: { input_role: string }; Returns: string }
+      refresh_cache: {
+        Args: { _key: string; _payload: Json }
+        Returns: undefined
+      }
       refresh_dashboard_metrics: { Args: never; Returns: undefined }
       rpc_activate_account: { Args: { token: string }; Returns: Json }
       rpc_create_agency: {
