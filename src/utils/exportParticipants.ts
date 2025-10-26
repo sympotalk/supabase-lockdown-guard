@@ -1,21 +1,16 @@
-// [LOCKED][71-I.QA2] Export participants with dual templates (work/archive)
+// [71-I.QA3-FIX.R3] Export participants with actual DB schema (name, organization, phone)
 import * as XLSX from "xlsx";
 
 interface Participant {
-  participant_name: string;
-  company_name?: string;
-  participant_contact?: string;
+  name: string;
+  organization?: string;
+  phone?: string;
+  email?: string;
   memo?: string;
-  manager_info?: {
-    team?: string;
-    name?: string;
-    contact?: string;
-    emp_no?: string;
-  };
-  sfe_agency_code?: string;
-  sfe_customer_code?: string;
-  stay_plan?: string;
-  call_checked?: boolean;
+  team_name?: string;
+  manager_name?: string;
+  manager_phone?: string;
+  call_completed?: boolean;
 }
 
 export type ExportMode = 'work' | 'archive';
@@ -26,22 +21,19 @@ export function exportParticipantsToExcel(
   mode: ExportMode = 'work'
 ) {
   const baseMapping = rows.map((r) => ({
-    "고객 성명": r.participant_name || "",
-    "거래처명": r.company_name || "",
-    "고객 연락처": r.participant_contact || "",
-    "팀명": r.manager_info?.team || "",
-    "담당자 성명": r.manager_info?.name || "",
-    "담당자 연락처": r.manager_info?.contact || "",
-    "담당자 사번": r.manager_info?.emp_no || "",
-    "SFE 거래처코드": r.sfe_agency_code || "",
-    "SFE 고객코드": r.sfe_customer_code || "",
-    "숙박예정": r.stay_plan || "",
+    "고객 성명": r.name || "",
+    "거래처명": r.organization || "",
+    "고객 연락처": r.phone || "",
+    "이메일": r.email || "",
+    "팀명": r.team_name || "",
+    "담당자 성명": r.manager_name || "",
+    "담당자 연락처": r.manager_phone || "",
     "메모": r.memo || "",
   }));
 
   // Archive mode: add call status
   const mapped = mode === 'archive' 
-    ? baseMapping.map((r, idx) => ({ ...r, "통화완료": rows[idx].call_checked ? "Y" : "N" }))
+    ? baseMapping.map((r, idx) => ({ ...r, "통화완료": rows[idx].call_completed ? "Y" : "N" }))
     : baseMapping;
 
   const worksheet = XLSX.utils.json_to_sheet(mapped);

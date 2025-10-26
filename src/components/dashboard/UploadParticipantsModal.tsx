@@ -27,10 +27,12 @@ export function UploadParticipantsModal({ open, onOpenChange, events }: UploadPa
 
   const activeEventId = eventId ?? "";
 
-  // [LOCKED][QA3.FIX.R2] Validate event context on mount - no auto RPC trigger
+  // [LOCKED][QA3.FIX.R3] Validate event context only when modal opens
   useEffect(() => {
+    if (!open) return; // Only validate when modal is opened
+    
     if (!activeEventId) {
-      console.error("[71-I.QA3] ⚠️ eventId not found in route");
+      console.error("[71-I.QA3-FIX.R3] ⚠️ eventId not found in route");
       toast({
         title: "행사 ID 누락",
         description: "행사 페이지에서만 업로드 가능합니다.",
@@ -38,7 +40,7 @@ export function UploadParticipantsModal({ open, onOpenChange, events }: UploadPa
       });
       onOpenChange(false);
     }
-  }, [activeEventId, onOpenChange, toast]);
+  }, [open, activeEventId, onOpenChange, toast]);
 
   // [LOCKED][71-I.QA3] Excel parsing with enhanced error guards
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -66,25 +68,20 @@ export function UploadParticipantsModal({ open, onOpenChange, events }: UploadPa
           return;
         }
 
-        // Map to new schema with all 11 columns
-        const rows = json.map((row: any, i: number) => ({
-          participant_name: row['고객 성명'] || row['이름'] || row['name'] || row['Name'] || '',
-          company_name: row['거래처명'] || row['소속'] || row['company'] || '',
-          participant_contact: row['고객 연락처'] || row['전화번호'] || row['phone'] || row['Phone'] || '',
+        // [71-I.QA3-FIX.R3] Map to existing DB schema (name, organization, phone)
+        const rows = json.map((row: any) => ({
+          name: row['고객 성명'] || row['이름'] || row['name'] || row['Name'] || '',
+          organization: row['거래처명'] || row['소속'] || row['company'] || row['organization'] || '',
+          phone: row['고객 연락처'] || row['전화번호'] || row['phone'] || row['Phone'] || '',
+          email: row['이메일'] || row['email'] || '',
           memo: row['메모'] || row['memo'] || '',
-          manager_info: {
-            team: row['팀명'] || row['team'] || '',
-            name: row['담당자 성명'] || row['담당자'] || '',
-            contact: row['담당자 연락처'] || '',
-            emp_no: row['담당자 사번'] || row['사번'] || '',
-          },
-          sfe_agency_code: row['SFE 거래처코드'] || '',
-          sfe_customer_code: row['SFE 고객코드'] || '',
-          stay_plan: row['숙박예정'] || '',
-        })).filter(row => row.participant_name); // Only keep rows with names
+          team_name: row['팀명'] || row['team'] || '',
+          manager_name: row['담당자 성명'] || row['담당자'] || '',
+          manager_phone: row['담당자 연락처'] || '',
+        })).filter(row => row.name); // Only keep rows with names
 
         if (rows.length === 0) {
-          console.warn("[71-I.QA3] No valid participant rows detected.");
+          console.warn("[71-I.QA3-FIX.R3] No valid participant rows detected.");
           toast({
             title: "업로드 불가",
             description: "'고객 성명' 컬럼이 비어 있습니다.",
@@ -94,7 +91,7 @@ export function UploadParticipantsModal({ open, onOpenChange, events }: UploadPa
         }
 
         setParsedRows(rows);
-        console.info(`[71-I.QA3] Parsed ${rows.length} participants from Excel`);
+        console.info(`[71-I.QA3-FIX.R3] Parsed ${rows.length} participants from Excel`);
         toast({
           title: "파일 분석 완료",
           description: `${rows.length}명의 참가자 데이터 확인됨.`,
@@ -134,7 +131,7 @@ export function UploadParticipantsModal({ open, onOpenChange, events }: UploadPa
     }
 
     setUploading(true);
-    console.info("[71-I.QA3-FIX.R2] Uploading rows:", parsedRows.length, "to event:", activeEventId);
+    console.info("[71-I.QA3-FIX.R3] Uploading rows:", parsedRows.length, "to event:", activeEventId);
 
     try {
       const { data, error } = await supabase.rpc('fn_bulk_upload_participants', {
@@ -143,11 +140,11 @@ export function UploadParticipantsModal({ open, onOpenChange, events }: UploadPa
       });
 
       if (error) {
-        console.error("[71-I.QA3-FIX.R2] RPC upload error →", error);
+        console.error("[71-I.QA3-FIX.R3] RPC upload error →", error);
         throw error;
       }
 
-      console.log("[71-I.QA3-FIX.R2] RPC response →", data);
+      console.log("[71-I.QA3-FIX.R3] RPC response →", data);
 
       const result = data as { inserted: number };
       const eventName = events.find(e => e.id === activeEventId)?.name || '현재 행사';
@@ -157,10 +154,10 @@ export function UploadParticipantsModal({ open, onOpenChange, events }: UploadPa
         description: `${eventName}에 ${result.inserted}명의 참가자를 반영했습니다.`,
       });
 
-      // [71-I.QA3-FIX.R2] Invalidate SWR cache for participants
+      // [71-I.QA3-FIX.R3] Invalidate SWR cache for participants
       if (agencyScope) {
         mutate(`participants_${agencyScope}_${activeEventId}`);
-        console.info("[71-I.QA3-FIX.R2] SWR cache invalidated:", `participants_${agencyScope}_${activeEventId}`);
+        console.info("[71-I.QA3-FIX.R3] SWR cache invalidated:", `participants_${agencyScope}_${activeEventId}`);
       }
       mutate('event_progress_view');
       
@@ -169,7 +166,7 @@ export function UploadParticipantsModal({ open, onOpenChange, events }: UploadPa
       setParsedRows([]);
       onOpenChange(false);
     } catch (error: any) {
-      console.error("[71-I.QA3-FIX.R2] Upload failed →", error);
+      console.error("[71-I.QA3-FIX.R3] Upload failed →", error);
       toast({
         title: "업로드 실패",
         description: error.message ?? "알 수 없는 오류입니다.",
@@ -191,7 +188,7 @@ export function UploadParticipantsModal({ open, onOpenChange, events }: UploadPa
         </DialogHeader>
 
         <div className="space-y-6 py-4">
-          {/* [LOCKED][71-I.QA3-FIX.R2] Event auto-detected from route - no manual selection, text removed */}
+          {/* [LOCKED][71-I.QA3-FIX.R3] Event auto-detected from route - no manual selection */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <Label className="text-sm text-muted-foreground">행사</Label>
@@ -236,7 +233,7 @@ export function UploadParticipantsModal({ open, onOpenChange, events }: UploadPa
               <p className="font-medium mb-1">Excel 파일 형식 안내</p>
               <ul className="list-disc list-inside space-y-0.5 text-xs">
                 <li>필수 컬럼: 고객 성명</li>
-                <li>선택 컬럼: 거래처명, 고객 연락처, 팀명, 담당자 성명, 담당자 연락처, 담당자 사번, SFE 거래처코드, SFE 고객코드, 숙박예정, 메모</li>
+                <li>선택 컬럼: 거래처명, 고객 연락처, 이메일, 팀명, 담당자 성명, 담당자 연락처, 메모</li>
               </ul>
             </div>
           </div>

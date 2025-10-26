@@ -30,17 +30,18 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import useSWR from "swr";
 
+// [71-I.QA3-FIX.R3] Use actual DB schema
 interface Participant {
   id: string;
-  participant_name: string;
-  company_name?: string;
-  participant_contact?: string;
+  name: string;
+  organization?: string;
+  phone?: string;
   email?: string;
   memo?: string;
-  stay_plan?: string;
+  team_name?: string;
+  manager_name?: string;
+  manager_phone?: string;
   manager_info?: any;
-  sfe_agency_code?: string;
-  sfe_customer_code?: string;
   status?: string;
   created_at: string;
 }
@@ -82,24 +83,9 @@ export default function ParticipantsPanel() {
 
       if (error) throw error;
       
-      // Map database fields to interface
-      const mapped: Participant[] = (data || []).map((row: any) => ({
-        id: row.id,
-        participant_name: row.participant_name || row.name || "",
-        company_name: row.company_name,
-        participant_contact: row.participant_contact || row.phone,
-        email: row.email,
-        memo: row.memo,
-        stay_plan: row.stay_plan,
-        manager_info: row.manager_info,
-        sfe_agency_code: row.sfe_agency_code,
-        sfe_customer_code: row.sfe_customer_code,
-        status: row.status,
-        created_at: row.created_at,
-      }));
-      
-      console.log("[71-I.QA] Loaded participants:", mapped.length);
-      return mapped;
+      // [71-I.QA3-FIX.R3] Direct mapping to DB schema
+      console.log("[71-I.QA3-FIX.R3] Loaded participants:", (data || []).length);
+      return data as Participant[];
     },
     { revalidateOnFocus: false, dedupingInterval: 60000 }
   );
@@ -153,8 +139,8 @@ export default function ParticipantsPanel() {
   const filteredParticipants = participants?.filter(
     (p) =>
       !searchQuery ||
-      p.participant_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      p.company_name?.toLowerCase().includes(searchQuery.toLowerCase())
+      p.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      p.organization?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   if (isLoading) {
@@ -274,7 +260,7 @@ export default function ParticipantsPanel() {
                     <TableHead className="font-semibold">성명</TableHead>
                     <TableHead className="font-semibold">소속</TableHead>
                     <TableHead className="font-semibold">연락처</TableHead>
-                    <TableHead className="font-semibold">숙박예정</TableHead>
+                    <TableHead className="font-semibold">팀명</TableHead>
                     <TableHead className="font-semibold">담당자</TableHead>
                     <TableHead className="font-semibold">상태</TableHead>
                   </TableRow>
@@ -301,25 +287,25 @@ export default function ParticipantsPanel() {
                         className="font-semibold cursor-pointer"
                         onClick={() => handleRowClick(participant)}
                       >
-                        {participant.participant_name}
+                        {participant.name}
                       </TableCell>
                       <TableCell onClick={() => handleRowClick(participant)}>
-                        {participant.company_name || "-"}
+                        {participant.organization || "-"}
                       </TableCell>
                       <TableCell onClick={() => handleRowClick(participant)}>
-                        {participant.participant_contact || "-"}
+                        {participant.phone || "-"}
                       </TableCell>
                       <TableCell onClick={() => handleRowClick(participant)}>
-                        {participant.stay_plan ? (
+                        {participant.team_name ? (
                           <Badge variant="secondary" className="rounded-xl">
-                            {participant.stay_plan}
+                            {participant.team_name}
                           </Badge>
                         ) : (
                           <span className="text-muted-foreground text-sm">-</span>
                         )}
                       </TableCell>
                       <TableCell onClick={() => handleRowClick(participant)}>
-                        {participant.manager_info?.name || "-"}
+                        {participant.manager_name || "-"}
                       </TableCell>
                       <TableCell onClick={() => handleRowClick(participant)}>
                         <Badge
