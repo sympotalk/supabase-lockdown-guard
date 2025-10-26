@@ -14,29 +14,42 @@ import { useUser } from "@/context/UserContext";
 interface UploadParticipantsModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  events: Array<{ id: string; name: string }>;
+  events: Array<{
+    id: string;
+    name: string;
+  }>;
 }
-
-export function UploadParticipantsModal({ open, onOpenChange, events }: UploadParticipantsModalProps) {
-  const { toast } = useToast();
-  const { eventId } = useParams<{ eventId: string }>();
-  const { agencyScope } = useUser();
+export function UploadParticipantsModal({
+  open,
+  onOpenChange,
+  events
+}: UploadParticipantsModalProps) {
+  const {
+    toast
+  } = useToast();
+  const {
+    eventId
+  } = useParams<{
+    eventId: string;
+  }>();
+  const {
+    agencyScope
+  } = useUser();
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const [parsedRows, setParsedRows] = useState<any[]>([]);
-
   const activeEventId = eventId ?? "";
 
   // [LOCKED][QA3.FIX.R3] Validate event context only when modal opens
   useEffect(() => {
     if (!open) return; // Only validate when modal is opened
-    
+
     if (!activeEventId) {
       console.error("[71-I.QA3-FIX.R3] ⚠️ eventId not found in route");
       toast({
         title: "행사 ID 누락",
         description: "행사 페이지에서만 업로드 가능합니다.",
-        variant: "destructive",
+        variant: "destructive"
       });
       onOpenChange(false);
     }
@@ -46,24 +59,23 @@ export function UploadParticipantsModal({ open, onOpenChange, events }: UploadPa
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const uploadedFile = e.target.files?.[0];
     if (!uploadedFile) return;
-
     setFile(uploadedFile);
     const reader = new FileReader();
-
-    reader.onload = (event) => {
+    reader.onload = event => {
       try {
         const data = new Uint8Array(event.target?.result as ArrayBuffer);
-        const workbook = XLSX.read(data, { type: "array" });
+        const workbook = XLSX.read(data, {
+          type: "array"
+        });
         const sheetName = workbook.SheetNames[0];
         const worksheet = workbook.Sheets[sheetName];
         const json = XLSX.utils.sheet_to_json(worksheet);
-
         if (!Array.isArray(json) || json.length === 0) {
           console.error("[71-I.QA3] Empty file or invalid format");
           toast({
             title: "업로드 실패",
             description: "파일에 참가자 데이터가 없습니다.",
-            variant: "destructive",
+            variant: "destructive"
           });
           return;
         }
@@ -77,7 +89,7 @@ export function UploadParticipantsModal({ open, onOpenChange, events }: UploadPa
           memo: row['메모'] || row['memo'] || '',
           team_name: row['팀명'] || row['team'] || '',
           manager_name: row['담당자 성명'] || row['담당자'] || '',
-          manager_phone: row['담당자 연락처'] || '',
+          manager_phone: row['담당자 연락처'] || ''
         })).filter(row => row.name); // Only keep rows with names
 
         if (rows.length === 0) {
@@ -85,23 +97,22 @@ export function UploadParticipantsModal({ open, onOpenChange, events }: UploadPa
           toast({
             title: "업로드 불가",
             description: "'고객 성명' 컬럼이 비어 있습니다.",
-            variant: "destructive",
+            variant: "destructive"
           });
           return;
         }
-
         setParsedRows(rows);
         console.info(`[71-I.QA3-FIX.R3] Parsed ${rows.length} participants from Excel`);
         toast({
           title: "파일 분석 완료",
-          description: `${rows.length}명의 참가자 데이터 확인됨.`,
+          description: `${rows.length}명의 참가자 데이터 확인됨.`
         });
       } catch (err) {
         console.error("[71-I.QA3] XLSX parse error →", err);
         toast({
           title: "파일 분석 실패",
           description: "Excel 파일이 손상되었거나 형식이 잘못되었습니다.",
-          variant: "destructive",
+          variant: "destructive"
         });
       }
     };
@@ -112,46 +123,47 @@ export function UploadParticipantsModal({ open, onOpenChange, events }: UploadPa
   const handleUpload = async () => {
     // [QA3.FIX.R2] Upload guard
     if (!agencyScope || !activeEventId) {
-      console.warn("[QA3.FIX.R2] Missing scope →", { agencyScope, eventId: activeEventId });
+      console.warn("[QA3.FIX.R2] Missing scope →", {
+        agencyScope,
+        eventId: activeEventId
+      });
       toast({
         title: "업로드 불가",
         description: "행사 페이지에서만 업로드 가능합니다.",
-        variant: "destructive",
+        variant: "destructive"
       });
       return;
     }
-
     if (!parsedRows.length) {
       toast({
         title: "업로드 불가",
         description: "분석된 참가자 데이터가 없습니다.",
-        variant: "destructive",
+        variant: "destructive"
       });
       return;
     }
-
     setUploading(true);
     console.info("[71-I.QA3-FIX.R3] Uploading rows:", parsedRows.length, "to event:", activeEventId);
-
     try {
-      const { data, error } = await supabase.rpc('fn_bulk_upload_participants', {
+      const {
+        data,
+        error
+      } = await supabase.rpc('fn_bulk_upload_participants', {
         p_event_id: activeEventId,
-        p_rows: parsedRows,
+        p_rows: parsedRows
       });
-
       if (error) {
         console.error("[71-I.QA3-FIX.R3] RPC upload error →", error);
         throw error;
       }
-
       console.log("[71-I.QA3-FIX.R3] RPC response →", data);
-
-      const result = data as { inserted: number };
+      const result = data as {
+        inserted: number;
+      };
       const eventName = events.find(e => e.id === activeEventId)?.name || '현재 행사';
-      
       toast({
         title: "업로드 완료",
-        description: `${eventName}에 ${result.inserted}명의 참가자를 반영했습니다.`,
+        description: `${eventName}에 ${result.inserted}명의 참가자를 반영했습니다.`
       });
 
       // [71-I.QA3-FIX.R3] Invalidate SWR cache for participants
@@ -160,7 +172,7 @@ export function UploadParticipantsModal({ open, onOpenChange, events }: UploadPa
         console.info("[71-I.QA3-FIX.R3] SWR cache invalidated:", `participants_${agencyScope}_${activeEventId}`);
       }
       mutate('event_progress_view');
-      
+
       // Reset state
       setFile(null);
       setParsedRows([]);
@@ -170,15 +182,13 @@ export function UploadParticipantsModal({ open, onOpenChange, events }: UploadPa
       toast({
         title: "업로드 실패",
         description: error.message ?? "알 수 없는 오류입니다.",
-        variant: "destructive",
+        variant: "destructive"
       });
     } finally {
       setUploading(false);
     }
   };
-
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+  return <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>참가자 엑셀 업로드</DialogTitle>
@@ -190,40 +200,22 @@ export function UploadParticipantsModal({ open, onOpenChange, events }: UploadPa
         <div className="space-y-6 py-4">
           {/* [LOCKED][71-I.QA3-FIX.R3] Event auto-detected from route - no manual selection */}
           <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <Label className="text-sm text-muted-foreground">행사</Label>
-              <span className="text-sm font-medium">
-                {events.find(e => e.id === activeEventId)?.name || activeEventId.slice(0, 8)}
-              </span>
-            </div>
+            
           </div>
 
           {/* File Upload */}
           <div className="space-y-2">
             <Label htmlFor="file-upload">Excel 파일 *</Label>
             <div className="flex items-center gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                className="w-full"
-                onClick={() => document.getElementById('file-upload')?.click()}
-              >
+              <Button type="button" variant="outline" className="w-full" onClick={() => document.getElementById('file-upload')?.click()}>
                 <FileSpreadsheet className="mr-2 h-4 w-4" />
                 {file ? file.name : '파일 선택'}
               </Button>
-              <input
-                id="file-upload"
-                type="file"
-                accept=".xlsx,.xls"
-                className="hidden"
-                onChange={handleFileChange}
-              />
+              <input id="file-upload" type="file" accept=".xlsx,.xls" className="hidden" onChange={handleFileChange} />
             </div>
-            {parsedRows.length > 0 && (
-              <p className="text-sm text-muted-foreground">
+            {parsedRows.length > 0 && <p className="text-sm text-muted-foreground">
                 {parsedRows.length}명의 참가자 데이터가 준비되었습니다.
-              </p>
-            )}
+              </p>}
           </div>
 
           {/* Info */}
@@ -240,24 +232,14 @@ export function UploadParticipantsModal({ open, onOpenChange, events }: UploadPa
         </div>
 
         <div className="flex gap-3">
-          <Button
-            variant="outline"
-            className="flex-1"
-            onClick={() => onOpenChange(false)}
-            disabled={uploading}
-          >
+          <Button variant="outline" className="flex-1" onClick={() => onOpenChange(false)} disabled={uploading}>
             취소
           </Button>
-          <Button
-            className="flex-1"
-            onClick={handleUpload}
-            disabled={uploading || !parsedRows.length}
-          >
+          <Button className="flex-1" onClick={handleUpload} disabled={uploading || !parsedRows.length}>
             <Upload className="mr-2 h-4 w-4" />
             {uploading ? "업로드 중..." : "업로드"}
           </Button>
         </div>
       </DialogContent>
-    </Dialog>
-  );
+    </Dialog>;
 }
