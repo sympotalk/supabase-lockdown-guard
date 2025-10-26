@@ -6,6 +6,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useUser } from "@/context/UserContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { NotificationCenter } from "@/components/common/NotificationCenter";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -43,10 +44,7 @@ export function MasterHeader() {
         </div>
 
         <div className="ml-auto flex items-center gap-3">
-          <Button variant="ghost" size="icon" className="relative">
-            <Bell className="h-5 w-5" />
-            <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-destructive" />
-          </Button>
+          <NotificationCenter />
 
           <Button variant="ghost" size="icon">
             <Settings className="h-5 w-5" />

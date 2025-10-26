@@ -13,6 +13,8 @@ import { SystemInsightBoard } from "@/components/dashboard/SystemInsightBoard";
 import { AIInsightsPanel } from "@/components/dashboard/AIInsightsPanel";
 import { SystemHealthMonitor } from "@/components/dashboard/SystemHealthMonitor";
 import { QAReportSummary } from "@/components/dashboard/QAReportSummary";
+import { OpsExecutionHistory } from "@/components/dashboard/OpsExecutionHistory";
+import { QuickActionsPanel } from "@/components/dashboard/QuickActionsPanel";
 import { masterRealtimeHub } from "@/lib/masterRealtimeHub";
 
 export default function MasterDashboard() {
@@ -163,6 +165,16 @@ export default function MasterDashboard() {
       <section className="space-y-4">
         <h2 className="text-[18px] font-semibold text-foreground">📊 QA 리포트 및 이상 감지</h2>
         <QAReportSummary key={`qa-report-${refreshKey}`} />
+      </section>
+
+      {/* Quick Actions & Ops History */}
+      <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-1">
+          <QuickActionsPanel key={`actions-${refreshKey}`} />
+        </div>
+        <div className="lg:col-span-2">
+          <OpsExecutionHistory key={`ops-${refreshKey}`} />
+        </div>
       </section>
 
       {/* Section A: System Health Overview */}
