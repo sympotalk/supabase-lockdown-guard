@@ -4,10 +4,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { AlertOctagon, AlertTriangle, Info, FileText, RefreshCw, Download } from "lucide-react";
+import { AlertOctagon, AlertTriangle, Info, FileText, RefreshCw, Download, FileJson } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "@/hooks/use-toast";
 import { logSys, errorSys } from "@/lib/consoleLogger";
+import { downloadJSON, downloadTextAsPDF, generateQAReportPDF } from "@/lib/exportUtils";
 
 interface QAReport {
   id: string;
@@ -107,6 +108,39 @@ export default function QAReports() {
     }
 
     setGenerating(false);
+  };
+
+  const downloadReport = async (report: QAReport, format: 'json' | 'pdf') => {
+    try {
+      const { data, error } = await supabase
+        .rpc('fn_export_qa_report' as any, { _report_id: report.id });
+
+      if (error) throw error;
+
+      const filename = `qa-report-${report.id}-${new Date().toISOString().split('T')[0]}`;
+
+      if (format === 'json') {
+        downloadJSON(data, `${filename}.json`);
+        toast({
+          title: "다운로드 완료",
+          description: "QA 리포트가 JSON 형식으로 다운로드되었습니다.",
+        });
+      } else {
+        const pdfContent = generateQAReportPDF(data);
+        downloadTextAsPDF(pdfContent, `${filename}.pdf`);
+        toast({
+          title: "다운로드 완료",
+          description: "QA 리포트가 텍스트 형식으로 다운로드되었습니다.",
+        });
+      }
+    } catch (error) {
+      errorSys("Failed to download report", error);
+      toast({
+        title: "다운로드 실패",
+        description: error instanceof Error ? error.message : "리포트 다운로드에 실패했습니다.",
+        variant: "destructive"
+      });
+    }
   };
 
   const getSeverityIcon = (severity: string, count: number) => {
@@ -291,10 +325,24 @@ export default function QAReports() {
           <CardHeader>
             <div className="flex items-center justify-between">
               <CardTitle className="text-[16px]">리포트 상세</CardTitle>
-              <Button variant="outline" size="sm">
-                <Download className="h-4 w-4 mr-2" />
-                다운로드
-              </Button>
+              <div className="flex gap-2">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => downloadReport(selectedReport, 'json')}
+                >
+                  <FileJson className="h-4 w-4 mr-2" />
+                  JSON
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => downloadReport(selectedReport, 'pdf')}
+                >
+                  <Download className="h-4 w-4 mr-2" />
+                  TXT
+                </Button>
+              </div>
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
