@@ -11,7 +11,6 @@ import { AdminLayout } from "@/components/layout/AdminLayout";
 import Index from "./pages/Index";
 import Login from "./pages/auth/Login";
 import Signup from "./pages/auth/Signup";
-import AcceptInvite from "./pages/invite/AcceptInvite";
 import Dashboard from "./pages/admin/Dashboard";
 import MasterDashboard from "./pages/master/Dashboard";
 import MasterAgencies from "./pages/master/Agencies";
@@ -45,10 +44,10 @@ const App = () => (
         <UserProvider>
           <AppDataProvider>
             <Routes>
+            {/* Public routes */}
             <Route path="/" element={<Index />} />
             <Route path="/auth/login" element={<Login />} />
-            <Route path="/auth/signup" element={<Signup />} />
-            <Route path="/invite/accept" element={<AcceptInvite />} />
+            <Route path="/signup/:inviteId" element={<Signup />} />
 
             {/* Master-only routes */}
             <Route path="/master" element={

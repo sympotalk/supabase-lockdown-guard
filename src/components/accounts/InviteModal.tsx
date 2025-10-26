@@ -57,44 +57,25 @@ export function InviteModal({
     setLoading(true);
 
     try {
-      const { data, error } = await supabase.functions.invoke("invite-user", {
-        body: {
-          email: email.toLowerCase(),
-          agency_id: isMaster ? selectedAgencyId : agencyId,
-          role: role,
-        },
-      });
+      const rpcName = isMaster ? "invite_master_user" : "invite_agency_user";
+      const params = isMaster
+        ? { p_email: email, p_agency_id: selectedAgencyId }
+        : { p_email: email, p_agency_id: agencyId, p_role: role };
+
+      const { error } = await supabase.rpc(rpcName, params);
 
       if (error) throw error;
-
-      if (data?.error) {
-        throw new Error(data.error);
-      }
 
       toast({
         title: "초대 완료",
         description: `${email}에게 초대를 보냈습니다.`,
       });
 
-      // Copy invite URL to clipboard
-      if (data?.invite?.invite_url) {
-        try {
-          await navigator.clipboard.writeText(data.invite.invite_url);
-          toast({
-            title: "초대 링크 복사됨",
-            description: "초대 링크가 클립보드에 복사되었습니다.",
-          });
-        } catch (err) {
-          console.error("Failed to copy invite URL:", err);
-        }
-      }
-
       setEmail("");
       setRole("staff");
       onOpenChange(false);
       onSuccess?.();
     } catch (error: any) {
-      console.error("Invite error:", error);
       toast({
         title: "초대 실패",
         description: error.message || "초대 중 오류가 발생했습니다.",
