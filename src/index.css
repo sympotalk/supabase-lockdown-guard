@@ -229,22 +229,40 @@ All colors MUST be HSL.
   }
 }
 
+/* Sidebar styling */
+[data-sidebar] {
+  background-color: hsl(var(--sidebar-background));
+  border-right: 1px solid hsl(var(--sidebar-border));
+}
+
+/* Main content margins adjust based on sidebar state */
+.main-content {
+  transition: margin-left 0.25s ease;
+  width: 100%;
+}
+
 /* Participants table alignment */
 .participants-table {
   width: 100%;
   max-width: none;
   margin-top: 0;
   table-layout: auto;
-  border-spacing: 0;
+  border-spacing: 0 2px;
   background-color: hsl(var(--card));
   color: hsl(var(--card-foreground));
   position: relative;
   z-index: 20;
 }
 
-.participants-table th,
+.participants-table th {
+  border-color: hsl(var(--border));
+  padding: 8px 8px;
+}
+
 .participants-table td {
   border-color: hsl(var(--border));
+  padding: 6px 8px;
+  vertical-align: middle;
 }
 
 /* Prevent text wrapping and compress spacing */
@@ -252,12 +270,20 @@ All colors MUST be HSL.
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  padding: 6px 8px;
-  vertical-align: middle;
 }
 
-/* Allow wrapping only for request column */
+/* Company name column with ellipsis */
+.participants-table td.company-name-column {
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Requests column with expanded width */
 .participants-table td.requests-column {
+  min-width: 220px;
+  max-width: 300px;
   white-space: normal;
   padding: 8px 10px;
 }

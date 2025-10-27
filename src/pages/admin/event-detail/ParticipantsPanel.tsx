@@ -335,7 +335,7 @@ export default function ParticipantsPanel() {
                       <TableCell className="font-semibold">
                         {participant.name}
                       </TableCell>
-                      <TableCell className="text-sm">
+                      <TableCell className="text-sm company-name-column" title={participant.organization || "-"}>
                         {participant.organization || "-"}
                       </TableCell>
                       <TableCell className="text-center text-sm">
