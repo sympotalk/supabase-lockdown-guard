@@ -164,9 +164,9 @@ export function ParticipantRightPanel({
   }
 
   return (
-    <div className="h-full flex flex-col bg-background border-l">
+    <div className="h-full flex flex-col bg-background">
       {/* Header */}
-      <div className="p-6 border-b bg-white shadow-sm">
+      <div className="p-4 border-b bg-white shadow-sm">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-semibold">{localData.name}</h2>
           {onDelete && (
@@ -183,14 +183,14 @@ export function ParticipantRightPanel({
       </div>
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto p-6">
-        <div className="space-y-6">
+      <div className="flex-1 overflow-y-auto p-4">
+        <div className="space-y-4">
           {/* Basic Info */}
           <Card>
-            <CardHeader>
+            <CardHeader className="p-3">
               <CardTitle className="text-sm font-medium">기본 정보</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3">
+            <CardContent className="space-y-2 p-3">
               <div className="flex items-center gap-2 text-sm">
                 <User className="h-4 w-4 text-muted-foreground" />
                 <span className="font-medium">{localData.name}</span>
@@ -218,10 +218,10 @@ export function ParticipantRightPanel({
 
           {/* Memo */}
           <Card>
-            <CardHeader>
+            <CardHeader className="p-3">
               <CardTitle className="text-sm font-medium">메모</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-3">
               <Textarea
                 placeholder="메모 입력..."
                 value={localData?.memo || ""}
@@ -243,10 +243,10 @@ export function ParticipantRightPanel({
 
           {/* Lodging Status */}
           <Card>
-            <CardHeader>
+            <CardHeader className="p-3">
               <CardTitle className="text-sm font-medium">숙박 현황</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3">
+            <CardContent className="space-y-2 p-3">
               <div className="space-y-1">
                 <Label className="text-xs">숙박 계획</Label>
                 <select
@@ -285,10 +285,10 @@ export function ParticipantRightPanel({
 
           {/* Companion Info */}
           <Card>
-            <CardHeader>
+            <CardHeader className="p-3">
               <CardTitle className="text-sm font-medium">동반자 정보</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3">
+            <CardContent className="space-y-2 p-3">
               <div className="space-y-1">
                 <Label className="text-xs">동반인</Label>
                 <Input
@@ -307,10 +307,10 @@ export function ParticipantRightPanel({
 
           {/* Manager Info */}
           <Card>
-            <CardHeader>
+            <CardHeader className="p-3">
               <CardTitle className="text-sm font-medium">담당자 정보</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3">
+            <CardContent className="space-y-2 p-3">
               <div className="space-y-1">
                 <Label className="text-xs">팀명</Label>
                 <Input
@@ -367,13 +367,13 @@ export function ParticipantRightPanel({
 
           {/* SFE Codes */}
           <Card>
-            <CardHeader>
+            <CardHeader className="p-3">
               <CardTitle className="text-sm font-medium flex items-center gap-2">
                 <Code className="h-4 w-4" />
                 SFE 코드
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3">
+            <CardContent className="space-y-2 p-3">
               <div className="space-y-1">
                 <Label className="text-xs">거래처 코드</Label>
                 <Input
@@ -406,10 +406,10 @@ export function ParticipantRightPanel({
           {/* Last Modified */}
           {localData.last_edited_at && (
             <Card>
-              <CardHeader>
+              <CardHeader className="p-3">
                 <CardTitle className="text-sm font-medium">마지막 수정</CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="p-3">
                 <p className="text-xs text-muted-foreground">
                   {new Date(localData.last_edited_at).toLocaleString('ko-KR', {
                     year: 'numeric',

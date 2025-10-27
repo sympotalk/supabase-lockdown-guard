@@ -265,7 +265,7 @@ export default function ParticipantsPanel() {
       {/* Main Content: Full Width Table with Fixed Right Panel */}
       <div className="flex-1 overflow-hidden relative">
         {/* Table Section */}
-        <div className="h-full overflow-auto pr-[380px] px-4 py-4">
+        <div className="h-full overflow-auto pr-[320px] pl-4 pr-2 py-4">
           <Card>
             <CardContent className="p-0">
               {!filteredParticipants || filteredParticipants.length === 0 ? (
@@ -408,7 +408,7 @@ export default function ParticipantsPanel() {
         </div>
 
         {/* Fixed Right Panel */}
-        <div className="fixed right-0 top-[80px] w-[360px] h-[calc(100vh-80px)] bg-white shadow-md border-l overflow-y-auto z-10">
+        <div className="fixed right-0 top-[80px] w-[320px] h-[calc(100vh-80px)] bg-white shadow-md border-l overflow-y-auto z-10 scrollbar-hide">
           <ParticipantRightPanel
             participant={selectedParticipant}
             onUpdate={() => mutate()}
