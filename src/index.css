@@ -274,8 +274,29 @@ body {
   overflow-y: auto;
   overflow-x: hidden;
   margin-right: 320px;
+  padding-right: 8px;
   padding-bottom: 32px;
   background: hsl(var(--background));
+}
+
+/* Participants card wrapper */
+.participants-card {
+  border-radius: 1rem;
+  box-shadow: var(--shadow-md);
+  background: hsl(var(--card));
+  overflow: visible;
+  position: relative;
+  padding: 0;
+  margin: 0 0 16px 0;
+}
+
+/* Participants scroll container inside card */
+.participants-scroll {
+  overflow-y: auto;
+  overflow-x: hidden;
+  max-height: calc(100vh - 320px);
+  padding: 8px 16px 12px 16px;
+  border-radius: 0 0 1rem 1rem;
 }
 
 /* Participants table wrapper - no horizontal scroll */
