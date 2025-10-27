@@ -72,7 +72,7 @@ export default function ParticipantsPanel() {
   const { data: participants, error, isLoading, mutate } = useSWR<Participant[]>(
     swrKey,
     async () => {
-      console.log("[71-I.QA] Loading participants", { eventId, agencyScope });
+      console.log("[71-I.QA3-FIX.R7] Loading participants", { eventId, agencyScope });
       
       const { data, error } = await supabase
         .from("participants")
@@ -83,11 +83,16 @@ export default function ParticipantsPanel() {
 
       if (error) throw error;
       
-      // [71-I.QA3-FIX.R3] Direct mapping to DB schema
-      console.log("[71-I.QA3-FIX.R3] Loaded participants:", (data || []).length);
+      // [71-I.QA3-FIX.R7] Direct mapping to DB schema
+      console.log("[71-I.QA3-FIX.R7] Loaded participants:", (data || []).length);
       return data as Participant[];
     },
-    { revalidateOnFocus: false, dedupingInterval: 60000 }
+    { 
+      revalidateOnFocus: false, 
+      dedupingInterval: 60000,
+      // [71-I.QA3-FIX.R7] Prevent cache lookup when eventId is missing
+      shouldRetryOnError: false
+    }
   );
 
   const handleRowClick = (participant: Participant) => {

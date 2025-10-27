@@ -191,7 +191,7 @@ export function UploadParticipantsModal({
       return;
     }
     setUploading(true);
-    console.info("[71-I.QA3-FIX.R3] Uploading rows:", parsedRows.length, "to event:", activeEventId);
+    console.info("[71-I.QA3-FIX.R7] Uploading rows:", parsedRows.length, "to event:", activeEventId);
     try {
       const {
         data,
@@ -201,26 +201,40 @@ export function UploadParticipantsModal({
         p_rows: parsedRows
       });
       if (error) {
-        console.error("[71-I.QA3-FIX.R3] RPC upload error →", error);
+        console.error("[71-I.QA3-FIX.R7] RPC upload error →", error);
         throw error;
       }
-      console.log("[71-I.QA3-FIX.R6] RPC response →", data);
+      console.log("[71-I.QA3-FIX.R7] RPC response →", data);
       const result = data as {
         inserted: number;
         new: number;
         updated: number;
+        event_id?: string;
+        agency_id?: string;
+        status: string;
       };
-      
-      toast({
-        title: "업로드 완료",
-        description: `신규 ${result.new}명, 갱신 ${result.updated}명 반영`
-      });
 
-      // [71-I.QA3-FIX.R4] Invalidate SWR cache for participants
-      if (agencyScope) {
-        mutate(`participants_${agencyScope}_${activeEventId}`);
-        console.info("[71-I.QA3-FIX.R4] SWR cache invalidated:", `participants_${agencyScope}_${activeEventId}`);
+      // [71-I.QA3-FIX.R7] Use event_id from response for precise cache invalidation
+      if (result?.event_id && agencyScope) {
+        const cacheKey = `participants_${agencyScope}_${result.event_id}`;
+        await mutate(cacheKey);
+        console.info("[71-I.QA3-FIX.R7] SWR cache invalidated & refetched:", cacheKey);
+        
+        toast({
+          title: "업로드 완료",
+          description: `신규 ${result.new ?? 0}명, 갱신 ${result.updated ?? 0}명 반영되었습니다.`
+        });
+      } else {
+        console.warn("[71-I.QA3-FIX.R7] event_id missing in response, fallback to activeEventId");
+        if (agencyScope) {
+          mutate(`participants_${agencyScope}_${activeEventId}`);
+        }
+        toast({
+          title: "업로드 완료",
+          description: `데이터는 저장되었지만 화면 반영에 실패했습니다. 새로고침 후 확인해주세요.`
+        });
       }
+      
       mutate('event_progress_view');
 
       // Reset state
