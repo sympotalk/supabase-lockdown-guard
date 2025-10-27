@@ -47,7 +47,10 @@ export default function MasterOverviewPanel() {
           }, 2000 * Math.pow(2, retryCount));
         }
       } else {
-        setData((overview || []) as AgencyOverview[]);
+        setData((overview || []).map(item => ({
+          ...item,
+          status: item.status as 'active' | 'inactive' | 'idle' | 'disabled'
+        })));
         setRetryCount(0);
       }
     } catch (error) {
