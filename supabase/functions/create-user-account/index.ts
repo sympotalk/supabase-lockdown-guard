@@ -56,8 +56,8 @@ serve(async (req) => {
       throw new Error('Unauthorized');
     }
 
-    // Check if user is master
-    const { data: roleData, error: roleError } = await supabaseClient
+    // Check if user is master (use admin client to bypass RLS)
+    const { data: roleData, error: roleError } = await supabaseAdmin
       .from('user_roles')
       .select('role')
       .eq('user_id', user.id)
