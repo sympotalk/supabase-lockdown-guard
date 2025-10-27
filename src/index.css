@@ -274,14 +274,48 @@ body {
   overflow-y: auto;
   overflow-x: hidden;
   margin-right: 320px;
+  padding-right: 8px;
   padding-bottom: 32px;
   background: hsl(var(--background));
+}
+
+/* [71-J.9.R] Card border-radius fix - ensure visibility */
+.participants-container .card {
+  overflow: visible !important;
+  border-radius: 16px;
+  margin-bottom: 16px;
 }
 
 /* Participants table wrapper - no horizontal scroll */
 .participants-table-wrapper {
   overflow: visible;
   width: 100%;
+}
+
+/* [71-J.9.R] Custom scrollbar styling */
+.participants-container::-webkit-scrollbar {
+  width: 8px;
+}
+
+.participants-container::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.participants-container::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 4px;
+}
+
+.participants-container::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.25);
+}
+
+.dark .participants-container::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.dark .participants-container::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.25);
 }
 
 /* Participants table alignment */
