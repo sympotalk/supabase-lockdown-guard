@@ -70,29 +70,54 @@ serve(async (req) => {
 
     const { email, password, role, agency_id }: CreateUserRequest = await req.json();
 
-    console.log('[create-user-account] Creating user:', { email, role, agency_id });
+    console.log('[71-I.QA3-FIX.R4][create-user-account] Creating user:', { email, role, agency_id });
 
-    // Validate input
-    if (!email || !password || !role) {
-      throw new Error('Missing required fields: email, password, role');
+    // [71-I.QA3-FIX.R4] Validate input
+    if (!email || !password) {
+      return new Response(
+        JSON.stringify({ 
+          error: 'Missing required fields: email, password',
+          code: 'MISSING_FIELDS'
+        }),
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 400,
+        }
+      );
     }
 
-    // Validate role
-    if (!['master', 'agency_owner', 'staff'].includes(role)) {
-      throw new Error('Invalid role');
+    // [71-I.QA3-FIX.R4] Validate role
+    if (!role || !['master', 'agency_owner', 'staff'].includes(role)) {
+      return new Response(
+        JSON.stringify({ 
+          error: 'INVALID_ROLE',
+          message: 'Role must be master, agency_owner, or staff'
+        }),
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 400,
+        }
+      );
     }
 
-    // Validate master role constraint (no agency)
-    if (role === 'master' && agency_id) {
-      throw new Error('Master role cannot be assigned to an agency');
+    // [71-I.QA3-FIX.R4] staff and agency_owner require agency_id
+    if ((role === 'staff' || role === 'agency_owner') && !agency_id) {
+      return new Response(
+        JSON.stringify({ 
+          error: 'MISSING_AGENCY_ID_FOR_STAFF',
+          message: 'Agency ID is required for staff and agency_owner roles'
+        }),
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 400,
+        }
+      );
     }
 
-    // Validate non-master roles require agency
-    if (role !== 'master' && !agency_id) {
-      throw new Error('Agency is required for non-master roles');
-    }
+    // [71-I.QA3-FIX.R4] master should not have agency_id
+    const finalAgencyId = role === 'master' ? null : agency_id;
 
-    // Create auth user with admin client
+    // [71-I.QA3-FIX.R4] Create auth user with admin client
     const { data: newUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
       email,
       password,
@@ -104,35 +129,62 @@ serve(async (req) => {
     });
 
     if (createError) {
-      console.error('[create-user-account] Auth creation failed:', createError);
-      throw new Error(`Failed to create auth user: ${createError.message}`);
+      console.error('[71-I.QA3-FIX.R4][create-user-account] Auth creation failed:', createError);
+      return new Response(
+        JSON.stringify({ 
+          error: 'AUTH_SIGNUP_FAILED',
+          message: createError.message
+        }),
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 500,
+        }
+      );
     }
 
     if (!newUser.user) {
-      throw new Error('User creation returned no user object');
+      return new Response(
+        JSON.stringify({ 
+          error: 'AUTH_SIGNUP_FAILED',
+          message: 'User creation returned no user object'
+        }),
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 500,
+        }
+      );
     }
 
-    console.log('[create-user-account] Auth user created:', newUser.user.id);
+    console.log('[71-I.QA3-FIX.R4][create-user-account] Auth user created:', newUser.user.id);
 
-    // Create user role entry
+    // [71-I.QA3-FIX.R4] Create user role entry with validated agency_id
     const { error: roleInsertError } = await supabaseAdmin
       .from('user_roles')
       .insert({
         user_id: newUser.user.id,
         role: role,
-        agency_id: agency_id || null,
+        agency_id: finalAgencyId,
       });
 
     if (roleInsertError) {
-      console.error('[create-user-account] Role insertion failed:', roleInsertError);
+      console.error('[71-I.QA3-FIX.R4][create-user-account] Role insertion failed:', roleInsertError);
       // Try to clean up the auth user
       await supabaseAdmin.auth.admin.deleteUser(newUser.user.id);
-      throw new Error(`Failed to create user role: ${roleInsertError.message}`);
+      return new Response(
+        JSON.stringify({ 
+          error: 'USER_ROLES_INSERT_FAILED',
+          message: roleInsertError.message
+        }),
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 500,
+        }
+      );
     }
 
-    console.log('[create-user-account] User role created for:', newUser.user.id);
+    console.log('[71-I.QA3-FIX.R4][create-user-account] User role created for:', newUser.user.id);
 
-    // Log the action
+    // [71-I.QA3-FIX.R4] Log the action
     await supabaseAdmin
       .from('logs')
       .insert({
@@ -143,19 +195,22 @@ serve(async (req) => {
           created_user_id: newUser.user.id,
           email,
           role,
-          agency_id: agency_id || null,
+          agency_id: finalAgencyId,
         },
         created_by: user.id,
-        agency_id: agency_id || null,
+        agency_id: finalAgencyId,
       });
+
+    console.log(`[71-I.QA3-FIX.R4][create-user-account] Account created successfully: ${email}, role: ${role}, agency: ${finalAgencyId}`);
 
     return new Response(
       JSON.stringify({
         success: true,
+        ok: true,
         user_id: newUser.user.id,
         email: newUser.user.email,
         role,
-        agency_id: agency_id || null,
+        agency_id: finalAgencyId,
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -163,7 +218,7 @@ serve(async (req) => {
       }
     );
   } catch (error) {
-    console.error('[create-user-account] Error:', error);
+    console.error('[71-I.QA3-FIX.R4][create-user-account] Error:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     return new Response(
       JSON.stringify({
