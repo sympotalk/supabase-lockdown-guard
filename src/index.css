@@ -203,9 +203,10 @@ All colors MUST be HSL.
   position: fixed;
   right: 0;
   top: 80px;
+  bottom: 0;
   width: 320px;
   height: calc(100vh - 80px);
-  overflow-y: auto;
+  overflow: visible;
   background: hsl(var(--card));
   box-shadow: -4px 0 8px rgba(0, 0, 0, 0.05);
   border-left: 1px solid hsl(var(--border));
@@ -213,7 +214,7 @@ All colors MUST be HSL.
 }
 
 .dark .right-panel {
-  box-shadow: -4px 0 8px rgba(0, 0, 0, 0.3);
+  box-shadow: -4px 0 12px rgba(0, 0, 0, 0.3);
 }
 
 @media (max-width: 1440px) {
@@ -229,6 +230,11 @@ All colors MUST be HSL.
   }
 }
 
+/* Body: remove page scroll */
+body {
+  overflow: hidden;
+}
+
 /* Sidebar styling */
 [data-sidebar] {
   background-color: hsl(var(--sidebar-background));
@@ -239,6 +245,19 @@ All colors MUST be HSL.
 .main-content {
   transition: margin-left 0.25s ease;
   width: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  height: calc(100vh - 80px);
+  padding-bottom: 16px;
+}
+
+/* Participants table wrapper with internal scroll */
+.participants-table-wrapper {
+  overflow-x: auto;
+  overflow-y: hidden;
+  max-width: 100%;
+  border-bottom: 1px solid hsl(var(--border));
+  padding-bottom: 4px;
 }
 
 /* Participants table alignment */
@@ -257,11 +276,14 @@ All colors MUST be HSL.
 .participants-table th {
   border-color: hsl(var(--border));
   padding: 8px 8px;
+  text-align: center;
+  vertical-align: middle;
 }
 
 .participants-table td {
   border-color: hsl(var(--border));
   padding: 6px 8px;
+  text-align: center;
   vertical-align: middle;
 }
 
@@ -280,10 +302,11 @@ All colors MUST be HSL.
   white-space: nowrap;
 }
 
-/* Requests column with expanded width */
+/* Requests column with expanded width - left aligned */
 .participants-table td.requests-column {
   min-width: 220px;
   max-width: 300px;
   white-space: normal;
   padding: 8px 10px;
+  text-align: left;
 }

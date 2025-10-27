@@ -11,7 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { SmartBadges } from "./SmartBadges";
 import { useUser } from "@/context/UserContext";
 
-// [71-J.1] Extended participant interface
+// [71-J.7] Extended participant interface with child_ages array
 interface Participant {
   id: string;
   name: string;
@@ -36,8 +36,7 @@ interface Participant {
   companion?: string;
   companion_memo?: string;
   adult_count?: number;
-  child_count?: number;
-  child_age?: string;
+  child_ages?: string[];
   recruitment_status?: string;
   message_sent?: string;
   survey_completed?: string;
@@ -117,7 +116,7 @@ export function ParticipantRightPanel({
           toast.success("담당자 정보가 저장되었습니다.");
         } else if (fieldKey === "sfe_agency_code" || fieldKey === "sfe_customer_code") {
           toast.success("SFE 코드가 업데이트되었습니다.");
-        } else if (fieldKey === "adult_count" || fieldKey === "child_count" || fieldKey === "child_age") {
+        } else if (fieldKey === "adult_count" || fieldKey === "child_ages") {
           toast.success("참가자 동반 정보가 저장되었습니다.");
         } else {
           toast.success("저장되었습니다.");
@@ -322,7 +321,7 @@ export function ParticipantRightPanel({
               <CardTitle className="text-sm font-semibold mb-0">참가자 동반 정보</CardTitle>
             </CardHeader>
             <CardContent className="px-3 pt-1 pb-3">
-              <div className="grid grid-cols-3 gap-2">
+              <div className="space-y-3">
                 <div className="space-y-1">
                   <Label className="text-xs">성인 인원</Label>
                   <Input
@@ -343,29 +342,43 @@ export function ParticipantRightPanel({
                   <Input
                     type="number"
                     min="0"
-                    value={localData?.child_count ?? 0}
+                    max="5"
+                    value={localData?.child_ages?.length ?? 0}
                     onChange={(e) => {
                       if (!localData) return;
-                      const value = parseInt(e.target.value) || 0;
-                      setLocalData({ ...localData, child_count: value });
+                      const count = parseInt(e.target.value) || 0;
+                      const newAges = Array(count).fill('').map((_, i) => localData.child_ages?.[i] || '');
+                      setLocalData({ ...localData, child_ages: newAges });
                     }}
-                    onBlur={(e) => handleFieldChange("child_count", parseInt(e.target.value) || 0)}
+                    onBlur={(e) => {
+                      const count = parseInt(e.target.value) || 0;
+                      const newAges = Array(count).fill('').map((_, i) => localData?.child_ages?.[i] || '');
+                      handleFieldChange("child_ages", newAges);
+                    }}
                     className="h-8 text-sm"
                   />
                 </div>
-                <div className="space-y-1">
-                  <Label className="text-xs">소아 나이</Label>
-                  <Input
-                    value={localData?.child_age || ""}
-                    onChange={(e) => {
-                      if (!localData) return;
-                      setLocalData({ ...localData, child_age: e.target.value });
-                    }}
-                    onBlur={(e) => handleFieldChange("child_age", e.target.value)}
-                    placeholder="예: 6세, 9세"
-                    className="h-8 text-sm"
-                  />
-                </div>
+                {(localData?.child_ages || []).map((age, index) => (
+                  <div key={index} className="space-y-1">
+                    <Label className="text-xs">{index + 1}번째 소아 나이</Label>
+                    <Input
+                      value={age}
+                      onChange={(e) => {
+                        if (!localData) return;
+                        const updated = [...(localData.child_ages || [])];
+                        updated[index] = e.target.value;
+                        setLocalData({ ...localData, child_ages: updated });
+                      }}
+                      onBlur={(e) => {
+                        const updated = [...(localData?.child_ages || [])];
+                        updated[index] = e.target.value;
+                        handleFieldChange("child_ages", updated);
+                      }}
+                      placeholder="예: 4세"
+                      className="h-8 text-sm"
+                    />
+                  </div>
+                ))}
               </div>
             </CardContent>
           </Card>

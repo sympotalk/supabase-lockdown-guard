@@ -30,7 +30,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import useSWR from "swr";
 
-// [71-J.2] Extended participant interface with lodging_status
+// [71-J.7] Extended participant interface with child_ages array
 interface Participant {
   id: string;
   name: string;
@@ -51,8 +51,7 @@ interface Participant {
   companion?: string;
   companion_memo?: string;
   adult_count?: number;
-  child_count?: number;
-  child_age?: string;
+  child_ages?: string[];
   recruitment_status?: string;
   message_sent?: string;
   survey_completed?: string;
@@ -277,7 +276,7 @@ export default function ParticipantsPanel() {
                   등록된 참가자가 없습니다. 업로드 또는 추가 버튼을 클릭하여 참가자를 등록하세요.
                 </div>
               ) : (
-                <div className="overflow-x-auto">
+                <div className="participants-table-wrapper">
                   <Table className="participants-table">
                 <TableHeader className="bg-muted/80 backdrop-blur-sm">
                   <TableRow className="hover:bg-muted">
@@ -295,8 +294,7 @@ export default function ParticipantsPanel() {
                     <TableHead className="font-semibold w-36">요청사항</TableHead>
                     <TableHead className="font-semibold w-24">숙박현황</TableHead>
                     <TableHead className="font-semibold w-16 text-center">성인</TableHead>
-                    <TableHead className="font-semibold w-16 text-center">소아</TableHead>
-                    <TableHead className="font-semibold w-20 text-center">소아나이</TableHead>
+                    <TableHead className="font-semibold w-32 text-center">소아</TableHead>
                     <TableHead className="font-semibold w-24">동반인</TableHead>
                     <TableHead className="font-semibold w-20 text-center">모객</TableHead>
                     <TableHead className="font-semibold w-20 text-center">문자</TableHead>
@@ -360,13 +358,10 @@ export default function ParticipantsPanel() {
                           <Badge variant="outline" className="text-xs">{participant.adult_count}</Badge>
                         ) : "-"}
                       </TableCell>
-                      <TableCell className="text-center">
-                        {participant.child_count ? (
-                          <Badge variant="outline" className="text-xs">{participant.child_count}</Badge>
-                        ) : "-"}
-                      </TableCell>
                       <TableCell className="text-center text-sm">
-                        {participant.child_age || "-"}
+                        {participant.child_ages && participant.child_ages.length > 0
+                          ? participant.child_ages.join(' / ')
+                          : "-"}
                       </TableCell>
                       <TableCell className="text-sm">
                         {participant.companion || "-"}
