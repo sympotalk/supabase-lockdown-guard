@@ -132,7 +132,7 @@ export default function Events() {
   };
 
   return (
-    <div className="w-full max-w-6xl mx-auto p-6 space-y-4">
+    <div className="layout-full space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-semibold text-foreground">행사 관리</h1>

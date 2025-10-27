@@ -165,3 +165,12 @@ All colors MUST be HSL.
   transition-duration: 0.3s;
   transition-timing-function: ease-out;
 }
+
+/* [71-J.2.FIX.E] Layout Full - Unified wrapper for admin pages */
+.layout-full {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding-left: 16px;
+  padding-right: 16px;
+}

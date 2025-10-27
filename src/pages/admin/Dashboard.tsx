@@ -103,7 +103,7 @@ export default function Dashboard() {
   const eventsForUpload = sortedEvents.map(e => ({ id: e.event_id, name: e.name }));
 
   return (
-    <div className="space-y-8">
+    <div className="layout-full space-y-8">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>

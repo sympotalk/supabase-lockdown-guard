@@ -137,7 +137,7 @@ export default function EventOverview() {
   const hotelName = rows[0]?.hotel_name ?? "호텔 미지정";
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="layout-full space-y-6">
         <div className="flex items-center gap-4">
           <Button
             variant="ghost"
