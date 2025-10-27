@@ -203,63 +203,63 @@ export default function ParticipantsPanel() {
           <Badge variant="secondary" className="text-sm">
             총 {participants?.length || 0}명
           </Badge>
-          
-          <div className="flex gap-2 action-buttons">
-            {selectedIds.length > 0 && (
-              <>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleBulkUpdate({ call_checked: true })}
-                >
-                  <CheckSquare className="h-4 w-4 mr-2" />
-                  통화완료 ({selectedIds.length})
-                </Button>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="outline" size="sm">
-                      일괄 숙박 변경
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent>
-                    <DropdownMenuItem onClick={() => handleBulkUpdate({ stay_plan: "미숙박" })}>
-                      미숙박
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => handleBulkUpdate({ stay_plan: "1일차" })}>
-                      1일차
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => handleBulkUpdate({ stay_plan: "2일차" })}>
-                      2일차
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </>
-            )}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm">
-                  <Download className="h-4 w-4 mr-2" />
-                  내보내기
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent>
-                <DropdownMenuItem onClick={() => handleExport('work')}>
-                  업무용 템플릿
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleExport('archive')}>
-                  보관용 템플릿
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-            <Button variant="outline" size="sm" onClick={() => setUploadOpen(true)}>
-              <Upload className="h-4 w-4 mr-2" />
-              업로드
-            </Button>
-            <Button size="sm">
-              <Plus className="h-4 w-4 mr-2" />
-              추가
-            </Button>
-          </div>
+        </div>
+        
+        <div className="flex gap-2 action-buttons">
+          {selectedIds.length > 0 && (
+            <>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handleBulkUpdate({ call_checked: true })}
+              >
+                <CheckSquare className="h-4 w-4 mr-2" />
+                통화완료 ({selectedIds.length})
+              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm">
+                    일괄 숙박 변경
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  <DropdownMenuItem onClick={() => handleBulkUpdate({ stay_plan: "미숙박" })}>
+                    미숙박
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleBulkUpdate({ stay_plan: "1일차" })}>
+                    1일차
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleBulkUpdate({ stay_plan: "2일차" })}>
+                    2일차
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </>
+          )}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm">
+                <Download className="h-4 w-4 mr-2" />
+                내보내기
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuItem onClick={() => handleExport('work')}>
+                업무용 템플릿
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleExport('archive')}>
+                보관용 템플릿
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <Button variant="outline" size="sm" onClick={() => setUploadOpen(true)}>
+            <Upload className="h-4 w-4 mr-2" />
+            업로드
+          </Button>
+          <Button size="sm">
+            <Plus className="h-4 w-4 mr-2" />
+            추가
+          </Button>
         </div>
       </div>
 
