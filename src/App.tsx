@@ -21,8 +21,6 @@ import MasterQAReports from "./pages/master/QAReports";
 import Events from "./pages/admin/Events";
 import EventOverview from "./pages/admin/EventOverview";
 import EventDetailLayout from "./layouts/EventDetailLayout";
-import EventPageContainer from "./layouts/EventPageContainer";
-import { ParticipantRightPanel } from "./components/participants/ParticipantRightPanel";
 import ParticipantsTab from "./pages/admin/event-detail/ParticipantsTab";
 import RoomingTab from "./pages/admin/event-detail/RoomingTab";
 import MessagesTab from "./pages/admin/event-detail/MessagesTab";
@@ -85,16 +83,8 @@ const App = () => (
               <Route path="events" element={<Events />} />
               <Route path="events/:eventId/overview" element={<EventOverview />} />
               
-              {/* [UNLOCKED-PATCH-71-H9] Unified Detail Layout with RightPanel Wrapper */}
-              <Route 
-                path="events/:eventId" 
-                element={
-                  <EventPageContainer>
-                    <EventDetailLayout />
-                    <ParticipantRightPanel participant={null} />
-                  </EventPageContainer>
-                } 
-              />
+              {/* [LOCKED][71-H5.UNIFIED-DETAIL.LAYOUT] Event detail with state-based tabs */}
+              <Route path="events/:eventId" element={<EventDetailLayout />} />
               
               {/* [LOCKED][71-G.FIX.ROUTING.R1 + 71-H.STABLE] Redirect old routes to unified event list */}
               <Route path="participants" element={<Navigate to="/admin/events" replace />} />

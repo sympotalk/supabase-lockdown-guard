@@ -197,38 +197,6 @@ body:has([data-state="collapsed"]) .layout-center {
   padding-right: 340px;
 }
 
-/* [71-H9.UNLOCKED-PATCH] Event Page Container - Main + Right Panel Split */
-.event-page-container {
-  display: flex;
-  flex-direction: row;
-  height: 100%;
-  width: 100%;
-  overflow: hidden;
-  background-color: hsl(var(--background));
-}
-
-.event-main {
-  flex: 1;
-  max-width: calc(100% - 320px);
-  overflow-y: auto;
-  padding: 0 24px 0 16px;
-  box-sizing: border-box;
-}
-
-.event-panel {
-  width: 320px;
-  flex-shrink: 0;
-  border-left: 1px solid hsl(var(--border));
-  background-color: hsl(var(--card));
-  box-shadow: -4px 0 10px hsl(var(--border) / 0.1);
-  z-index: 30;
-  overflow-y: auto;
-}
-
-.right-panel-wrapper {
-  background-color: hsl(var(--background));
-}
-
 .layout-center .tabs-header {
   display: flex;
   justify-content: flex-start !important;
