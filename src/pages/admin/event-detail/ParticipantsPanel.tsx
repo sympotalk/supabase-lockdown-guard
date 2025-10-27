@@ -1,4 +1,4 @@
-// [LOCKED][71-I.QA3-FIX.R10] Participants panel with resizable fixed sidebar
+// [LOCKED][71-J.1] Participants panel with grid layout
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { useUser } from "@/context/UserContext";
@@ -22,7 +22,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
 import { ParticipantRightPanel } from "@/components/participants/ParticipantRightPanel";
 import { UploadParticipantsModal } from "@/components/dashboard/UploadParticipantsModal";
 import { exportParticipantsToExcel, type ExportMode } from "@/utils/exportParticipants";
@@ -31,7 +30,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import useSWR from "swr";
 
-// [71-I.QA3-FIX.R10] Use actual DB schema with SFE codes
+// [71-J.1] Extended participant interface with new fields
 interface Participant {
   id: string;
   name: string;
@@ -46,6 +45,14 @@ interface Participant {
   sfe_agency_code?: string;
   sfe_customer_code?: string;
   status?: string;
+  classification?: string;
+  stay_status?: string;
+  companion?: string;
+  recruitment_status?: string;
+  message_sent?: string;
+  survey_completed?: string;
+  last_edited_by?: string;
+  last_edited_at?: string;
   created_at: string;
 }
 
@@ -175,9 +182,9 @@ export default function ParticipantsPanel() {
   }
 
   return (
-    <ResizablePanelGroup direction="horizontal" className="h-full">
-      <ResizablePanel defaultSize={65} minSize={40}>
-        <div className="space-y-6 p-6 h-full overflow-y-auto">
+    <div className="grid grid-cols-[7fr_3fr] gap-6 h-full px-8">
+      {/* Left: Table */}
+      <div className="space-y-6 overflow-y-auto pr-4">
           {/* Header */}
           <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
@@ -274,16 +281,23 @@ export default function ParticipantsPanel() {
                         onCheckedChange={toggleSelectAll}
                       />
                     </TableHead>
-                    <TableHead className="font-semibold w-[15%]">성명</TableHead>
-                    <TableHead className="font-semibold w-[20%]">소속</TableHead>
-                    <TableHead className="font-semibold w-[15%]">연락처</TableHead>
-                    <TableHead className="font-semibold w-[20%]">요청사항</TableHead>
-                    <TableHead className="font-semibold w-[10%]">상태</TableHead>
-                    <TableHead className="font-semibold w-[15%] text-right">등록일</TableHead>
+                    <TableHead className="font-semibold w-12 text-center">No.</TableHead>
+                    <TableHead className="font-semibold w-20">구분</TableHead>
+                    <TableHead className="font-semibold w-24">성명</TableHead>
+                    <TableHead className="font-semibold w-32">소속</TableHead>
+                    <TableHead className="font-semibold w-28">연락처</TableHead>
+                    <TableHead className="font-semibold w-36">요청사항</TableHead>
+                    <TableHead className="font-semibold w-24">숙박현황</TableHead>
+                    <TableHead className="font-semibold w-24">동반인</TableHead>
+                    <TableHead className="font-semibold w-20 text-center">모객</TableHead>
+                    <TableHead className="font-semibold w-20 text-center">문자</TableHead>
+                    <TableHead className="font-semibold w-20 text-center">설문</TableHead>
+                    <TableHead className="font-semibold w-20 text-center">상태</TableHead>
+                    <TableHead className="font-semibold w-24 text-right">등록일</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredParticipants.map((participant) => (
+                  {filteredParticipants.map((participant, index) => (
                     <TableRow
                       key={participant.id}
                       className="hover:bg-blue-50/40 transition-colors cursor-pointer"
@@ -301,30 +315,77 @@ export default function ParticipantsPanel() {
                           }}
                         />
                       </TableCell>
+                      <TableCell className="text-center text-sm text-muted-foreground">
+                        {index + 1}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline" className="text-xs">
+                          {participant.classification || "일반"}
+                        </Badge>
+                      </TableCell>
                       <TableCell className="font-semibold">
                         {participant.name}
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="text-sm">
                         {participant.organization || "-"}
                       </TableCell>
-                      <TableCell className="text-center">
+                      <TableCell className="text-center text-sm">
                         {participant.phone || "-"}
                       </TableCell>
                       <TableCell>
                         <div className="flex gap-1 flex-wrap">
-                          {parseBadges(participant.memo).map((badge, idx) => (
-                            <Badge key={idx} variant="outline" className="text-xs rounded-md">
+                          {parseBadges(participant.memo).slice(0, 3).map((badge, idx) => (
+                            <Badge key={idx} variant="outline" className="text-xs">
                               {badge.label}
                             </Badge>
                           ))}
                         </div>
                       </TableCell>
+                      <TableCell>
+                        <Badge variant="secondary" className="text-xs">
+                          {participant.stay_status || "미정"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-sm">
+                        {participant.companion || "-"}
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <Badge 
+                          variant={participant.recruitment_status === "O" ? "default" : "outline"}
+                          className="text-xs"
+                        >
+                          {participant.recruitment_status || "X"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <Badge 
+                          variant={participant.message_sent === "O" ? "default" : "outline"}
+                          className="text-xs"
+                        >
+                          {participant.message_sent || "X"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <Badge 
+                          variant={participant.survey_completed === "O" ? "default" : "outline"}
+                          className="text-xs"
+                        >
+                          {participant.survey_completed || "X"}
+                        </Badge>
+                      </TableCell>
                       <TableCell className="text-center">
                         <Badge
-                          variant={participant.status === "VIP" ? "default" : "secondary"}
-                          className="rounded-xl"
+                          variant={
+                            participant.status === "confirmed" ? "default" : 
+                            participant.status === "cancelled" ? "destructive" : 
+                            "secondary"
+                          }
+                          className="text-xs"
                         >
-                          {participant.status || "일반"}
+                          {participant.status === "pending" ? "대기중" :
+                           participant.status === "confirmed" ? "확정" :
+                           participant.status === "cancelled" ? "취소" :
+                           participant.status || "일반"}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-right text-sm text-muted-foreground">
@@ -343,24 +404,25 @@ export default function ParticipantsPanel() {
         </CardContent>
       </Card>
 
-        {/* Upload Modal */}
-        <UploadParticipantsModal
-          open={uploadOpen}
-          onOpenChange={setUploadOpen}
-          events={[{ id: eventId, name: "Current Event" }]}
-        />
-        </div>
-      </ResizablePanel>
+      {/* Upload Modal */}
+      <UploadParticipantsModal
+        open={uploadOpen}
+        onOpenChange={setUploadOpen}
+        events={[{ id: eventId, name: "Current Event" }]}
+      />
+      </div>
 
-      <ResizableHandle withHandle />
-
-      <ResizablePanel defaultSize={35} minSize={30} maxSize={50}>
+      {/* Right: Detail Panel */}
+      <div className="overflow-y-auto pl-4 border-l">
         <ParticipantRightPanel
           participant={selectedParticipant}
           onUpdate={() => mutate()}
-          onDelete={() => mutate()}
+          onDelete={() => {
+            setSelectedParticipant(null);
+            mutate();
+          }}
         />
-      </ResizablePanel>
-    </ResizablePanelGroup>
+      </div>
+    </div>
   );
 }

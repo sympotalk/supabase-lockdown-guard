@@ -11,7 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { SmartBadges } from "./SmartBadges";
 import { useUser } from "@/context/UserContext";
 
-// [71-I.QA3-FIX.R10] Use actual DB schema with SFE codes
+// [71-J.1] Extended participant interface
 interface Participant {
   id: string;
   name: string;
@@ -30,6 +30,14 @@ interface Participant {
   sfe_agency_code?: string;
   sfe_customer_code?: string;
   status?: string;
+  classification?: string;
+  stay_status?: string;
+  companion?: string;
+  recruitment_status?: string;
+  message_sent?: string;
+  survey_completed?: string;
+  last_edited_by?: string;
+  last_edited_at?: string;
 }
 
 // [LOCKED][QA2] Debounce utility
@@ -59,26 +67,55 @@ export function ParticipantRightPanel({
     setLocalData(participant);
   }, [participant]);
 
-  // [LOCKED][QA2] Optimistic + debounced inline save
+  // [71-J.1] Save with logging
   const saveField = useCallback(
     debounce(async (patch: Record<string, any>) => {
-      if (!localData?.id) return;
+      if (!localData?.id || !user?.id) return;
       
+      // Add last_edited metadata
+      const updateData = {
+        ...patch,
+        last_edited_by: user.id,
+        last_edited_at: new Date().toISOString()
+      };
+
       const { error } = await supabase
         .from("participants")
-        .update(patch)
+        .update(updateData)
         .eq("id", localData.id);
 
       if (error) {
-        console.error("[QA2] Save error:", error);
-        toast.error("저장 실패");
-        onUpdate?.(); // Revalidate on error
+        console.error("[71-J.1] Save error:", error);
+        toast.error("수정 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
+        onUpdate?.();
       } else {
-        console.log("[QA2] Field saved:", Object.keys(patch));
+        // Log the change
+        await supabase.from("participants_log").insert({
+          participant_id: localData.id,
+          action: "update",
+          changed_fields: patch,
+          edited_by: user.id,
+          edited_at: new Date().toISOString()
+        });
+
+        console.log("[71-J.1] Field saved:", Object.keys(patch));
+        
+        // Show specific toast based on field
+        const fieldKey = Object.keys(patch)[0];
+        if (fieldKey === "stay_status") {
+          toast.success("숙박 현황이 변경되었습니다.");
+        } else if (fieldKey === "memo") {
+          toast.success("요청사항이 저장되었습니다.");
+        } else if (fieldKey === "companion") {
+          toast.success("동반자 정보가 반영되었습니다.");
+        } else {
+          toast.success("저장되었습니다.");
+        }
+        
         onUpdate?.();
       }
     }, 500),
-    [localData?.id, onUpdate]
+    [localData?.id, user?.id, onUpdate]
   );
 
   const handleFieldChange = (field: string, value: any) => {
@@ -112,8 +149,15 @@ export function ParticipantRightPanel({
 
   if (!localData) {
     return (
-      <div className="h-full flex items-center justify-center bg-muted/10">
-        <p className="text-sm text-muted-foreground">참가자를 선택하세요</p>
+      <div className="h-full flex items-center justify-center">
+        <Card className="w-full max-w-md">
+          <CardContent className="flex flex-col items-center justify-center py-12">
+            <User className="h-12 w-12 text-muted-foreground/50 mb-4" />
+            <p className="text-sm text-muted-foreground text-center">
+              참가자를 선택해주세요
+            </p>
+          </CardContent>
+        </Card>
       </div>
     );
   }
@@ -195,6 +239,50 @@ export function ParticipantRightPanel({
             currentMemo={localData?.memo || ""}
             onMemoChange={(newMemo) => handleFieldChange("memo", newMemo)}
           />
+
+          {/* Stay Status */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-sm font-medium">숙박 현황</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="space-y-1">
+                <Label className="text-xs">숙박 계획</Label>
+                <Input
+                  value={localData?.stay_status || ""}
+                  onChange={(e) => {
+                    if (!localData) return;
+                    setLocalData({ ...localData, stay_status: e.target.value });
+                  }}
+                  onBlur={(e) => handleFieldChange("stay_status", e.target.value)}
+                  placeholder="예: 1일차, 2일차, 미숙박"
+                  className="h-8 text-sm"
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Companion Info */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-sm font-medium">동반자 정보</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="space-y-1">
+                <Label className="text-xs">동반인</Label>
+                <Input
+                  value={localData?.companion || ""}
+                  onChange={(e) => {
+                    if (!localData) return;
+                    setLocalData({ ...localData, companion: e.target.value });
+                  }}
+                  onBlur={(e) => handleFieldChange("companion", e.target.value)}
+                  placeholder="예: 홍길동(배우자)"
+                  className="h-8 text-sm"
+                />
+              </div>
+            </CardContent>
+          </Card>
 
           {/* Manager Info */}
           <Card>
@@ -293,6 +381,26 @@ export function ParticipantRightPanel({
               </div>
             </CardContent>
           </Card>
+
+          {/* Last Modified */}
+          {localData.last_edited_at && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-sm font-medium">마지막 수정</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-xs text-muted-foreground">
+                  {new Date(localData.last_edited_at).toLocaleString('ko-KR', {
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                  })}
+                </p>
+              </CardContent>
+            </Card>
+          )}
         </div>
       </div>
     </div>

@@ -3340,6 +3340,8 @@ export type Database = {
         Row: {
           agency_id: string
           call_checked: boolean | null
+          classification: string | null
+          companion: string | null
           created_at: string
           created_by: string | null
           email: string | null
@@ -3347,23 +3349,31 @@ export type Database = {
           form_response: Json | null
           id: string
           is_active: boolean | null
+          last_edited_at: string | null
+          last_edited_by: string | null
           last_modified_at: string | null
           last_modified_by: string | null
           manager_info: Json | null
           memo: string | null
+          message_sent: string | null
           name: string
           organization: string | null
           phone: string | null
+          recruitment_status: string | null
           sfe_agency_code: string | null
           sfe_customer_code: string | null
           status: string | null
           stay_plan: string | null
+          stay_status: string | null
+          survey_completed: string | null
           updated_at: string
           updated_by: string | null
         }
         Insert: {
           agency_id: string
           call_checked?: boolean | null
+          classification?: string | null
+          companion?: string | null
           created_at?: string
           created_by?: string | null
           email?: string | null
@@ -3371,23 +3381,31 @@ export type Database = {
           form_response?: Json | null
           id?: string
           is_active?: boolean | null
+          last_edited_at?: string | null
+          last_edited_by?: string | null
           last_modified_at?: string | null
           last_modified_by?: string | null
           manager_info?: Json | null
           memo?: string | null
+          message_sent?: string | null
           name: string
           organization?: string | null
           phone?: string | null
+          recruitment_status?: string | null
           sfe_agency_code?: string | null
           sfe_customer_code?: string | null
           status?: string | null
           stay_plan?: string | null
+          stay_status?: string | null
+          survey_completed?: string | null
           updated_at?: string
           updated_by?: string | null
         }
         Update: {
           agency_id?: string
           call_checked?: boolean | null
+          classification?: string | null
+          companion?: string | null
           created_at?: string
           created_by?: string | null
           email?: string | null
@@ -3395,17 +3413,23 @@ export type Database = {
           form_response?: Json | null
           id?: string
           is_active?: boolean | null
+          last_edited_at?: string | null
+          last_edited_by?: string | null
           last_modified_at?: string | null
           last_modified_by?: string | null
           manager_info?: Json | null
           memo?: string | null
+          message_sent?: string | null
           name?: string
           organization?: string | null
           phone?: string | null
+          recruitment_status?: string | null
           sfe_agency_code?: string | null
           sfe_customer_code?: string | null
           status?: string | null
           stay_plan?: string | null
+          stay_status?: string | null
+          survey_completed?: string | null
           updated_at?: string
           updated_by?: string | null
         }
@@ -3466,69 +3490,74 @@ export type Database = {
             referencedRelation: "v_event_room_summary"
             referencedColumns: ["event_id"]
           },
+          {
+            foreignKeyName: "participants_last_edited_by_fkey"
+            columns: ["last_edited_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "participants_last_edited_by_fkey"
+            columns: ["last_edited_by"]
+            isOneToOne: false
+            referencedRelation: "v_staff_performance"
+            referencedColumns: ["staff_id"]
+          },
         ]
       }
       participants_log: {
         Row: {
-          action: string | null
-          changed_at: string | null
-          changed_by: string | null
-          event_id: string | null
-          id: number
+          action: string
+          changed_fields: Json | null
+          edited_at: string | null
+          edited_by: string | null
+          id: string
+          memo_diff: string | null
           metadata: Json | null
-          new_status: string | null
-          old_status: string | null
-          operation: string
           participant_id: string
-          snapshot: Json
         }
         Insert: {
-          action?: string | null
-          changed_at?: string | null
-          changed_by?: string | null
-          event_id?: string | null
-          id?: never
+          action: string
+          changed_fields?: Json | null
+          edited_at?: string | null
+          edited_by?: string | null
+          id?: string
+          memo_diff?: string | null
           metadata?: Json | null
-          new_status?: string | null
-          old_status?: string | null
-          operation: string
           participant_id: string
-          snapshot: Json
         }
         Update: {
-          action?: string | null
-          changed_at?: string | null
-          changed_by?: string | null
-          event_id?: string | null
-          id?: never
+          action?: string
+          changed_fields?: Json | null
+          edited_at?: string | null
+          edited_by?: string | null
+          id?: string
+          memo_diff?: string | null
           metadata?: Json | null
-          new_status?: string | null
-          old_status?: string | null
-          operation?: string
           participant_id?: string
-          snapshot?: Json
         }
         Relationships: [
           {
-            foreignKeyName: "participants_log_event_id_fkey"
-            columns: ["event_id"]
+            foreignKeyName: "participants_log_edited_by_fkey"
+            columns: ["edited_by"]
             isOneToOne: false
-            referencedRelation: "event_progress_view"
-            referencedColumns: ["event_id"]
-          },
-          {
-            foreignKeyName: "participants_log_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "events"
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "participants_log_event_id_fkey"
-            columns: ["event_id"]
+            foreignKeyName: "participants_log_edited_by_fkey"
+            columns: ["edited_by"]
             isOneToOne: false
-            referencedRelation: "v_event_room_summary"
-            referencedColumns: ["event_id"]
+            referencedRelation: "v_staff_performance"
+            referencedColumns: ["staff_id"]
+          },
+          {
+            foreignKeyName: "participants_log_participant_id_fkey"
+            columns: ["participant_id"]
+            isOneToOne: false
+            referencedRelation: "participants"
+            referencedColumns: ["id"]
           },
         ]
       }
