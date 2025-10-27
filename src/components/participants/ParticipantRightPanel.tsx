@@ -173,9 +173,9 @@ export function ParticipantRightPanel({
   }
 
   return (
-    <div className="h-full flex flex-col bg-background">
+    <div className="right-panel-wrapper h-full flex flex-col">
       {/* Header */}
-      <div className="p-4 border-b bg-white shadow-sm">
+      <div className="p-4 border-b bg-card shadow-sm">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-semibold">{localData.name}</h2>
           {onDelete && (
