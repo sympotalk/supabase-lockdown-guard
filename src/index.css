@@ -175,6 +175,16 @@ All colors MUST be HSL.
   padding-right: 16px;
 }
 
+/* [71-J.9.C] Center alignment for participants layout */
+.layout-center {
+  max-width: 1360px;
+  margin: 0 auto;
+  padding-right: 320px;
+  padding-left: 16px;
+  box-sizing: border-box;
+  position: relative;
+}
+
 /* Dark mode layout alignment fix */
 .dark .layout-full {
   width: 100%;
@@ -196,6 +206,16 @@ All colors MUST be HSL.
 .tabs-header button.active {
   color: hsl(var(--primary));
   border-bottom: 2px solid hsl(var(--primary));
+}
+
+/* [71-J.9.C] Tabs bar alignment */
+.tabs-bar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding-left: 8px;
+  margin-bottom: 12px;
+  border-bottom: 1px solid hsl(var(--border));
 }
 
 /* Right panel responsive guard */
@@ -284,6 +304,31 @@ body {
   overflow: visible !important;
   border-radius: 16px;
   margin-bottom: 16px;
+}
+
+/* [71-J.9.C] Participants card center alignment */
+.participants-card {
+  width: 100%;
+  border-radius: 16px;
+  background: hsl(var(--card));
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  overflow: visible;
+  margin-top: 16px;
+}
+
+.dark .participants-card {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* [71-J.9.C] Header actions button alignment */
+.header-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  position: absolute;
+  right: 340px;
+  top: 0;
+  z-index: 10;
 }
 
 /* Participants table wrapper - no horizontal scroll */
