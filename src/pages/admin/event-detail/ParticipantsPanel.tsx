@@ -187,7 +187,7 @@ export default function ParticipantsPanel() {
   }
 
   return (
-    <div className="h-full flex flex-col bg-background ml-3">
+    <div className="h-full flex flex-col w-full bg-background" style={{ maxWidth: 'none' }}>
       {/* Header */}
       <div className="flex items-center justify-between px-2 py-4 border-b bg-white">
         <div className="flex items-center gap-4">
