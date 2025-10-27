@@ -91,69 +91,71 @@ export default function EventDetailLayout() {
 
   return (
     <div className="layout-full py-8 space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => navigate("/admin/events")}
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-          <div>
-            <h1 className="text-2xl font-semibold text-primary">
-              {event.name}
-            </h1>
-            <p className="text-sm text-muted-foreground mt-1">
-              {format(new Date(event.start_date), "yyyy.MM.dd")} ~ {format(new Date(event.end_date), "yyyy.MM.dd")}
-            </p>
+      <div className="layout-center">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => navigate("/admin/events")}
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+            <div>
+              <h1 className="text-2xl font-semibold text-primary">
+                {event.name}
+              </h1>
+              <p className="text-sm text-muted-foreground mt-1">
+                {format(new Date(event.start_date), "yyyy.MM.dd")} ~ {format(new Date(event.end_date), "yyyy.MM.dd")}
+              </p>
+            </div>
           </div>
         </div>
+
+        <Tabs value={tab} onValueChange={setTab} className="w-full">
+          <TabsList className="flex space-x-3 border-b border-border pb-2 bg-transparent h-auto rounded-none">
+            <TabsTrigger 
+              value="participants"
+              className="data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none bg-transparent"
+            >
+              참가자 관리
+            </TabsTrigger>
+            <TabsTrigger 
+              value="rooming"
+              className="data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none bg-transparent"
+            >
+              숙박 및 룸핑
+            </TabsTrigger>
+            <TabsTrigger 
+              value="messages"
+              className="data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none bg-transparent"
+            >
+              문자·알림 발송
+            </TabsTrigger>
+            <TabsTrigger 
+              value="forms"
+              className="data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none bg-transparent"
+            >
+              설문·초청장
+            </TabsTrigger>
+          </TabsList>
+
+          <div className="rounded-2xl bg-card shadow-card p-6 mt-4">
+            <TabsContent value="participants" className="mt-0">
+              <ParticipantsTab />
+            </TabsContent>
+            <TabsContent value="rooming" className="mt-0">
+              <RoomingTab />
+            </TabsContent>
+            <TabsContent value="messages" className="mt-0">
+              <MessagesTab />
+            </TabsContent>
+            <TabsContent value="forms" className="mt-0">
+              <FormsTab />
+            </TabsContent>
+          </div>
+        </Tabs>
       </div>
-
-      <Tabs value={tab} onValueChange={setTab} className="w-full">
-        <TabsList className="flex space-x-3 border-b border-border pb-2 bg-transparent h-auto rounded-none">
-          <TabsTrigger 
-            value="participants"
-            className="data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none bg-transparent"
-          >
-            참가자 관리
-          </TabsTrigger>
-          <TabsTrigger 
-            value="rooming"
-            className="data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none bg-transparent"
-          >
-            숙박 및 룸핑
-          </TabsTrigger>
-          <TabsTrigger 
-            value="messages"
-            className="data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none bg-transparent"
-          >
-            문자·알림 발송
-          </TabsTrigger>
-          <TabsTrigger 
-            value="forms"
-            className="data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none bg-transparent"
-          >
-            설문·초청장
-          </TabsTrigger>
-        </TabsList>
-
-        <div className="rounded-2xl bg-card shadow-card p-6 mt-4">
-          <TabsContent value="participants" className="mt-0">
-            <ParticipantsTab />
-          </TabsContent>
-          <TabsContent value="rooming" className="mt-0">
-            <RoomingTab />
-          </TabsContent>
-          <TabsContent value="messages" className="mt-0">
-            <MessagesTab />
-          </TabsContent>
-          <TabsContent value="forms" className="mt-0">
-            <FormsTab />
-          </TabsContent>
-        </div>
-      </Tabs>
     </div>
   );
 }

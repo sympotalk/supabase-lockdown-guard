@@ -1,0 +1,91 @@
+/* [71-J.9.C+D] SympoHub Sidebar Design Restoration */
+
+/* Remove all unwanted sidebar artifacts */
+.sidebar-container {
+  border: none !important;
+  box-shadow: none !important;
+  overflow: visible !important;
+  backdrop-filter: none !important;
+  background: transparent !important;
+}
+
+/* Hide scroll shadow effect */
+.sidebar-scroll-shadow {
+  display: none !important;
+}
+
+/* Sidebar item base styles */
+.sidebar-item {
+  font-family: Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+  font-size: 15px;
+  font-weight: 500;
+  color: hsl(var(--foreground));
+  transition: all 0.15s ease;
+}
+
+/* Hover effect - subtle blue tint */
+.sidebar-item:hover {
+  background: rgba(37, 99, 235, 0.08) !important;
+  color: hsl(var(--primary)) !important;
+  border-radius: 12px;
+}
+
+/* Dark mode hover */
+.dark .sidebar-item:hover {
+  background: rgba(37, 99, 235, 0.12) !important;
+  color: hsl(var(--primary)) !important;
+}
+
+/* Remove any conflicting hover effects from shadcn */
+[data-sidebar] button:hover {
+  background: transparent;
+}
+
+[data-sidebar] button:hover .sidebar-item {
+  background: rgba(37, 99, 235, 0.08);
+}
+
+/* Active menu indicator - left border only */
+.sidebar-item[data-active="true"]::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 32px;
+  background: hsl(var(--primary));
+  border-radius: 0 4px 4px 0;
+}
+
+/* Remove background on active items */
+.sidebar-item[data-active="true"] {
+  background: transparent !important;
+  color: hsl(var(--primary));
+}
+
+/* Clean transitions */
+.sidebar-item,
+.sidebar-item::before {
+  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Icon styling */
+.sidebar-item svg {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+/* Collapsed state */
+[data-state="collapsed"] .sidebar-item {
+  justify-content: center;
+  padding-left: 12px;
+  padding-right: 12px;
+}
+
+/* Remove outline on focus */
+.sidebar-item:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+}

@@ -2,6 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 
+/* [71-J.9.C+D] Import sidebar styles */
+@import './styles/sidebar.css';
+
 @layer utilities {
   /* Hide scrollbar for Chrome, Safari and Opera */
   .scrollbar-hide::-webkit-scrollbar {
@@ -175,14 +178,19 @@ All colors MUST be HSL.
   padding-right: 16px;
 }
 
-/* [71-J.9.C] Center alignment for participants layout */
+/* [71-J.9.C+D] Center alignment for participants layout */
 .layout-center {
   max-width: 1360px;
   margin: 0 auto;
-  padding-right: 320px;
   padding-left: 16px;
+  padding-right: 340px; /* Right panel width + gap */
   box-sizing: border-box;
   position: relative;
+}
+
+.layout-center .tabs-header {
+  justify-content: flex-start !important;
+  margin-left: 4px;
 }
 
 /* Dark mode layout alignment fix */
@@ -208,7 +216,7 @@ All colors MUST be HSL.
   border-bottom: 2px solid hsl(var(--primary));
 }
 
-/* [71-J.9.C] Tabs bar alignment */
+/* [71-J.9.C+D] Tabs bar alignment */
 .tabs-bar {
   display: flex;
   align-items: center;
@@ -216,6 +224,19 @@ All colors MUST be HSL.
   padding-left: 8px;
   margin-bottom: 12px;
   border-bottom: 1px solid hsl(var(--border));
+}
+
+/* Right panel stays fixed, no overlap */
+.right-panel {
+  position: fixed;
+  right: 0;
+  top: 80px;
+  bottom: 0;
+  width: 320px;
+  z-index: 20;
+  box-shadow: -4px 0 8px rgba(0, 0, 0, 0.05);
+  background: hsl(var(--card));
+  border-left: 1px solid hsl(var(--border));
 }
 
 /* Right panel responsive guard */
@@ -306,29 +327,51 @@ body {
   margin-bottom: 16px;
 }
 
-/* [71-J.9.C] Participants card center alignment */
+/* [71-J.9.C+D] Participants card with proper overflow */
 .participants-card {
   width: 100%;
   border-radius: 16px;
   background: hsl(var(--card));
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-  overflow: visible;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.05);
+  overflow: visible !important;
   margin-top: 16px;
+  border: 1px solid hsl(var(--border));
 }
 
 .dark .participants-card {
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.1);
+  border-color: hsl(var(--border));
 }
 
-/* [71-J.9.C] Header actions button alignment */
-.header-actions {
-  display: flex;
-  gap: 8px;
-  justify-content: flex-end;
-  position: absolute;
-  right: 340px;
-  top: 0;
-  z-index: 10;
+/* [71-J.9.C+D] Participants container with scroll */
+.participants-container {
+  overflow-y: auto;
+  overflow-x: hidden;
+  max-height: calc(100vh - 320px);
+  margin-right: 0;
+  padding-right: 8px;
+}
+
+/* Custom scrollbar for participants container */
+.participants-container::-webkit-scrollbar {
+  width: 8px;
+}
+
+.participants-container::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 4px;
+}
+
+.participants-container::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.25);
+}
+
+.dark .participants-container::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.dark .participants-container::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
 }
 
 /* Participants table wrapper - no horizontal scroll */
