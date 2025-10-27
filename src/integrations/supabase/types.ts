@@ -79,27 +79,6 @@ export type Database = {
             foreignKeyName: "account_provisioning_agency_id_fkey"
             columns: ["agency_id"]
             isOneToOne: false
-            referencedRelation: "agency_summary"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "account_provisioning_agency_id_fkey"
-            columns: ["agency_id"]
-            isOneToOne: false
-            referencedRelation: "dashboard_metrics"
-            referencedColumns: ["agency_id"]
-          },
-          {
-            foreignKeyName: "account_provisioning_agency_id_fkey"
-            columns: ["agency_id"]
-            isOneToOne: false
-            referencedRelation: "master_agency_overview"
-            referencedColumns: ["agency_id"]
-          },
-          {
-            foreignKeyName: "account_provisioning_agency_id_fkey"
-            columns: ["agency_id"]
-            isOneToOne: false
             referencedRelation: "v_master_operations"
             referencedColumns: ["agency_id"]
           },
@@ -155,13 +134,6 @@ export type Database = {
             foreignKeyName: "activity_logs_event_id_fkey"
             columns: ["event_id"]
             isOneToOne: false
-            referencedRelation: "event_progress_view"
-            referencedColumns: ["event_id"]
-          },
-          {
-            foreignKeyName: "activity_logs_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
             referencedRelation: "events"
             referencedColumns: ["id"]
           },
@@ -170,13 +142,6 @@ export type Database = {
             columns: ["event_id"]
             isOneToOne: false
             referencedRelation: "v_event_room_summary"
-            referencedColumns: ["event_id"]
-          },
-          {
-            foreignKeyName: "activity_logs_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "v_insights_dashboard"
             referencedColumns: ["event_id"]
           },
         ]
@@ -279,27 +244,6 @@ export type Database = {
             foreignKeyName: "agency_badge_items_agency_id_fkey"
             columns: ["agency_id"]
             isOneToOne: false
-            referencedRelation: "agency_summary"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "agency_badge_items_agency_id_fkey"
-            columns: ["agency_id"]
-            isOneToOne: false
-            referencedRelation: "dashboard_metrics"
-            referencedColumns: ["agency_id"]
-          },
-          {
-            foreignKeyName: "agency_badge_items_agency_id_fkey"
-            columns: ["agency_id"]
-            isOneToOne: false
-            referencedRelation: "master_agency_overview"
-            referencedColumns: ["agency_id"]
-          },
-          {
-            foreignKeyName: "agency_badge_items_agency_id_fkey"
-            columns: ["agency_id"]
-            isOneToOne: false
             referencedRelation: "v_master_operations"
             referencedColumns: ["agency_id"]
           },
@@ -346,27 +290,6 @@ export type Database = {
             foreignKeyName: "agency_keys_agency_id_fkey"
             columns: ["agency_id"]
             isOneToOne: false
-            referencedRelation: "agency_summary"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "agency_keys_agency_id_fkey"
-            columns: ["agency_id"]
-            isOneToOne: false
-            referencedRelation: "dashboard_metrics"
-            referencedColumns: ["agency_id"]
-          },
-          {
-            foreignKeyName: "agency_keys_agency_id_fkey"
-            columns: ["agency_id"]
-            isOneToOne: false
-            referencedRelation: "master_agency_overview"
-            referencedColumns: ["agency_id"]
-          },
-          {
-            foreignKeyName: "agency_keys_agency_id_fkey"
-            columns: ["agency_id"]
-            isOneToOne: false
             referencedRelation: "v_master_operations"
             referencedColumns: ["agency_id"]
           },
@@ -404,27 +327,6 @@ export type Database = {
             columns: ["agency_id"]
             isOneToOne: false
             referencedRelation: "agency_performance_summary"
-            referencedColumns: ["agency_id"]
-          },
-          {
-            foreignKeyName: "agency_managers_agency_id_fkey"
-            columns: ["agency_id"]
-            isOneToOne: false
-            referencedRelation: "agency_summary"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "agency_managers_agency_id_fkey"
-            columns: ["agency_id"]
-            isOneToOne: false
-            referencedRelation: "dashboard_metrics"
-            referencedColumns: ["agency_id"]
-          },
-          {
-            foreignKeyName: "agency_managers_agency_id_fkey"
-            columns: ["agency_id"]
-            isOneToOne: false
-            referencedRelation: "master_agency_overview"
             referencedColumns: ["agency_id"]
           },
           {
@@ -482,27 +384,6 @@ export type Database = {
             columns: ["agency_id"]
             isOneToOne: false
             referencedRelation: "agency_performance_summary"
-            referencedColumns: ["agency_id"]
-          },
-          {
-            foreignKeyName: "agency_members_agency_id_fkey"
-            columns: ["agency_id"]
-            isOneToOne: false
-            referencedRelation: "agency_summary"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "agency_members_agency_id_fkey"
-            columns: ["agency_id"]
-            isOneToOne: false
-            referencedRelation: "dashboard_metrics"
-            referencedColumns: ["agency_id"]
-          },
-          {
-            foreignKeyName: "agency_members_agency_id_fkey"
-            columns: ["agency_id"]
-            isOneToOne: false
-            referencedRelation: "master_agency_overview"
             referencedColumns: ["agency_id"]
           },
           {
@@ -732,13 +613,6 @@ export type Database = {
             foreignKeyName: "ai_mapping_suggestions_event_id_fkey"
             columns: ["event_id"]
             isOneToOne: false
-            referencedRelation: "event_progress_view"
-            referencedColumns: ["event_id"]
-          },
-          {
-            foreignKeyName: "ai_mapping_suggestions_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
             referencedRelation: "events"
             referencedColumns: ["id"]
           },
@@ -747,13 +621,6 @@ export type Database = {
             columns: ["event_id"]
             isOneToOne: false
             referencedRelation: "v_event_room_summary"
-            referencedColumns: ["event_id"]
-          },
-          {
-            foreignKeyName: "ai_mapping_suggestions_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "v_insights_dashboard"
             referencedColumns: ["event_id"]
           },
         ]
@@ -907,36 +774,8 @@ export type Database = {
             foreignKeyName: "behavior_logs_agency_id_fkey"
             columns: ["agency_id"]
             isOneToOne: false
-            referencedRelation: "agency_summary"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "behavior_logs_agency_id_fkey"
-            columns: ["agency_id"]
-            isOneToOne: false
-            referencedRelation: "dashboard_metrics"
-            referencedColumns: ["agency_id"]
-          },
-          {
-            foreignKeyName: "behavior_logs_agency_id_fkey"
-            columns: ["agency_id"]
-            isOneToOne: false
-            referencedRelation: "master_agency_overview"
-            referencedColumns: ["agency_id"]
-          },
-          {
-            foreignKeyName: "behavior_logs_agency_id_fkey"
-            columns: ["agency_id"]
-            isOneToOne: false
             referencedRelation: "v_master_operations"
             referencedColumns: ["agency_id"]
-          },
-          {
-            foreignKeyName: "behavior_logs_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "event_progress_view"
-            referencedColumns: ["event_id"]
           },
           {
             foreignKeyName: "behavior_logs_event_id_fkey"
@@ -950,13 +789,6 @@ export type Database = {
             columns: ["event_id"]
             isOneToOne: false
             referencedRelation: "v_event_room_summary"
-            referencedColumns: ["event_id"]
-          },
-          {
-            foreignKeyName: "behavior_logs_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "v_insights_dashboard"
             referencedColumns: ["event_id"]
           },
           {
@@ -1064,36 +896,8 @@ export type Database = {
             foreignKeyName: "context_memory_agency_id_fkey"
             columns: ["agency_id"]
             isOneToOne: false
-            referencedRelation: "agency_summary"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "context_memory_agency_id_fkey"
-            columns: ["agency_id"]
-            isOneToOne: false
-            referencedRelation: "dashboard_metrics"
-            referencedColumns: ["agency_id"]
-          },
-          {
-            foreignKeyName: "context_memory_agency_id_fkey"
-            columns: ["agency_id"]
-            isOneToOne: false
-            referencedRelation: "master_agency_overview"
-            referencedColumns: ["agency_id"]
-          },
-          {
-            foreignKeyName: "context_memory_agency_id_fkey"
-            columns: ["agency_id"]
-            isOneToOne: false
             referencedRelation: "v_master_operations"
             referencedColumns: ["agency_id"]
-          },
-          {
-            foreignKeyName: "context_memory_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "event_progress_view"
-            referencedColumns: ["event_id"]
           },
           {
             foreignKeyName: "context_memory_event_id_fkey"
@@ -1107,13 +911,6 @@ export type Database = {
             columns: ["event_id"]
             isOneToOne: false
             referencedRelation: "v_event_room_summary"
-            referencedColumns: ["event_id"]
-          },
-          {
-            foreignKeyName: "context_memory_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "v_insights_dashboard"
             referencedColumns: ["event_id"]
           },
         ]
@@ -1186,36 +983,8 @@ export type Database = {
             foreignKeyName: "daily_summaries_agency_id_fkey"
             columns: ["agency_id"]
             isOneToOne: false
-            referencedRelation: "agency_summary"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "daily_summaries_agency_id_fkey"
-            columns: ["agency_id"]
-            isOneToOne: false
-            referencedRelation: "dashboard_metrics"
-            referencedColumns: ["agency_id"]
-          },
-          {
-            foreignKeyName: "daily_summaries_agency_id_fkey"
-            columns: ["agency_id"]
-            isOneToOne: false
-            referencedRelation: "master_agency_overview"
-            referencedColumns: ["agency_id"]
-          },
-          {
-            foreignKeyName: "daily_summaries_agency_id_fkey"
-            columns: ["agency_id"]
-            isOneToOne: false
             referencedRelation: "v_master_operations"
             referencedColumns: ["agency_id"]
-          },
-          {
-            foreignKeyName: "daily_summaries_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "event_progress_view"
-            referencedColumns: ["event_id"]
           },
           {
             foreignKeyName: "daily_summaries_event_id_fkey"
@@ -1229,13 +998,6 @@ export type Database = {
             columns: ["event_id"]
             isOneToOne: false
             referencedRelation: "v_event_room_summary"
-            referencedColumns: ["event_id"]
-          },
-          {
-            foreignKeyName: "daily_summaries_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "v_insights_dashboard"
             referencedColumns: ["event_id"]
           },
           {
@@ -1533,36 +1295,8 @@ export type Database = {
             foreignKeyName: "event_room_refs_agency_id_fkey"
             columns: ["agency_id"]
             isOneToOne: false
-            referencedRelation: "agency_summary"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "event_room_refs_agency_id_fkey"
-            columns: ["agency_id"]
-            isOneToOne: false
-            referencedRelation: "dashboard_metrics"
-            referencedColumns: ["agency_id"]
-          },
-          {
-            foreignKeyName: "event_room_refs_agency_id_fkey"
-            columns: ["agency_id"]
-            isOneToOne: false
-            referencedRelation: "master_agency_overview"
-            referencedColumns: ["agency_id"]
-          },
-          {
-            foreignKeyName: "event_room_refs_agency_id_fkey"
-            columns: ["agency_id"]
-            isOneToOne: false
             referencedRelation: "v_master_operations"
             referencedColumns: ["agency_id"]
-          },
-          {
-            foreignKeyName: "event_room_refs_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "event_progress_view"
-            referencedColumns: ["event_id"]
           },
           {
             foreignKeyName: "event_room_refs_event_id_fkey"
@@ -1576,13 +1310,6 @@ export type Database = {
             columns: ["event_id"]
             isOneToOne: false
             referencedRelation: "v_event_room_summary"
-            referencedColumns: ["event_id"]
-          },
-          {
-            foreignKeyName: "event_room_refs_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "v_insights_dashboard"
             referencedColumns: ["event_id"]
           },
           {
@@ -1699,27 +1426,6 @@ export type Database = {
             foreignKeyName: "events_agency_id_fkey"
             columns: ["agency_id"]
             isOneToOne: false
-            referencedRelation: "agency_summary"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "events_agency_id_fkey"
-            columns: ["agency_id"]
-            isOneToOne: false
-            referencedRelation: "dashboard_metrics"
-            referencedColumns: ["agency_id"]
-          },
-          {
-            foreignKeyName: "events_agency_id_fkey"
-            columns: ["agency_id"]
-            isOneToOne: false
-            referencedRelation: "master_agency_overview"
-            referencedColumns: ["agency_id"]
-          },
-          {
-            foreignKeyName: "events_agency_id_fkey"
-            columns: ["agency_id"]
-            isOneToOne: false
             referencedRelation: "v_master_operations"
             referencedColumns: ["agency_id"]
           },
@@ -1794,13 +1500,6 @@ export type Database = {
             foreignKeyName: "events_managers_event_id_fkey"
             columns: ["event_id"]
             isOneToOne: false
-            referencedRelation: "event_progress_view"
-            referencedColumns: ["event_id"]
-          },
-          {
-            foreignKeyName: "events_managers_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
             referencedRelation: "events"
             referencedColumns: ["id"]
           },
@@ -1809,13 +1508,6 @@ export type Database = {
             columns: ["event_id"]
             isOneToOne: false
             referencedRelation: "v_event_room_summary"
-            referencedColumns: ["event_id"]
-          },
-          {
-            foreignKeyName: "events_managers_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "v_insights_dashboard"
             referencedColumns: ["event_id"]
           },
           {
@@ -1940,22 +1632,7 @@ export type Database = {
           metadata?: Json | null
           source?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "form_logs_linked_participant_id_fkey"
-            columns: ["linked_participant_id"]
-            isOneToOne: false
-            referencedRelation: "participants"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "form_logs_linked_participant_id_fkey"
-            columns: ["linked_participant_id"]
-            isOneToOne: false
-            referencedRelation: "participants_fullview"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       form_responses: {
         Row: {
@@ -2005,13 +1682,6 @@ export type Database = {
             foreignKeyName: "form_responses_event_id_fkey"
             columns: ["event_id"]
             isOneToOne: false
-            referencedRelation: "event_progress_view"
-            referencedColumns: ["event_id"]
-          },
-          {
-            foreignKeyName: "form_responses_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
             referencedRelation: "events"
             referencedColumns: ["id"]
           },
@@ -2023,31 +1693,10 @@ export type Database = {
             referencedColumns: ["event_id"]
           },
           {
-            foreignKeyName: "form_responses_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "v_insights_dashboard"
-            referencedColumns: ["event_id"]
-          },
-          {
             foreignKeyName: "form_responses_form_id_fkey"
             columns: ["form_id"]
             isOneToOne: false
             referencedRelation: "forms"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "form_responses_participant_id_fkey"
-            columns: ["participant_id"]
-            isOneToOne: false
-            referencedRelation: "participants"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "form_responses_participant_id_fkey"
-            columns: ["participant_id"]
-            isOneToOne: false
-            referencedRelation: "participants_fullview"
             referencedColumns: ["id"]
           },
         ]
@@ -2201,27 +1850,6 @@ export type Database = {
             columns: ["agency_id"]
             isOneToOne: false
             referencedRelation: "agency_performance_summary"
-            referencedColumns: ["agency_id"]
-          },
-          {
-            foreignKeyName: "forms_agency_id_fkey"
-            columns: ["agency_id"]
-            isOneToOne: false
-            referencedRelation: "agency_summary"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "forms_agency_id_fkey"
-            columns: ["agency_id"]
-            isOneToOne: false
-            referencedRelation: "dashboard_metrics"
-            referencedColumns: ["agency_id"]
-          },
-          {
-            foreignKeyName: "forms_agency_id_fkey"
-            columns: ["agency_id"]
-            isOneToOne: false
-            referencedRelation: "master_agency_overview"
             referencedColumns: ["agency_id"]
           },
           {
@@ -2479,13 +2107,6 @@ export type Database = {
             foreignKeyName: "hotel_contacts_event_id_fkey"
             columns: ["event_id"]
             isOneToOne: false
-            referencedRelation: "event_progress_view"
-            referencedColumns: ["event_id"]
-          },
-          {
-            foreignKeyName: "hotel_contacts_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
             referencedRelation: "events"
             referencedColumns: ["id"]
           },
@@ -2494,13 +2115,6 @@ export type Database = {
             columns: ["event_id"]
             isOneToOne: false
             referencedRelation: "v_event_room_summary"
-            referencedColumns: ["event_id"]
-          },
-          {
-            foreignKeyName: "hotel_contacts_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "v_insights_dashboard"
             referencedColumns: ["event_id"]
           },
         ]
@@ -2550,13 +2164,6 @@ export type Database = {
             foreignKeyName: "hotel_mail_logs_event_id_fkey"
             columns: ["event_id"]
             isOneToOne: false
-            referencedRelation: "event_progress_view"
-            referencedColumns: ["event_id"]
-          },
-          {
-            foreignKeyName: "hotel_mail_logs_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
             referencedRelation: "events"
             referencedColumns: ["id"]
           },
@@ -2565,13 +2172,6 @@ export type Database = {
             columns: ["event_id"]
             isOneToOne: false
             referencedRelation: "v_event_room_summary"
-            referencedColumns: ["event_id"]
-          },
-          {
-            foreignKeyName: "hotel_mail_logs_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "v_insights_dashboard"
             referencedColumns: ["event_id"]
           },
         ]
@@ -2659,27 +2259,6 @@ export type Database = {
             columns: ["agency_id"]
             isOneToOne: false
             referencedRelation: "agency_performance_summary"
-            referencedColumns: ["agency_id"]
-          },
-          {
-            foreignKeyName: "hotels_agency_id_fkey"
-            columns: ["agency_id"]
-            isOneToOne: false
-            referencedRelation: "agency_summary"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "hotels_agency_id_fkey"
-            columns: ["agency_id"]
-            isOneToOne: false
-            referencedRelation: "dashboard_metrics"
-            referencedColumns: ["agency_id"]
-          },
-          {
-            foreignKeyName: "hotels_agency_id_fkey"
-            columns: ["agency_id"]
-            isOneToOne: false
-            referencedRelation: "master_agency_overview"
             referencedColumns: ["agency_id"]
           },
           {
@@ -2831,27 +2410,6 @@ export type Database = {
             foreignKeyName: "invite_links_agency_id_fkey"
             columns: ["agency_id"]
             isOneToOne: false
-            referencedRelation: "agency_summary"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "invite_links_agency_id_fkey"
-            columns: ["agency_id"]
-            isOneToOne: false
-            referencedRelation: "dashboard_metrics"
-            referencedColumns: ["agency_id"]
-          },
-          {
-            foreignKeyName: "invite_links_agency_id_fkey"
-            columns: ["agency_id"]
-            isOneToOne: false
-            referencedRelation: "master_agency_overview"
-            referencedColumns: ["agency_id"]
-          },
-          {
-            foreignKeyName: "invite_links_agency_id_fkey"
-            columns: ["agency_id"]
-            isOneToOne: false
             referencedRelation: "v_master_operations"
             referencedColumns: ["agency_id"]
           },
@@ -2938,27 +2496,6 @@ export type Database = {
             foreignKeyName: "logs_agency_id_fkey"
             columns: ["agency_id"]
             isOneToOne: false
-            referencedRelation: "agency_summary"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "logs_agency_id_fkey"
-            columns: ["agency_id"]
-            isOneToOne: false
-            referencedRelation: "dashboard_metrics"
-            referencedColumns: ["agency_id"]
-          },
-          {
-            foreignKeyName: "logs_agency_id_fkey"
-            columns: ["agency_id"]
-            isOneToOne: false
-            referencedRelation: "master_agency_overview"
-            referencedColumns: ["agency_id"]
-          },
-          {
-            foreignKeyName: "logs_agency_id_fkey"
-            columns: ["agency_id"]
-            isOneToOne: false
             referencedRelation: "v_master_operations"
             referencedColumns: ["agency_id"]
           },
@@ -3028,27 +2565,6 @@ export type Database = {
             foreignKeyName: "master_accounts_agency_id_fkey"
             columns: ["agency_id"]
             isOneToOne: false
-            referencedRelation: "agency_summary"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "master_accounts_agency_id_fkey"
-            columns: ["agency_id"]
-            isOneToOne: false
-            referencedRelation: "dashboard_metrics"
-            referencedColumns: ["agency_id"]
-          },
-          {
-            foreignKeyName: "master_accounts_agency_id_fkey"
-            columns: ["agency_id"]
-            isOneToOne: false
-            referencedRelation: "master_agency_overview"
-            referencedColumns: ["agency_id"]
-          },
-          {
-            foreignKeyName: "master_accounts_agency_id_fkey"
-            columns: ["agency_id"]
-            isOneToOne: false
             referencedRelation: "v_master_operations"
             referencedColumns: ["agency_id"]
           },
@@ -3110,36 +2626,8 @@ export type Database = {
             foreignKeyName: "message_logs_agency_id_fkey"
             columns: ["agency_id"]
             isOneToOne: false
-            referencedRelation: "agency_summary"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "message_logs_agency_id_fkey"
-            columns: ["agency_id"]
-            isOneToOne: false
-            referencedRelation: "dashboard_metrics"
-            referencedColumns: ["agency_id"]
-          },
-          {
-            foreignKeyName: "message_logs_agency_id_fkey"
-            columns: ["agency_id"]
-            isOneToOne: false
-            referencedRelation: "master_agency_overview"
-            referencedColumns: ["agency_id"]
-          },
-          {
-            foreignKeyName: "message_logs_agency_id_fkey"
-            columns: ["agency_id"]
-            isOneToOne: false
             referencedRelation: "v_master_operations"
             referencedColumns: ["agency_id"]
-          },
-          {
-            foreignKeyName: "message_logs_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "event_progress_view"
-            referencedColumns: ["event_id"]
           },
           {
             foreignKeyName: "message_logs_event_id_fkey"
@@ -3153,13 +2641,6 @@ export type Database = {
             columns: ["event_id"]
             isOneToOne: false
             referencedRelation: "v_event_room_summary"
-            referencedColumns: ["event_id"]
-          },
-          {
-            foreignKeyName: "message_logs_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "v_insights_dashboard"
             referencedColumns: ["event_id"]
           },
           {
@@ -3215,27 +2696,6 @@ export type Database = {
             columns: ["agency_id"]
             isOneToOne: false
             referencedRelation: "agency_performance_summary"
-            referencedColumns: ["agency_id"]
-          },
-          {
-            foreignKeyName: "message_templates_agency_id_fkey"
-            columns: ["agency_id"]
-            isOneToOne: false
-            referencedRelation: "agency_summary"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "message_templates_agency_id_fkey"
-            columns: ["agency_id"]
-            isOneToOne: false
-            referencedRelation: "dashboard_metrics"
-            referencedColumns: ["agency_id"]
-          },
-          {
-            foreignKeyName: "message_templates_agency_id_fkey"
-            columns: ["agency_id"]
-            isOneToOne: false
-            referencedRelation: "master_agency_overview"
             referencedColumns: ["agency_id"]
           },
           {
@@ -3324,27 +2784,6 @@ export type Database = {
             foreignKeyName: "messages_agency_id_fkey"
             columns: ["agency_id"]
             isOneToOne: false
-            referencedRelation: "agency_summary"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "messages_agency_id_fkey"
-            columns: ["agency_id"]
-            isOneToOne: false
-            referencedRelation: "dashboard_metrics"
-            referencedColumns: ["agency_id"]
-          },
-          {
-            foreignKeyName: "messages_agency_id_fkey"
-            columns: ["agency_id"]
-            isOneToOne: false
-            referencedRelation: "master_agency_overview"
-            referencedColumns: ["agency_id"]
-          },
-          {
-            foreignKeyName: "messages_agency_id_fkey"
-            columns: ["agency_id"]
-            isOneToOne: false
             referencedRelation: "v_master_operations"
             referencedColumns: ["agency_id"]
           },
@@ -3405,27 +2844,6 @@ export type Database = {
             columns: ["agency_id"]
             isOneToOne: false
             referencedRelation: "agency_performance_summary"
-            referencedColumns: ["agency_id"]
-          },
-          {
-            foreignKeyName: "module_insights_agency_id_fkey"
-            columns: ["agency_id"]
-            isOneToOne: false
-            referencedRelation: "agency_summary"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "module_insights_agency_id_fkey"
-            columns: ["agency_id"]
-            isOneToOne: false
-            referencedRelation: "dashboard_metrics"
-            referencedColumns: ["agency_id"]
-          },
-          {
-            foreignKeyName: "module_insights_agency_id_fkey"
-            columns: ["agency_id"]
-            isOneToOne: false
-            referencedRelation: "master_agency_overview"
             referencedColumns: ["agency_id"]
           },
           {
@@ -3577,103 +2995,67 @@ export type Database = {
       }
       participants: {
         Row: {
-          agency_id: string | null
-          call_completed: boolean | null
-          call_completed_at: string | null
-          check_in: string | null
-          check_out: string | null
-          checkin_day: string | null
-          created_at: string | null
+          agency_id: string
+          call_checked: boolean | null
+          created_at: string
           created_by: string | null
           email: string | null
           event_id: string
+          form_response: Json | null
           id: string
           is_active: boolean | null
           last_modified_at: string | null
           last_modified_by: string | null
-          manager_info: Json | null
-          manager_name: string | null
-          manager_phone: string | null
           memo: string | null
           name: string
           organization: string | null
-          participation_type: string | null
           phone: string | null
-          position: string | null
-          role_type: string | null
-          room_type: string | null
-          sort_priority: number | null
           status: string | null
-          sync_status: string | null
-          tags: string[] | null
-          team_name: string | null
-          updated_at: string | null
+          stay_plan: string | null
+          updated_at: string
+          updated_by: string | null
         }
         Insert: {
-          agency_id?: string | null
-          call_completed?: boolean | null
-          call_completed_at?: string | null
-          check_in?: string | null
-          check_out?: string | null
-          checkin_day?: string | null
-          created_at?: string | null
+          agency_id: string
+          call_checked?: boolean | null
+          created_at?: string
           created_by?: string | null
           email?: string | null
           event_id: string
+          form_response?: Json | null
           id?: string
           is_active?: boolean | null
           last_modified_at?: string | null
           last_modified_by?: string | null
-          manager_info?: Json | null
-          manager_name?: string | null
-          manager_phone?: string | null
           memo?: string | null
           name: string
           organization?: string | null
-          participation_type?: string | null
           phone?: string | null
-          position?: string | null
-          role_type?: string | null
-          room_type?: string | null
-          sort_priority?: number | null
           status?: string | null
-          sync_status?: string | null
-          tags?: string[] | null
-          team_name?: string | null
-          updated_at?: string | null
+          stay_plan?: string | null
+          updated_at?: string
+          updated_by?: string | null
         }
         Update: {
-          agency_id?: string | null
-          call_completed?: boolean | null
-          call_completed_at?: string | null
-          check_in?: string | null
-          check_out?: string | null
-          checkin_day?: string | null
-          created_at?: string | null
+          agency_id?: string
+          call_checked?: boolean | null
+          created_at?: string
           created_by?: string | null
           email?: string | null
           event_id?: string
+          form_response?: Json | null
           id?: string
           is_active?: boolean | null
           last_modified_at?: string | null
           last_modified_by?: string | null
-          manager_info?: Json | null
-          manager_name?: string | null
-          manager_phone?: string | null
           memo?: string | null
           name?: string
           organization?: string | null
-          participation_type?: string | null
           phone?: string | null
-          position?: string | null
-          role_type?: string | null
-          room_type?: string | null
-          sort_priority?: number | null
           status?: string | null
-          sync_status?: string | null
-          tags?: string[] | null
-          team_name?: string | null
-          updated_at?: string | null
+          stay_plan?: string | null
+          updated_at?: string
+          updated_by?: string | null
         }
         Relationships: [
           {
@@ -3694,57 +3076,22 @@ export type Database = {
             foreignKeyName: "participants_agency_id_fkey"
             columns: ["agency_id"]
             isOneToOne: false
-            referencedRelation: "agency_summary"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "participants_agency_id_fkey"
-            columns: ["agency_id"]
-            isOneToOne: false
-            referencedRelation: "dashboard_metrics"
-            referencedColumns: ["agency_id"]
-          },
-          {
-            foreignKeyName: "participants_agency_id_fkey"
-            columns: ["agency_id"]
-            isOneToOne: false
-            referencedRelation: "master_agency_overview"
-            referencedColumns: ["agency_id"]
-          },
-          {
-            foreignKeyName: "participants_agency_id_fkey"
-            columns: ["agency_id"]
-            isOneToOne: false
             referencedRelation: "v_master_operations"
             referencedColumns: ["agency_id"]
           },
           {
-            foreignKeyName: "participants_created_by_fkey"
-            columns: ["created_by"]
+            foreignKeyName: "participants_event_id_fkey"
+            columns: ["event_id"]
             isOneToOne: false
-            referencedRelation: "master_users"
+            referencedRelation: "events"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "participants_created_by_fkey"
-            columns: ["created_by"]
+            foreignKeyName: "participants_event_id_fkey"
+            columns: ["event_id"]
             isOneToOne: false
-            referencedRelation: "user_profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "participants_last_modified_by_fkey"
-            columns: ["last_modified_by"]
-            isOneToOne: false
-            referencedRelation: "master_users"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "participants_last_modified_by_fkey"
-            columns: ["last_modified_by"]
-            isOneToOne: false
-            referencedRelation: "user_profiles"
-            referencedColumns: ["id"]
+            referencedRelation: "v_event_room_summary"
+            referencedColumns: ["event_id"]
           },
         ]
       }
@@ -3793,13 +3140,6 @@ export type Database = {
             foreignKeyName: "participants_log_event_id_fkey"
             columns: ["event_id"]
             isOneToOne: false
-            referencedRelation: "event_progress_view"
-            referencedColumns: ["event_id"]
-          },
-          {
-            foreignKeyName: "participants_log_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
             referencedRelation: "events"
             referencedColumns: ["id"]
           },
@@ -3809,27 +3149,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "v_event_room_summary"
             referencedColumns: ["event_id"]
-          },
-          {
-            foreignKeyName: "participants_log_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "v_insights_dashboard"
-            referencedColumns: ["event_id"]
-          },
-          {
-            foreignKeyName: "participants_log_participant_id_fkey"
-            columns: ["participant_id"]
-            isOneToOne: false
-            referencedRelation: "participants"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "participants_log_participant_id_fkey"
-            columns: ["participant_id"]
-            isOneToOne: false
-            referencedRelation: "participants_fullview"
-            referencedColumns: ["id"]
           },
         ]
       }
@@ -3859,20 +3178,6 @@ export type Database = {
           updated_by?: string | null
         }
         Relationships: [
-          {
-            foreignKeyName: "participants_logs_participant_id_fkey"
-            columns: ["participant_id"]
-            isOneToOne: false
-            referencedRelation: "participants"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "participants_logs_participant_id_fkey"
-            columns: ["participant_id"]
-            isOneToOne: false
-            referencedRelation: "participants_fullview"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "participants_logs_updated_by_fkey"
             columns: ["updated_by"]
@@ -3952,13 +3257,6 @@ export type Database = {
             foreignKeyName: "participants_temp_event_id_fkey"
             columns: ["event_id"]
             isOneToOne: false
-            referencedRelation: "event_progress_view"
-            referencedColumns: ["event_id"]
-          },
-          {
-            foreignKeyName: "participants_temp_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
             referencedRelation: "events"
             referencedColumns: ["id"]
           },
@@ -3967,13 +3265,6 @@ export type Database = {
             columns: ["event_id"]
             isOneToOne: false
             referencedRelation: "v_event_room_summary"
-            referencedColumns: ["event_id"]
-          },
-          {
-            foreignKeyName: "participants_temp_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "v_insights_dashboard"
             referencedColumns: ["event_id"]
           },
         ]
@@ -4177,36 +3468,8 @@ export type Database = {
             foreignKeyName: "qa_actions_log_agency_id_fkey"
             columns: ["agency_id"]
             isOneToOne: false
-            referencedRelation: "agency_summary"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "qa_actions_log_agency_id_fkey"
-            columns: ["agency_id"]
-            isOneToOne: false
-            referencedRelation: "dashboard_metrics"
-            referencedColumns: ["agency_id"]
-          },
-          {
-            foreignKeyName: "qa_actions_log_agency_id_fkey"
-            columns: ["agency_id"]
-            isOneToOne: false
-            referencedRelation: "master_agency_overview"
-            referencedColumns: ["agency_id"]
-          },
-          {
-            foreignKeyName: "qa_actions_log_agency_id_fkey"
-            columns: ["agency_id"]
-            isOneToOne: false
             referencedRelation: "v_master_operations"
             referencedColumns: ["agency_id"]
-          },
-          {
-            foreignKeyName: "qa_actions_log_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "event_progress_view"
-            referencedColumns: ["event_id"]
           },
           {
             foreignKeyName: "qa_actions_log_event_id_fkey"
@@ -4220,13 +3483,6 @@ export type Database = {
             columns: ["event_id"]
             isOneToOne: false
             referencedRelation: "v_event_room_summary"
-            referencedColumns: ["event_id"]
-          },
-          {
-            foreignKeyName: "qa_actions_log_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "v_insights_dashboard"
             referencedColumns: ["event_id"]
           },
           {
@@ -4313,27 +3569,6 @@ export type Database = {
             foreignKeyName: "qa_alert_rules_agency_id_fkey"
             columns: ["agency_id"]
             isOneToOne: false
-            referencedRelation: "agency_summary"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "qa_alert_rules_agency_id_fkey"
-            columns: ["agency_id"]
-            isOneToOne: false
-            referencedRelation: "dashboard_metrics"
-            referencedColumns: ["agency_id"]
-          },
-          {
-            foreignKeyName: "qa_alert_rules_agency_id_fkey"
-            columns: ["agency_id"]
-            isOneToOne: false
-            referencedRelation: "master_agency_overview"
-            referencedColumns: ["agency_id"]
-          },
-          {
-            foreignKeyName: "qa_alert_rules_agency_id_fkey"
-            columns: ["agency_id"]
-            isOneToOne: false
             referencedRelation: "v_master_operations"
             referencedColumns: ["agency_id"]
           },
@@ -4355,13 +3590,6 @@ export type Database = {
             foreignKeyName: "qa_alert_rules_event_id_fkey"
             columns: ["event_id"]
             isOneToOne: false
-            referencedRelation: "event_progress_view"
-            referencedColumns: ["event_id"]
-          },
-          {
-            foreignKeyName: "qa_alert_rules_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
             referencedRelation: "events"
             referencedColumns: ["id"]
           },
@@ -4370,13 +3598,6 @@ export type Database = {
             columns: ["event_id"]
             isOneToOne: false
             referencedRelation: "v_event_room_summary"
-            referencedColumns: ["event_id"]
-          },
-          {
-            foreignKeyName: "qa_alert_rules_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "v_insights_dashboard"
             referencedColumns: ["event_id"]
           },
         ]
@@ -4437,27 +3658,6 @@ export type Database = {
             foreignKeyName: "qa_events_agency_id_fkey"
             columns: ["agency_id"]
             isOneToOne: false
-            referencedRelation: "agency_summary"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "qa_events_agency_id_fkey"
-            columns: ["agency_id"]
-            isOneToOne: false
-            referencedRelation: "dashboard_metrics"
-            referencedColumns: ["agency_id"]
-          },
-          {
-            foreignKeyName: "qa_events_agency_id_fkey"
-            columns: ["agency_id"]
-            isOneToOne: false
-            referencedRelation: "master_agency_overview"
-            referencedColumns: ["agency_id"]
-          },
-          {
-            foreignKeyName: "qa_events_agency_id_fkey"
-            columns: ["agency_id"]
-            isOneToOne: false
             referencedRelation: "v_master_operations"
             referencedColumns: ["agency_id"]
           },
@@ -4479,13 +3679,6 @@ export type Database = {
             foreignKeyName: "qa_events_event_id_fkey"
             columns: ["event_id"]
             isOneToOne: false
-            referencedRelation: "event_progress_view"
-            referencedColumns: ["event_id"]
-          },
-          {
-            foreignKeyName: "qa_events_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
             referencedRelation: "events"
             referencedColumns: ["id"]
           },
@@ -4494,13 +3687,6 @@ export type Database = {
             columns: ["event_id"]
             isOneToOne: false
             referencedRelation: "v_event_room_summary"
-            referencedColumns: ["event_id"]
-          },
-          {
-            foreignKeyName: "qa_events_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "v_insights_dashboard"
             referencedColumns: ["event_id"]
           },
         ]
@@ -4862,27 +4048,6 @@ export type Database = {
             foreignKeyName: "reports_agency_id_fkey"
             columns: ["agency_id"]
             isOneToOne: false
-            referencedRelation: "agency_summary"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "reports_agency_id_fkey"
-            columns: ["agency_id"]
-            isOneToOne: false
-            referencedRelation: "dashboard_metrics"
-            referencedColumns: ["agency_id"]
-          },
-          {
-            foreignKeyName: "reports_agency_id_fkey"
-            columns: ["agency_id"]
-            isOneToOne: false
-            referencedRelation: "master_agency_overview"
-            referencedColumns: ["agency_id"]
-          },
-          {
-            foreignKeyName: "reports_agency_id_fkey"
-            columns: ["agency_id"]
-            isOneToOne: false
             referencedRelation: "v_master_operations"
             referencedColumns: ["agency_id"]
           },
@@ -4904,13 +4069,6 @@ export type Database = {
             foreignKeyName: "reports_event_id_fkey"
             columns: ["event_id"]
             isOneToOne: false
-            referencedRelation: "event_progress_view"
-            referencedColumns: ["event_id"]
-          },
-          {
-            foreignKeyName: "reports_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
             referencedRelation: "events"
             referencedColumns: ["id"]
           },
@@ -4919,13 +4077,6 @@ export type Database = {
             columns: ["event_id"]
             isOneToOne: false
             referencedRelation: "v_event_room_summary"
-            referencedColumns: ["event_id"]
-          },
-          {
-            foreignKeyName: "reports_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "v_insights_dashboard"
             referencedColumns: ["event_id"]
           },
         ]
@@ -5084,36 +4235,8 @@ export type Database = {
             foreignKeyName: "role_audit_agency_id_fkey"
             columns: ["agency_id"]
             isOneToOne: false
-            referencedRelation: "agency_summary"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "role_audit_agency_id_fkey"
-            columns: ["agency_id"]
-            isOneToOne: false
-            referencedRelation: "dashboard_metrics"
-            referencedColumns: ["agency_id"]
-          },
-          {
-            foreignKeyName: "role_audit_agency_id_fkey"
-            columns: ["agency_id"]
-            isOneToOne: false
-            referencedRelation: "master_agency_overview"
-            referencedColumns: ["agency_id"]
-          },
-          {
-            foreignKeyName: "role_audit_agency_id_fkey"
-            columns: ["agency_id"]
-            isOneToOne: false
             referencedRelation: "v_master_operations"
             referencedColumns: ["agency_id"]
-          },
-          {
-            foreignKeyName: "role_audit_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "event_progress_view"
-            referencedColumns: ["event_id"]
           },
           {
             foreignKeyName: "role_audit_event_id_fkey"
@@ -5127,13 +4250,6 @@ export type Database = {
             columns: ["event_id"]
             isOneToOne: false
             referencedRelation: "v_event_room_summary"
-            referencedColumns: ["event_id"]
-          },
-          {
-            foreignKeyName: "role_audit_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "v_insights_dashboard"
             referencedColumns: ["event_id"]
           },
           {
@@ -5215,27 +4331,6 @@ export type Database = {
             foreignKeyName: "room_types_agency_id_fkey"
             columns: ["agency_id"]
             isOneToOne: false
-            referencedRelation: "agency_summary"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "room_types_agency_id_fkey"
-            columns: ["agency_id"]
-            isOneToOne: false
-            referencedRelation: "dashboard_metrics"
-            referencedColumns: ["agency_id"]
-          },
-          {
-            foreignKeyName: "room_types_agency_id_fkey"
-            columns: ["agency_id"]
-            isOneToOne: false
-            referencedRelation: "master_agency_overview"
-            referencedColumns: ["agency_id"]
-          },
-          {
-            foreignKeyName: "room_types_agency_id_fkey"
-            columns: ["agency_id"]
-            isOneToOne: false
             referencedRelation: "v_master_operations"
             referencedColumns: ["agency_id"]
           },
@@ -5305,27 +4400,6 @@ export type Database = {
             columns: ["agency_id"]
             isOneToOne: false
             referencedRelation: "agency_performance_summary"
-            referencedColumns: ["agency_id"]
-          },
-          {
-            foreignKeyName: "room_types_cache_agency_id_fkey"
-            columns: ["agency_id"]
-            isOneToOne: false
-            referencedRelation: "agency_summary"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "room_types_cache_agency_id_fkey"
-            columns: ["agency_id"]
-            isOneToOne: false
-            referencedRelation: "dashboard_metrics"
-            referencedColumns: ["agency_id"]
-          },
-          {
-            foreignKeyName: "room_types_cache_agency_id_fkey"
-            columns: ["agency_id"]
-            isOneToOne: false
-            referencedRelation: "master_agency_overview"
             referencedColumns: ["agency_id"]
           },
           {
@@ -5404,27 +4478,6 @@ export type Database = {
             columns: ["agency_id"]
             isOneToOne: false
             referencedRelation: "agency_performance_summary"
-            referencedColumns: ["agency_id"]
-          },
-          {
-            foreignKeyName: "room_types_local_agency_id_fkey"
-            columns: ["agency_id"]
-            isOneToOne: false
-            referencedRelation: "agency_summary"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "room_types_local_agency_id_fkey"
-            columns: ["agency_id"]
-            isOneToOne: false
-            referencedRelation: "dashboard_metrics"
-            referencedColumns: ["agency_id"]
-          },
-          {
-            foreignKeyName: "room_types_local_agency_id_fkey"
-            columns: ["agency_id"]
-            isOneToOne: false
-            referencedRelation: "master_agency_overview"
             referencedColumns: ["agency_id"]
           },
           {
@@ -5568,36 +4621,8 @@ export type Database = {
             foreignKeyName: "rooming_participants_agency_id_fkey"
             columns: ["agency_id"]
             isOneToOne: false
-            referencedRelation: "agency_summary"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "rooming_participants_agency_id_fkey"
-            columns: ["agency_id"]
-            isOneToOne: false
-            referencedRelation: "dashboard_metrics"
-            referencedColumns: ["agency_id"]
-          },
-          {
-            foreignKeyName: "rooming_participants_agency_id_fkey"
-            columns: ["agency_id"]
-            isOneToOne: false
-            referencedRelation: "master_agency_overview"
-            referencedColumns: ["agency_id"]
-          },
-          {
-            foreignKeyName: "rooming_participants_agency_id_fkey"
-            columns: ["agency_id"]
-            isOneToOne: false
             referencedRelation: "v_master_operations"
             referencedColumns: ["agency_id"]
-          },
-          {
-            foreignKeyName: "rooming_participants_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "event_progress_view"
-            referencedColumns: ["event_id"]
           },
           {
             foreignKeyName: "rooming_participants_event_id_fkey"
@@ -5612,27 +4637,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "v_event_room_summary"
             referencedColumns: ["event_id"]
-          },
-          {
-            foreignKeyName: "rooming_participants_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "v_insights_dashboard"
-            referencedColumns: ["event_id"]
-          },
-          {
-            foreignKeyName: "rooming_participants_participant_id_fkey"
-            columns: ["participant_id"]
-            isOneToOne: false
-            referencedRelation: "participants"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "rooming_participants_participant_id_fkey"
-            columns: ["participant_id"]
-            isOneToOne: false
-            referencedRelation: "participants_fullview"
-            referencedColumns: ["id"]
           },
         ]
       }
@@ -5969,13 +4973,6 @@ export type Database = {
             foreignKeyName: "user_event_roles_event_id_fkey"
             columns: ["event_id"]
             isOneToOne: false
-            referencedRelation: "event_progress_view"
-            referencedColumns: ["event_id"]
-          },
-          {
-            foreignKeyName: "user_event_roles_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
             referencedRelation: "events"
             referencedColumns: ["id"]
           },
@@ -5984,13 +4981,6 @@ export type Database = {
             columns: ["event_id"]
             isOneToOne: false
             referencedRelation: "v_event_room_summary"
-            referencedColumns: ["event_id"]
-          },
-          {
-            foreignKeyName: "user_event_roles_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "v_insights_dashboard"
             referencedColumns: ["event_id"]
           },
         ]
@@ -6112,13 +5102,6 @@ export type Database = {
             foreignKeyName: "vendor_feedback_event_id_fkey"
             columns: ["event_id"]
             isOneToOne: false
-            referencedRelation: "event_progress_view"
-            referencedColumns: ["event_id"]
-          },
-          {
-            foreignKeyName: "vendor_feedback_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
             referencedRelation: "events"
             referencedColumns: ["id"]
           },
@@ -6127,13 +5110,6 @@ export type Database = {
             columns: ["event_id"]
             isOneToOne: false
             referencedRelation: "v_event_room_summary"
-            referencedColumns: ["event_id"]
-          },
-          {
-            foreignKeyName: "vendor_feedback_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "v_insights_dashboard"
             referencedColumns: ["event_id"]
           },
           {
@@ -6190,13 +5166,6 @@ export type Database = {
             foreignKeyName: "vendor_performance_event_id_fkey"
             columns: ["event_id"]
             isOneToOne: false
-            referencedRelation: "event_progress_view"
-            referencedColumns: ["event_id"]
-          },
-          {
-            foreignKeyName: "vendor_performance_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
             referencedRelation: "events"
             referencedColumns: ["id"]
           },
@@ -6205,13 +5174,6 @@ export type Database = {
             columns: ["event_id"]
             isOneToOne: false
             referencedRelation: "v_event_room_summary"
-            referencedColumns: ["event_id"]
-          },
-          {
-            foreignKeyName: "vendor_performance_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "v_insights_dashboard"
             referencedColumns: ["event_id"]
           },
           {
@@ -6268,13 +5230,6 @@ export type Database = {
             foreignKeyName: "vendor_scores_event_id_fkey"
             columns: ["event_id"]
             isOneToOne: false
-            referencedRelation: "event_progress_view"
-            referencedColumns: ["event_id"]
-          },
-          {
-            foreignKeyName: "vendor_scores_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
             referencedRelation: "events"
             referencedColumns: ["id"]
           },
@@ -6283,13 +5238,6 @@ export type Database = {
             columns: ["event_id"]
             isOneToOne: false
             referencedRelation: "v_event_room_summary"
-            referencedColumns: ["event_id"]
-          },
-          {
-            foreignKeyName: "vendor_scores_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "v_insights_dashboard"
             referencedColumns: ["event_id"]
           },
           {
@@ -6360,27 +5308,6 @@ export type Database = {
             foreignKeyName: "vendors_agency_id_fkey"
             columns: ["agency_id"]
             isOneToOne: false
-            referencedRelation: "agency_summary"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "vendors_agency_id_fkey"
-            columns: ["agency_id"]
-            isOneToOne: false
-            referencedRelation: "dashboard_metrics"
-            referencedColumns: ["agency_id"]
-          },
-          {
-            foreignKeyName: "vendors_agency_id_fkey"
-            columns: ["agency_id"]
-            isOneToOne: false
-            referencedRelation: "master_agency_overview"
-            referencedColumns: ["agency_id"]
-          },
-          {
-            foreignKeyName: "vendors_agency_id_fkey"
-            columns: ["agency_id"]
-            isOneToOne: false
             referencedRelation: "v_master_operations"
             referencedColumns: ["agency_id"]
           },
@@ -6423,56 +5350,11 @@ export type Database = {
         }
         Relationships: []
       }
-      agency_summary: {
-        Row: {
-          code: string | null
-          created_at: string | null
-          event_count: number | null
-          id: string | null
-          is_active: boolean | null
-          last_activity: string | null
-          name: string | null
-          participant_count: number | null
-        }
-        Insert: {
-          code?: string | null
-          created_at?: string | null
-          event_count?: never
-          id?: string | null
-          is_active?: boolean | null
-          last_activity?: never
-          name?: string | null
-          participant_count?: never
-        }
-        Update: {
-          code?: string | null
-          created_at?: string | null
-          event_count?: never
-          id?: string | null
-          is_active?: boolean | null
-          last_activity?: never
-          name?: string | null
-          participant_count?: never
-        }
-        Relationships: []
-      }
       ai_insights_summary: {
         Row: {
           count: number | null
           latest_detection: string | null
           severity: string | null
-        }
-        Relationships: []
-      }
-      dashboard_metrics: {
-        Row: {
-          activities_count: number | null
-          agency_code: string | null
-          agency_id: string | null
-          agency_name: string | null
-          events_count: number | null
-          last_updated: string | null
-          participants_count: number | null
         }
         Relationships: []
       }
@@ -6498,65 +5380,6 @@ export type Database = {
           module: string | null
         }
         Relationships: []
-      }
-      event_progress_view: {
-        Row: {
-          agency_id: string | null
-          assigned_room_count: number | null
-          end_date: string | null
-          event_id: string | null
-          name: string | null
-          participant_count: number | null
-          participant_rate: number | null
-          progress_rate: number | null
-          rooming_rate: number | null
-          start_date: string | null
-          status: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "events_agency_id_fkey"
-            columns: ["agency_id"]
-            isOneToOne: false
-            referencedRelation: "agencies"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "events_agency_id_fkey"
-            columns: ["agency_id"]
-            isOneToOne: false
-            referencedRelation: "agency_performance_summary"
-            referencedColumns: ["agency_id"]
-          },
-          {
-            foreignKeyName: "events_agency_id_fkey"
-            columns: ["agency_id"]
-            isOneToOne: false
-            referencedRelation: "agency_summary"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "events_agency_id_fkey"
-            columns: ["agency_id"]
-            isOneToOne: false
-            referencedRelation: "dashboard_metrics"
-            referencedColumns: ["agency_id"]
-          },
-          {
-            foreignKeyName: "events_agency_id_fkey"
-            columns: ["agency_id"]
-            isOneToOne: false
-            referencedRelation: "master_agency_overview"
-            referencedColumns: ["agency_id"]
-          },
-          {
-            foreignKeyName: "events_agency_id_fkey"
-            columns: ["agency_id"]
-            isOneToOne: false
-            referencedRelation: "v_master_operations"
-            referencedColumns: ["agency_id"]
-          },
-        ]
       }
       flow_ops_intelligence: {
         Row: {
@@ -6584,15 +5407,6 @@ export type Database = {
         }
         Relationships: []
       }
-      flow_participants_summary: {
-        Row: {
-          event_id: string | null
-          org_count: number | null
-          role_variety: number | null
-          total: number | null
-        }
-        Relationships: []
-      }
       latest_health_check: {
         Row: {
           ai_success_rate: number | null
@@ -6604,57 +5418,6 @@ export type Database = {
           storage_usage_percent: number | null
           supabase_status: string | null
           timestamp: string | null
-        }
-        Relationships: []
-      }
-      logs_combined_view: {
-        Row: {
-          created_at: string | null
-          created_by: string | null
-          event_id: string | null
-          id: string | null
-          payload: Json | null
-          source: string | null
-          target_id: string | null
-        }
-        Relationships: []
-      }
-      master_agency_overview: {
-        Row: {
-          activity_count: number | null
-          agency_code: string | null
-          agency_id: string | null
-          agency_name: string | null
-          events_count: number | null
-          is_active: boolean | null
-          last_activity: string | null
-          member_count: number | null
-          participants_count: number | null
-          status: string | null
-        }
-        Insert: {
-          activity_count?: never
-          agency_code?: string | null
-          agency_id?: string | null
-          agency_name?: string | null
-          events_count?: never
-          is_active?: boolean | null
-          last_activity?: never
-          member_count?: never
-          participants_count?: never
-          status?: never
-        }
-        Update: {
-          activity_count?: never
-          agency_code?: string | null
-          agency_id?: string | null
-          agency_name?: string | null
-          events_count?: never
-          is_active?: boolean | null
-          last_activity?: never
-          member_count?: never
-          participants_count?: never
-          status?: never
         }
         Relationships: []
       }
@@ -6695,97 +5458,6 @@ export type Database = {
           role?: never
         }
         Relationships: []
-      }
-      participants_fullview: {
-        Row: {
-          agency_id: string | null
-          call_completed: boolean | null
-          call_completed_at: string | null
-          check_in: string | null
-          check_out: string | null
-          created_at: string | null
-          email: string | null
-          event_id: string | null
-          form_response_data: Json | null
-          form_response_id: string | null
-          form_status: string | null
-          form_updated_at: string | null
-          id: string | null
-          is_active: boolean | null
-          last_modified_at: string | null
-          last_modified_by: string | null
-          manager_name: string | null
-          manager_phone: string | null
-          memo: string | null
-          name: string | null
-          organization: string | null
-          participation_type: string | null
-          phone: string | null
-          position: string | null
-          role_type: string | null
-          room_type: string | null
-          status: string | null
-          tags: string[] | null
-          team_name: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "participants_agency_id_fkey"
-            columns: ["agency_id"]
-            isOneToOne: false
-            referencedRelation: "agencies"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "participants_agency_id_fkey"
-            columns: ["agency_id"]
-            isOneToOne: false
-            referencedRelation: "agency_performance_summary"
-            referencedColumns: ["agency_id"]
-          },
-          {
-            foreignKeyName: "participants_agency_id_fkey"
-            columns: ["agency_id"]
-            isOneToOne: false
-            referencedRelation: "agency_summary"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "participants_agency_id_fkey"
-            columns: ["agency_id"]
-            isOneToOne: false
-            referencedRelation: "dashboard_metrics"
-            referencedColumns: ["agency_id"]
-          },
-          {
-            foreignKeyName: "participants_agency_id_fkey"
-            columns: ["agency_id"]
-            isOneToOne: false
-            referencedRelation: "master_agency_overview"
-            referencedColumns: ["agency_id"]
-          },
-          {
-            foreignKeyName: "participants_agency_id_fkey"
-            columns: ["agency_id"]
-            isOneToOne: false
-            referencedRelation: "v_master_operations"
-            referencedColumns: ["agency_id"]
-          },
-          {
-            foreignKeyName: "participants_last_modified_by_fkey"
-            columns: ["last_modified_by"]
-            isOneToOne: false
-            referencedRelation: "master_users"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "participants_last_modified_by_fkey"
-            columns: ["last_modified_by"]
-            isOneToOne: false
-            referencedRelation: "user_profiles"
-            referencedColumns: ["id"]
-          },
-        ]
       }
       qa_reports_latest: {
         Row: {
@@ -6918,94 +5590,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "v_event_room_summary"
             referencedColumns: ["type_id"]
-          },
-        ]
-      }
-      v_insights_dashboard: {
-        Row: {
-          active_pages: number | null
-          agency_id: string | null
-          created_at: string | null
-          event_id: string | null
-          event_name: string | null
-          form_responses: number | null
-          latest_ai_summary: string | null
-          latest_metrics: Json | null
-          latest_recommendations: Json | null
-          messages_sent: number | null
-          participants_count: number | null
-          updated_at: string | null
-        }
-        Insert: {
-          active_pages?: never
-          agency_id?: string | null
-          created_at?: string | null
-          event_id?: string | null
-          event_name?: string | null
-          form_responses?: never
-          latest_ai_summary?: never
-          latest_metrics?: never
-          latest_recommendations?: never
-          messages_sent?: never
-          participants_count?: never
-          updated_at?: string | null
-        }
-        Update: {
-          active_pages?: never
-          agency_id?: string | null
-          created_at?: string | null
-          event_id?: string | null
-          event_name?: string | null
-          form_responses?: never
-          latest_ai_summary?: never
-          latest_metrics?: never
-          latest_recommendations?: never
-          messages_sent?: never
-          participants_count?: never
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "events_agency_id_fkey"
-            columns: ["agency_id"]
-            isOneToOne: false
-            referencedRelation: "agencies"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "events_agency_id_fkey"
-            columns: ["agency_id"]
-            isOneToOne: false
-            referencedRelation: "agency_performance_summary"
-            referencedColumns: ["agency_id"]
-          },
-          {
-            foreignKeyName: "events_agency_id_fkey"
-            columns: ["agency_id"]
-            isOneToOne: false
-            referencedRelation: "agency_summary"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "events_agency_id_fkey"
-            columns: ["agency_id"]
-            isOneToOne: false
-            referencedRelation: "dashboard_metrics"
-            referencedColumns: ["agency_id"]
-          },
-          {
-            foreignKeyName: "events_agency_id_fkey"
-            columns: ["agency_id"]
-            isOneToOne: false
-            referencedRelation: "master_agency_overview"
-            referencedColumns: ["agency_id"]
-          },
-          {
-            foreignKeyName: "events_agency_id_fkey"
-            columns: ["agency_id"]
-            isOneToOne: false
-            referencedRelation: "v_master_operations"
-            referencedColumns: ["agency_id"]
           },
         ]
       }
