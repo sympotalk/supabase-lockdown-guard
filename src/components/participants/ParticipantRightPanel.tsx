@@ -193,14 +193,14 @@ export function ParticipantRightPanel({
       </div>
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto p-4">
-        <div className="space-y-4">
+      <div className="flex-1 overflow-y-auto px-[14px] py-3">
+        <div className="space-y-2">
           {/* Basic Info */}
           <Card className="mt-2">
-            <CardHeader className="p-3 pb-1">
-              <CardTitle className="text-sm font-medium mb-1">기본 정보</CardTitle>
+            <CardHeader className="px-3 pt-3 pb-1">
+              <CardTitle className="text-sm font-semibold mb-0">기본 정보</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-2 p-3">
+            <CardContent className="space-y-2 px-3 pt-1 pb-3">
               <div className="flex items-center gap-2 text-sm">
                 <User className="h-4 w-4 text-muted-foreground" />
                 <span className="font-medium">{localData.name}</span>
@@ -228,10 +228,10 @@ export function ParticipantRightPanel({
 
           {/* Memo */}
           <Card className="mt-2">
-            <CardHeader className="p-3 pb-1">
-              <CardTitle className="text-sm font-medium mb-1">메모</CardTitle>
+            <CardHeader className="px-3 pt-3 pb-1">
+              <CardTitle className="text-sm font-semibold mb-0">메모</CardTitle>
             </CardHeader>
-            <CardContent className="p-3">
+            <CardContent className="px-3 pt-1 pb-3">
               <Textarea
                 placeholder="메모 입력..."
                 value={localData?.memo || ""}
@@ -253,10 +253,10 @@ export function ParticipantRightPanel({
 
           {/* Lodging Status */}
           <Card className="mt-2">
-            <CardHeader className="p-3 pb-1">
-              <CardTitle className="text-sm font-medium mb-1">숙박 여부</CardTitle>
+            <CardHeader className="px-3 pt-3 pb-1">
+              <CardTitle className="text-sm font-semibold mb-0">숙박 여부</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-2 p-3">
+            <CardContent className="space-y-2 px-3 pt-1 pb-3">
               <select
                 value={localData?.lodging_status || ""}
                 onChange={(e) => {
@@ -289,10 +289,10 @@ export function ParticipantRightPanel({
 
           {/* Companion Info */}
           <Card className="mt-2">
-            <CardHeader className="p-3 pb-1">
-              <CardTitle className="text-sm font-medium mb-1">동반자 정보</CardTitle>
+            <CardHeader className="px-3 pt-3 pb-1">
+              <CardTitle className="text-sm font-semibold mb-0">동반자 정보</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-2 p-3">
+            <CardContent className="space-y-2 px-3 pt-1 pb-3">
               <Input
                 value={localData?.companion || ""}
                 onChange={(e) => {
@@ -318,10 +318,10 @@ export function ParticipantRightPanel({
 
           {/* Adult/Child Count */}
           <Card className="mt-2">
-            <CardHeader className="p-3 pb-1">
-              <CardTitle className="text-sm font-medium mb-1">참가자 동반 정보</CardTitle>
+            <CardHeader className="px-3 pt-3 pb-1">
+              <CardTitle className="text-sm font-semibold mb-0">참가자 동반 정보</CardTitle>
             </CardHeader>
-            <CardContent className="p-3">
+            <CardContent className="px-3 pt-1 pb-3">
               <div className="grid grid-cols-3 gap-2">
                 <div className="space-y-1">
                   <Label className="text-xs">성인 인원</Label>
@@ -372,10 +372,10 @@ export function ParticipantRightPanel({
 
           {/* Manager Info */}
           <Card className="mt-2">
-            <CardHeader className="p-3 pb-1">
-              <CardTitle className="text-sm font-medium mb-1">담당자 정보</CardTitle>
+            <CardHeader className="px-3 pt-3 pb-1">
+              <CardTitle className="text-sm font-semibold mb-0">담당자 정보</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-2 p-3">
+            <CardContent className="space-y-2 px-3 pt-1 pb-3">
               <div className="space-y-1">
                 <Label className="text-xs">팀명</Label>
                 <Input
@@ -432,13 +432,13 @@ export function ParticipantRightPanel({
 
           {/* SFE Codes */}
           <Card className="mt-2">
-            <CardHeader className="p-3 pb-1">
-              <CardTitle className="text-sm font-medium mb-1 flex items-center gap-2">
+            <CardHeader className="px-3 pt-3 pb-1">
+              <CardTitle className="text-sm font-semibold mb-0 flex items-center gap-2">
                 <Code className="h-4 w-4" />
                 SFE 코드
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-2 p-3">
+            <CardContent className="space-y-2 px-3 pt-1 pb-3">
               <div className="space-y-1">
                 <Label className="text-xs">거래처 코드</Label>
                 <Input
@@ -471,10 +471,10 @@ export function ParticipantRightPanel({
           {/* Last Modified */}
           {localData.last_edited_at && (
             <Card className="mt-2">
-              <CardHeader className="p-3 pb-1">
-                <CardTitle className="text-sm font-medium mb-1">마지막 수정</CardTitle>
+              <CardHeader className="px-3 pt-3 pb-1">
+                <CardTitle className="text-sm font-semibold mb-0">최종 수정 정보</CardTitle>
               </CardHeader>
-              <CardContent className="p-3">
+              <CardContent className="px-3 pt-1 pb-3">
                 <p className="text-xs text-muted-foreground">
                   {new Date(localData.last_edited_at).toLocaleString('ko-KR', {
                     year: 'numeric',

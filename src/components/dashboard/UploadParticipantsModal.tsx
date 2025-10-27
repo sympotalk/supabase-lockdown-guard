@@ -55,7 +55,7 @@ export function UploadParticipantsModal({
     }
   }, [open, activeEventId, onOpenChange, toast]);
 
-  // [LOCKED][71-I.QA3-FIX.R4] AI Column Mapping Layer for flexible Excel formats
+  // [71-J.2.FIX.D] AI Column Mapping Layer with manager_info & SFE codes
   const normalizeColumns = (record: any): any => {
     const columnMap: Record<string, string> = {
       "고객 성명": "name",
@@ -81,11 +81,17 @@ export function UploadParticipantsModal({
       "팀명": "team_name",
       "팀": "team_name",
       "team": "team_name",
+      "담당자 팀명": "manager_team",
+      "담당자팀": "manager_team",
       "담당자 성명": "manager_name",
       "담당자": "manager_name",
       "담당자명": "manager_name",
       "담당자 연락처": "manager_phone",
-      "담당자전화": "manager_phone"
+      "담당자전화": "manager_phone",
+      "거래처 코드": "sfe_account_code",
+      "거래처코드": "sfe_account_code",
+      "고객 코드": "sfe_customer_code",
+      "고객코드": "sfe_customer_code"
     };
 
     const normalized: any = {};
@@ -124,9 +130,16 @@ export function UploadParticipantsModal({
           return;
         }
 
-        // [71-I.QA3-FIX.R4] Apply AI column mapping to normalize Excel headers
+        // [71-J.2.FIX.D] Apply AI column mapping + manager_info JSON construction
         const rows = json.map((row: any) => {
           const normalized = normalizeColumns(row);
+          
+          // [71-J.2.FIX.D] Construct manager_info as JSON object
+          const managerInfo: any = {};
+          if (normalized.manager_team) managerInfo.team = normalized.manager_team;
+          if (normalized.manager_name) managerInfo.name = normalized.manager_name;
+          if (normalized.manager_phone) managerInfo.phone = normalized.manager_phone;
+          
           return {
             name: normalized.name || '',
             organization: normalized.organization || '',
@@ -134,8 +147,9 @@ export function UploadParticipantsModal({
             email: normalized.email || '',
             memo: normalized.memo || '',
             team_name: normalized.team_name || '',
-            manager_name: normalized.manager_name || '',
-            manager_phone: normalized.manager_phone || ''
+            manager_info: Object.keys(managerInfo).length > 0 ? managerInfo : null,
+            sfe_account_code: normalized.sfe_account_code || null,
+            sfe_customer_code: normalized.sfe_customer_code || null
           };
         }).filter(row => row.name); // Only keep rows with names
 

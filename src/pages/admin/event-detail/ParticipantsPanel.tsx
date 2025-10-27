@@ -187,9 +187,9 @@ export default function ParticipantsPanel() {
   }
 
   return (
-    <div className="h-full flex flex-col bg-background">
+    <div className="h-full flex flex-col bg-background ml-3">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-4 border-b bg-white">
+      <div className="flex items-center justify-between px-2 py-4 border-b bg-white">
         <div className="flex items-center gap-4">
           <div className="relative flex-1 min-w-[300px]">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -269,7 +269,7 @@ export default function ParticipantsPanel() {
       {/* Main Content: Full Width Table with Fixed Right Panel */}
       <div className="flex-1 overflow-hidden relative">
         {/* Table Section */}
-        <div className="h-full overflow-auto pr-[320px] pl-4 pr-2 py-4">
+        <div className="h-full overflow-auto pr-[328px] pl-2 py-4" style={{ width: '100%', maxWidth: 'none' }}>
           <Card>
             <CardContent className="p-0">
               {!filteredParticipants || filteredParticipants.length === 0 ? (
