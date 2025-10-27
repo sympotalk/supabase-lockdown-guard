@@ -3338,10 +3338,14 @@ export type Database = {
       }
       participants: {
         Row: {
+          adult_count: number | null
           agency_id: string
           call_checked: boolean | null
+          child_age: string | null
+          child_count: number | null
           classification: string | null
           companion: string | null
+          companion_memo: string | null
           created_at: string
           created_by: string | null
           email: string | null
@@ -3371,10 +3375,14 @@ export type Database = {
           updated_by: string | null
         }
         Insert: {
+          adult_count?: number | null
           agency_id: string
           call_checked?: boolean | null
+          child_age?: string | null
+          child_count?: number | null
           classification?: string | null
           companion?: string | null
+          companion_memo?: string | null
           created_at?: string
           created_by?: string | null
           email?: string | null
@@ -3404,10 +3412,14 @@ export type Database = {
           updated_by?: string | null
         }
         Update: {
+          adult_count?: number | null
           agency_id?: string
           call_checked?: boolean | null
+          child_age?: string | null
+          child_count?: number | null
           classification?: string | null
           companion?: string | null
+          companion_memo?: string | null
           created_at?: string
           created_by?: string | null
           email?: string | null

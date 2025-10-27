@@ -34,6 +34,10 @@ interface Participant {
   stay_status?: string;
   lodging_status?: string;
   companion?: string;
+  companion_memo?: string;
+  adult_count?: number;
+  child_count?: number;
+  child_age?: string;
   recruitment_status?: string;
   message_sent?: string;
   survey_completed?: string;
@@ -104,11 +108,17 @@ export function ParticipantRightPanel({
         // Show specific toast based on field
         const fieldKey = Object.keys(patch)[0];
         if (fieldKey === "stay_status" || fieldKey === "lodging_status") {
-          toast.success("숙박 현황이 변경되었습니다.");
+          toast.success("숙박 여부가 변경되었습니다.");
         } else if (fieldKey === "memo") {
           toast.success("요청사항이 저장되었습니다.");
-        } else if (fieldKey === "companion") {
+        } else if (fieldKey === "companion" || fieldKey === "companion_memo") {
           toast.success("동반자 정보가 반영되었습니다.");
+        } else if (fieldKey === "manager_info") {
+          toast.success("담당자 정보가 저장되었습니다.");
+        } else if (fieldKey === "sfe_agency_code" || fieldKey === "sfe_customer_code") {
+          toast.success("SFE 코드가 업데이트되었습니다.");
+        } else if (fieldKey === "adult_count" || fieldKey === "child_count" || fieldKey === "child_age") {
+          toast.success("참가자 동반 정보가 저장되었습니다.");
         } else {
           toast.success("저장되었습니다.");
         }
@@ -186,9 +196,9 @@ export function ParticipantRightPanel({
       <div className="flex-1 overflow-y-auto p-4">
         <div className="space-y-4">
           {/* Basic Info */}
-          <Card>
-            <CardHeader className="p-3">
-              <CardTitle className="text-sm font-medium">기본 정보</CardTitle>
+          <Card className="mt-2">
+            <CardHeader className="p-3 pb-1">
+              <CardTitle className="text-sm font-medium mb-1">기본 정보</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2 p-3">
               <div className="flex items-center gap-2 text-sm">
@@ -217,9 +227,9 @@ export function ParticipantRightPanel({
           </Card>
 
           {/* Memo */}
-          <Card>
-            <CardHeader className="p-3">
-              <CardTitle className="text-sm font-medium">메모</CardTitle>
+          <Card className="mt-2">
+            <CardHeader className="p-3 pb-1">
+              <CardTitle className="text-sm font-medium mb-1">메모</CardTitle>
             </CardHeader>
             <CardContent className="p-3">
               <Textarea
@@ -230,7 +240,7 @@ export function ParticipantRightPanel({
                   setLocalData({ ...localData, memo: e.target.value });
                 }}
                 onBlur={(e) => handleFieldChange("memo", e.target.value)}
-                className="min-h-[80px] resize-none"
+                className="min-h-[80px] resize-none text-sm"
               />
             </CardContent>
           </Card>
@@ -242,73 +252,128 @@ export function ParticipantRightPanel({
           />
 
           {/* Lodging Status */}
-          <Card>
-            <CardHeader className="p-3">
-              <CardTitle className="text-sm font-medium">숙박 현황</CardTitle>
+          <Card className="mt-2">
+            <CardHeader className="p-3 pb-1">
+              <CardTitle className="text-sm font-medium mb-1">숙박 여부</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2 p-3">
-              <div className="space-y-1">
-                <Label className="text-xs">숙박 계획</Label>
-                <select
-                  value={localData?.lodging_status || ""}
+              <select
+                value={localData?.lodging_status || ""}
+                onChange={(e) => {
+                  if (!localData) return;
+                  setLocalData({ ...localData, lodging_status: e.target.value });
+                  handleFieldChange("lodging_status", e.target.value);
+                }}
+                className="flex h-8 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+              >
+                <option value="">숙박 상태 선택</option>
+                <option value="미숙박">미숙박</option>
+                <option value="1일차">1일차</option>
+                <option value="2일차">2일차</option>
+                <option value="직접입력">직접입력</option>
+              </select>
+              {localData?.lodging_status === "직접입력" && (
+                <Input
+                  value={localData?.stay_status || ""}
                   onChange={(e) => {
                     if (!localData) return;
-                    setLocalData({ ...localData, lodging_status: e.target.value });
-                    handleFieldChange("lodging_status", e.target.value);
+                    setLocalData({ ...localData, stay_status: e.target.value });
                   }}
-                  className="flex h-8 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                >
-                  <option value="">선택하세요</option>
-                  <option value="미숙박">미숙박</option>
-                  <option value="1일차">1일차</option>
-                  <option value="2일차">2일차</option>
-                  <option value="직접입력">직접입력</option>
-                </select>
-              </div>
-              {localData?.lodging_status === "직접입력" && (
-                <div className="space-y-1">
-                  <Label className="text-xs">직접 입력</Label>
-                  <Input
-                    value={localData?.stay_status || ""}
-                    onChange={(e) => {
-                      if (!localData) return;
-                      setLocalData({ ...localData, stay_status: e.target.value });
-                    }}
-                    onBlur={(e) => handleFieldChange("stay_status", e.target.value)}
-                    placeholder="예: 1박 2일"
-                    className="h-8 text-sm"
-                  />
-                </div>
+                  onBlur={(e) => handleFieldChange("stay_status", e.target.value)}
+                  placeholder="예: 1박 2일"
+                  className="h-8 text-sm"
+                />
               )}
             </CardContent>
           </Card>
 
           {/* Companion Info */}
-          <Card>
-            <CardHeader className="p-3">
-              <CardTitle className="text-sm font-medium">동반자 정보</CardTitle>
+          <Card className="mt-2">
+            <CardHeader className="p-3 pb-1">
+              <CardTitle className="text-sm font-medium mb-1">동반자 정보</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2 p-3">
-              <div className="space-y-1">
-                <Label className="text-xs">동반인</Label>
-                <Input
-                  value={localData?.companion || ""}
-                  onChange={(e) => {
-                    if (!localData) return;
-                    setLocalData({ ...localData, companion: e.target.value });
-                  }}
-                  onBlur={(e) => handleFieldChange("companion", e.target.value)}
-                  placeholder="예: 홍길동(배우자)"
-                  className="h-8 text-sm"
-                />
+              <Input
+                value={localData?.companion || ""}
+                onChange={(e) => {
+                  if (!localData) return;
+                  setLocalData({ ...localData, companion: e.target.value });
+                }}
+                onBlur={(e) => handleFieldChange("companion", e.target.value)}
+                placeholder="예: 홍길동(배우자)"
+                className="h-8 text-sm"
+              />
+              <Textarea
+                value={localData?.companion_memo || ""}
+                onChange={(e) => {
+                  if (!localData) return;
+                  setLocalData({ ...localData, companion_memo: e.target.value });
+                }}
+                onBlur={(e) => handleFieldChange("companion_memo", e.target.value)}
+                placeholder="추가 메모를 입력하세요..."
+                className="min-h-[60px] resize-none text-sm"
+              />
+            </CardContent>
+          </Card>
+
+          {/* Adult/Child Count */}
+          <Card className="mt-2">
+            <CardHeader className="p-3 pb-1">
+              <CardTitle className="text-sm font-medium mb-1">참가자 동반 정보</CardTitle>
+            </CardHeader>
+            <CardContent className="p-3">
+              <div className="grid grid-cols-3 gap-2">
+                <div className="space-y-1">
+                  <Label className="text-xs">성인 인원</Label>
+                  <Input
+                    type="number"
+                    min="0"
+                    value={localData?.adult_count ?? 1}
+                    onChange={(e) => {
+                      if (!localData) return;
+                      const value = parseInt(e.target.value) || 0;
+                      setLocalData({ ...localData, adult_count: value });
+                    }}
+                    onBlur={(e) => handleFieldChange("adult_count", parseInt(e.target.value) || 0)}
+                    className="h-8 text-sm"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs">소아 인원</Label>
+                  <Input
+                    type="number"
+                    min="0"
+                    value={localData?.child_count ?? 0}
+                    onChange={(e) => {
+                      if (!localData) return;
+                      const value = parseInt(e.target.value) || 0;
+                      setLocalData({ ...localData, child_count: value });
+                    }}
+                    onBlur={(e) => handleFieldChange("child_count", parseInt(e.target.value) || 0)}
+                    className="h-8 text-sm"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs">소아 나이</Label>
+                  <Input
+                    value={localData?.child_age || ""}
+                    onChange={(e) => {
+                      if (!localData) return;
+                      setLocalData({ ...localData, child_age: e.target.value });
+                    }}
+                    onBlur={(e) => handleFieldChange("child_age", e.target.value)}
+                    placeholder="예: 6세, 9세"
+                    className="h-8 text-sm"
+                  />
+                </div>
               </div>
             </CardContent>
           </Card>
 
           {/* Manager Info */}
-          <Card>
-            <CardHeader className="p-3">
-              <CardTitle className="text-sm font-medium">담당자 정보</CardTitle>
+          <Card className="mt-2">
+            <CardHeader className="p-3 pb-1">
+              <CardTitle className="text-sm font-medium mb-1">담당자 정보</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2 p-3">
               <div className="space-y-1">
@@ -317,11 +382,11 @@ export function ParticipantRightPanel({
                   value={localData?.manager_info?.team_name || localData?.team_name || ""}
                   onChange={(e) => {
                     if (!localData) return;
-                    const newInfo = { ...localData.manager_info, team_name: e.target.value };
+                    const newInfo = { ...(localData.manager_info || {}), team_name: e.target.value };
                     setLocalData({ ...localData, manager_info: newInfo });
                   }}
                   onBlur={(e) => {
-                    const newInfo = { ...localData?.manager_info, team_name: e.target.value };
+                    const newInfo = { ...(localData?.manager_info || {}), team_name: e.target.value };
                     handleFieldChange("manager_info", newInfo);
                   }}
                   placeholder="예: 영업1팀"
@@ -334,11 +399,11 @@ export function ParticipantRightPanel({
                   value={localData?.manager_info?.manager_name || localData?.manager_name || ""}
                   onChange={(e) => {
                     if (!localData) return;
-                    const newInfo = { ...localData.manager_info, manager_name: e.target.value };
+                    const newInfo = { ...(localData.manager_info || {}), manager_name: e.target.value };
                     setLocalData({ ...localData, manager_info: newInfo });
                   }}
                   onBlur={(e) => {
-                    const newInfo = { ...localData?.manager_info, manager_name: e.target.value };
+                    const newInfo = { ...(localData?.manager_info || {}), manager_name: e.target.value };
                     handleFieldChange("manager_info", newInfo);
                   }}
                   placeholder="예: 홍길동"
@@ -351,11 +416,11 @@ export function ParticipantRightPanel({
                   value={localData?.manager_info?.phone || localData?.manager_phone || ""}
                   onChange={(e) => {
                     if (!localData) return;
-                    const newInfo = { ...localData.manager_info, phone: e.target.value };
+                    const newInfo = { ...(localData.manager_info || {}), phone: e.target.value };
                     setLocalData({ ...localData, manager_info: newInfo });
                   }}
                   onBlur={(e) => {
-                    const newInfo = { ...localData?.manager_info, phone: e.target.value };
+                    const newInfo = { ...(localData?.manager_info || {}), phone: e.target.value };
                     handleFieldChange("manager_info", newInfo);
                   }}
                   placeholder="예: 010-1234-5678"
@@ -366,9 +431,9 @@ export function ParticipantRightPanel({
           </Card>
 
           {/* SFE Codes */}
-          <Card>
-            <CardHeader className="p-3">
-              <CardTitle className="text-sm font-medium flex items-center gap-2">
+          <Card className="mt-2">
+            <CardHeader className="p-3 pb-1">
+              <CardTitle className="text-sm font-medium mb-1 flex items-center gap-2">
                 <Code className="h-4 w-4" />
                 SFE 코드
               </CardTitle>
@@ -383,8 +448,8 @@ export function ParticipantRightPanel({
                     setLocalData({ ...localData, sfe_agency_code: e.target.value });
                   }}
                   onBlur={(e) => handleFieldChange("sfe_agency_code", e.target.value)}
-                  placeholder="예: AGN-001"
-                  className="h-8 text-sm font-mono"
+                  placeholder={!localData?.sfe_agency_code ? "없음" : "예: AGN-001"}
+                  className={`h-8 text-sm font-mono ${!localData?.sfe_agency_code ? 'italic text-muted-foreground' : ''}`}
                 />
               </div>
               <div className="space-y-1">
@@ -396,8 +461,8 @@ export function ParticipantRightPanel({
                     setLocalData({ ...localData, sfe_customer_code: e.target.value });
                   }}
                   onBlur={(e) => handleFieldChange("sfe_customer_code", e.target.value)}
-                  placeholder="예: CUS-001"
-                  className="h-8 text-sm font-mono"
+                  placeholder={!localData?.sfe_customer_code ? "없음" : "예: CUS-001"}
+                  className={`h-8 text-sm font-mono ${!localData?.sfe_customer_code ? 'italic text-muted-foreground' : ''}`}
                 />
               </div>
             </CardContent>
@@ -405,9 +470,9 @@ export function ParticipantRightPanel({
 
           {/* Last Modified */}
           {localData.last_edited_at && (
-            <Card>
-              <CardHeader className="p-3">
-                <CardTitle className="text-sm font-medium">마지막 수정</CardTitle>
+            <Card className="mt-2">
+              <CardHeader className="p-3 pb-1">
+                <CardTitle className="text-sm font-medium mb-1">마지막 수정</CardTitle>
               </CardHeader>
               <CardContent className="p-3">
                 <p className="text-xs text-muted-foreground">

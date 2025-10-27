@@ -49,6 +49,10 @@ interface Participant {
   stay_status?: string;
   lodging_status?: string;
   companion?: string;
+  companion_memo?: string;
+  adult_count?: number;
+  child_count?: number;
+  child_age?: string;
   recruitment_status?: string;
   message_sent?: string;
   survey_completed?: string;
@@ -290,6 +294,9 @@ export default function ParticipantsPanel() {
                     <TableHead className="font-semibold w-28">연락처</TableHead>
                     <TableHead className="font-semibold w-36">요청사항</TableHead>
                     <TableHead className="font-semibold w-24">숙박현황</TableHead>
+                    <TableHead className="font-semibold w-16 text-center">성인</TableHead>
+                    <TableHead className="font-semibold w-16 text-center">소아</TableHead>
+                    <TableHead className="font-semibold w-20 text-center">소아나이</TableHead>
                     <TableHead className="font-semibold w-24">동반인</TableHead>
                     <TableHead className="font-semibold w-20 text-center">모객</TableHead>
                     <TableHead className="font-semibold w-20 text-center">문자</TableHead>
@@ -347,6 +354,19 @@ export default function ParticipantsPanel() {
                         <Badge variant="secondary" className="text-xs">
                           {participant.lodging_status || "미정"}
                         </Badge>
+                      </TableCell>
+                      <TableCell className="text-center">
+                        {participant.adult_count ? (
+                          <Badge variant="outline" className="text-xs">{participant.adult_count}</Badge>
+                        ) : "-"}
+                      </TableCell>
+                      <TableCell className="text-center">
+                        {participant.child_count ? (
+                          <Badge variant="outline" className="text-xs">{participant.child_count}</Badge>
+                        ) : "-"}
+                      </TableCell>
+                      <TableCell className="text-center text-sm">
+                        {participant.child_age || "-"}
                       </TableCell>
                       <TableCell className="text-sm">
                         {participant.companion || "-"}
