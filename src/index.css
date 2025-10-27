@@ -175,12 +175,27 @@ All colors MUST be HSL.
   padding-right: 16px;
 }
 
+/* Dark mode layout alignment fix */
+.dark .layout-full {
+  width: 100%;
+  max-width: none;
+  margin-left: 0;
+  padding-left: 16px;
+  padding-right: 16px;
+}
+
 /* Tabs header unified style */
 .tabs-header {
   height: 48px;
   align-items: center;
   border-bottom: 1px solid hsl(var(--border));
   margin-bottom: 0;
+  background-color: hsl(var(--background));
+}
+
+.tabs-header button.active {
+  color: hsl(var(--primary));
+  border-bottom: 2px solid hsl(var(--primary));
 }
 
 /* Right panel responsive guard */
@@ -191,10 +206,14 @@ All colors MUST be HSL.
   width: 320px;
   height: calc(100vh - 80px);
   overflow-y: auto;
-  background: hsl(var(--background));
-  box-shadow: 0 0 8px rgba(0, 0, 0, 0.05);
+  background: hsl(var(--card));
+  box-shadow: var(--shadow-md);
   border-left: 1px solid hsl(var(--border));
   z-index: 40;
+}
+
+.dark .right-panel {
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.3);
 }
 
 @media (max-width: 1440px) {
@@ -217,4 +236,11 @@ All colors MUST be HSL.
   margin-top: 0;
   table-layout: auto;
   border-spacing: 0;
+  background-color: hsl(var(--card));
+  color: hsl(var(--card-foreground));
+}
+
+.participants-table th,
+.participants-table td {
+  border-color: hsl(var(--border));
 }

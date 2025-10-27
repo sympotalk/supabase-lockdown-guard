@@ -189,13 +189,13 @@ export default function ParticipantsPanel() {
   return (
     <div className="h-full flex flex-col w-full bg-background" style={{ maxWidth: 'none' }}>
       {/* Header */}
-      <div className="tabs-header flex items-center justify-between w-full px-2 py-3 border-b bg-white">
+      <div className="tabs-header flex items-center justify-between w-full px-2 py-3 border-b">
         <div className="flex items-center gap-4 flex-1">
           <div className="relative min-w-[300px]">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               placeholder="이름 또는 소속으로 검색..."
-              className="pl-10 h-10"
+              className="pl-10 h-10 bg-background"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
@@ -278,9 +278,9 @@ export default function ParticipantsPanel() {
                 </div>
               ) : (
                 <div className="overflow-x-auto">
-                  <Table>
-                <TableHeader>
-                  <TableRow className="bg-muted hover:bg-muted">
+                  <Table className="participants-table">
+                <TableHeader className="bg-muted/80 backdrop-blur-sm">
+                  <TableRow className="hover:bg-muted">
                     <TableHead className="w-12">
                       <Checkbox
                         checked={selectedIds.length === filteredParticipants.length}
@@ -309,7 +309,7 @@ export default function ParticipantsPanel() {
                   {filteredParticipants.map((participant, index) => (
                     <TableRow
                       key={participant.id}
-                      className="hover:bg-blue-50/40 transition-colors cursor-pointer"
+                      className="hover:bg-accent/50 transition-colors cursor-pointer"
                       onClick={() => handleRowClick(participant)}
                     >
                       <TableCell onClick={(e) => e.stopPropagation()}>
