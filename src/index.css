@@ -193,9 +193,10 @@ All colors MUST be HSL.
 
 .layout-center .tabs-header {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-start !important;
   align-items: center;
-  margin-bottom: 12px;
+  gap: 8px;
+  padding: 0 8px;
 }
 
 /* Dark mode layout alignment fix */

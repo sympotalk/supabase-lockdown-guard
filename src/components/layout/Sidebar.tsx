@@ -57,7 +57,7 @@ const menuItems = [
 ];
 
 export function Sidebar() {
-  const { state } = useSidebar();
+  const { state, toggleSidebar } = useSidebar();
   const location = useLocation();
   const currentPath = location.pathname;
 
@@ -66,7 +66,10 @@ export function Sidebar() {
   return (
     <ShadcnSidebar
       collapsible="icon"
-      className="fixed left-0 top-16 h-[calc(100vh-4rem)] border-r bg-background"
+      className={cn(
+        "fixed left-0 top-16 h-[calc(100vh-4rem)] border-r bg-background transition-all duration-200",
+        state === "collapsed" ? "w-[64px]" : "w-[220px]"
+      )}
     >
       <SidebarContent className="px-3 py-4 sidebar-container">
         <div className="text-[15px] font-semibold text-foreground flex items-center gap-2 pl-1 mb-6">

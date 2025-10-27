@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { useUser } from "@/context/UserContext";
-import { Plus, Search, Download, Upload, RefreshCw, CheckSquare } from "lucide-react";
+import { Plus, Search, Download, Upload, CheckSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -188,8 +188,8 @@ export default function ParticipantsPanel() {
   return (
     <div className="h-full flex flex-col w-full bg-background" style={{ maxWidth: 'none' }}>
       {/* Header */}
-      <div className="tabs-header flex items-center justify-between w-full px-2 py-3 border-b relative">
-        <div className="flex items-center gap-4 flex-1">
+      <div className="tabs-header flex items-center justify-between w-full px-2 py-3 border-b">
+        <div className="flex items-center gap-4">
           <div className="relative min-w-[300px]">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
@@ -199,69 +199,69 @@ export default function ParticipantsPanel() {
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
+          
+          <div className="flex gap-2 action-buttons">
+            {selectedIds.length > 0 && (
+              <>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleBulkUpdate({ call_checked: true })}
+                >
+                  <CheckSquare className="h-4 w-4 mr-2" />
+                  통화완료 ({selectedIds.length})
+                </Button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="sm">
+                      일괄 숙박 변경
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent>
+                    <DropdownMenuItem onClick={() => handleBulkUpdate({ stay_plan: "미숙박" })}>
+                      미숙박
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleBulkUpdate({ stay_plan: "1일차" })}>
+                      1일차
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleBulkUpdate({ stay_plan: "2일차" })}>
+                      2일차
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </>
+            )}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm">
+                  <Download className="h-4 w-4 mr-2" />
+                  내보내기
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuItem onClick={() => handleExport('work')}>
+                  업무용 템플릿
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleExport('archive')}>
+                  보관용 템플릿
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <Button variant="outline" size="sm" onClick={() => setUploadOpen(true)}>
+              <Upload className="h-4 w-4 mr-2" />
+              업로드
+            </Button>
+            <Button size="sm">
+              <Plus className="h-4 w-4 mr-2" />
+              추가
+            </Button>
+          </div>
+        </div>
+        
+        <div className="flex items-center gap-2 ml-auto">
           <Badge variant="secondary" className="text-sm">
             총 {participants?.length || 0}명
           </Badge>
-        </div>
-        <div className="flex gap-2 flex-shrink-0 absolute right-[340px] top-3 z-20">
-          {selectedIds.length > 0 && (
-            <>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => handleBulkUpdate({ call_checked: true })}
-              >
-                <CheckSquare className="h-4 w-4 mr-2" />
-                통화완료 ({selectedIds.length})
-              </Button>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm">
-                    일괄 숙박 변경
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent>
-                  <DropdownMenuItem onClick={() => handleBulkUpdate({ stay_plan: "미숙박" })}>
-                    미숙박
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleBulkUpdate({ stay_plan: "1일차" })}>
-                    1일차
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleBulkUpdate({ stay_plan: "2일차" })}>
-                    2일차
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </>
-          )}
-          <Button variant="outline" size="sm" onClick={() => mutate()}>
-            <RefreshCw className="h-4 w-4 mr-2" />
-            새로고침
-          </Button>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm">
-                <Download className="h-4 w-4 mr-2" />
-                내보내기
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              <DropdownMenuItem onClick={() => handleExport('work')}>
-                업무용 템플릿
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleExport('archive')}>
-                보관용 템플릿
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-          <Button variant="outline" size="sm" onClick={() => setUploadOpen(true)}>
-            <Upload className="h-4 w-4 mr-2" />
-            업로드
-          </Button>
-          <Button size="sm">
-            <Plus className="h-4 w-4 mr-2" />
-            추가
-          </Button>
         </div>
       </div>
 
