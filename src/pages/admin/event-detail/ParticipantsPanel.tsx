@@ -200,6 +200,10 @@ export default function ParticipantsPanel() {
             />
           </div>
           
+          <Badge variant="secondary" className="text-sm">
+            총 {participants?.length || 0}명
+          </Badge>
+          
           <div className="flex gap-2 action-buttons">
             {selectedIds.length > 0 && (
               <>
@@ -256,12 +260,6 @@ export default function ParticipantsPanel() {
               추가
             </Button>
           </div>
-        </div>
-        
-        <div className="flex items-center gap-2 ml-auto">
-          <Badge variant="secondary" className="text-sm">
-            총 {participants?.length || 0}명
-          </Badge>
         </div>
       </div>
 
