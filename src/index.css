@@ -207,13 +207,13 @@ All colors MUST be HSL.
   height: calc(100vh - 80px);
   overflow-y: auto;
   background: hsl(var(--card));
-  box-shadow: var(--shadow-md);
+  box-shadow: -4px 0 8px rgba(0, 0, 0, 0.05);
   border-left: 1px solid hsl(var(--border));
-  z-index: 40;
+  z-index: 30;
 }
 
 .dark .right-panel {
-  box-shadow: 0 0 8px rgba(0, 0, 0, 0.3);
+  box-shadow: -4px 0 8px rgba(0, 0, 0, 0.3);
 }
 
 @media (max-width: 1440px) {
@@ -238,9 +238,26 @@ All colors MUST be HSL.
   border-spacing: 0;
   background-color: hsl(var(--card));
   color: hsl(var(--card-foreground));
+  position: relative;
+  z-index: 20;
 }
 
 .participants-table th,
 .participants-table td {
   border-color: hsl(var(--border));
+}
+
+/* Prevent text wrapping and compress spacing */
+.participants-table td {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 6px 8px;
+  vertical-align: middle;
+}
+
+/* Allow wrapping only for request column */
+.participants-table td.requests-column {
+  white-space: normal;
+  padding: 8px 10px;
 }

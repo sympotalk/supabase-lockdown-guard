@@ -7,6 +7,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useUser } from "@/context/UserContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { SidebarTrigger } from "@/components/ui/sidebar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -70,6 +71,7 @@ export function Header() {
     <header className="fixed top-0 left-0 right-0 z-40 border-b border-border bg-background transition-colors duration-300">
       <div className="flex h-16 items-center px-6">
         <div className="flex items-center gap-3">
+          <SidebarTrigger className="-ml-2" />
           <span className="text-xl font-bold text-primary">SympoHub</span>
           
           {/* View Mode Badge - Only for master with active scope in /admin routes */}

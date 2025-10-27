@@ -1,4 +1,4 @@
-import { NavLink } from "react-router-dom";
+import { NavLink, useLocation } from "react-router-dom";
 import {
   LayoutDashboard,
   Building2,
@@ -6,6 +6,16 @@ import {
   Users,
   FileText,
 } from "lucide-react";
+import {
+  Sidebar as ShadcnSidebar,
+  SidebarContent,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarMenu,
+  SidebarMenuItem,
+  SidebarMenuButton,
+  useSidebar,
+} from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
 
 const masterMenuItems = [
@@ -37,34 +47,47 @@ const masterMenuItems = [
 ];
 
 export function MasterSidebar() {
+  const { state } = useSidebar();
+  const location = useLocation();
+  const currentPath = location.pathname;
+
+  const isActive = (url: string) => currentPath === url;
+
   return (
-    <aside className="fixed left-0 top-16 z-40 h-[calc(100vh-4rem)] w-60 border-r border-border bg-sidebar-background">
-      <nav className="flex flex-col gap-1 p-3">
-        {masterMenuItems.map((item) => (
-          <NavLink
-            key={item.url}
-            to={item.url}
-            className={({ isActive }) =>
-              cn(
-                "relative flex items-center gap-3 rounded-lg px-4 py-3 text-[15px] font-medium transition-all",
-                isActive
-                  ? "bg-accent text-primary"
-                  : "text-sidebar-foreground hover:bg-muted"
-              )
-            }
-          >
-            {({ isActive }) => (
-              <>
-                {isActive && (
-                  <div className="absolute left-0 top-1/2 h-8 w-1 -translate-y-1/2 rounded-r-full bg-primary" />
-                )}
-                <item.icon className="h-5 w-5" />
-                <span>{item.title}</span>
-              </>
-            )}
-          </NavLink>
-        ))}
-      </nav>
-    </aside>
+    <ShadcnSidebar
+      collapsible="icon"
+      className="fixed left-0 top-16 h-[calc(100vh-4rem)] border-r"
+    >
+      <SidebarContent>
+        <SidebarGroup>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {masterMenuItems.map((item) => {
+                const active = isActive(item.url);
+                return (
+                  <SidebarMenuItem key={item.url}>
+                    <SidebarMenuButton asChild isActive={active}>
+                      <NavLink
+                        to={item.url}
+                        className={cn(
+                          "relative flex items-center gap-3 text-[15px] font-medium transition-all",
+                          active && "bg-accent text-primary"
+                        )}
+                      >
+                        {active && (
+                          <div className="absolute left-0 top-1/2 h-8 w-1 -translate-y-1/2 rounded-r-full bg-primary" />
+                        )}
+                        <item.icon className="h-5 w-5" />
+                        {state !== "collapsed" && <span>{item.title}</span>}
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              })}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+      </SidebarContent>
+    </ShadcnSidebar>
   );
 }

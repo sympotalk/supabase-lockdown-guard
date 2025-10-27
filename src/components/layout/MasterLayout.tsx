@@ -5,6 +5,7 @@ import { Spinner } from "@/components/pd/Spinner";
 import { MasterHeader } from "./MasterHeader";
 import { MasterSidebar } from "./MasterSidebar";
 import { CacheStatus } from "@/components/common/CacheStatus";
+import { SidebarProvider } from "@/components/ui/sidebar";
 
 export function MasterLayout() {
   const navigate = useNavigate();
@@ -40,15 +41,17 @@ export function MasterLayout() {
   }
 
   return (
-    <div className="min-h-screen w-full bg-background">
-      <CacheStatus />
-      <MasterHeader />
-      <div className="flex w-full pt-16">
+    <SidebarProvider>
+      <div className="min-h-screen w-full bg-background flex">
+        <CacheStatus />
         <MasterSidebar />
-        <main className="ml-60 flex-1 p-8">
-          <Outlet />
-        </main>
+        <div className="flex-1 flex flex-col">
+          <MasterHeader />
+          <main className="flex-1 p-8 pt-24">
+            <Outlet />
+          </main>
+        </div>
       </div>
-    </div>
+    </SidebarProvider>
   );
 }

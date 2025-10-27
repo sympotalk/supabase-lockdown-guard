@@ -341,7 +341,7 @@ export default function ParticipantsPanel() {
                       <TableCell className="text-center text-sm">
                         {participant.phone || "-"}
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="requests-column">
                         <div className="flex gap-1 flex-wrap">
                           {parseBadges(participant.memo).slice(0, 3).map((badge, idx) => (
                             <Badge key={idx} variant="outline" className="text-xs">
