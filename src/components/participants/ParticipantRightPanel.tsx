@@ -32,6 +32,7 @@ interface Participant {
   status?: string;
   classification?: string;
   stay_status?: string;
+  lodging_status?: string;
   companion?: string;
   recruitment_status?: string;
   message_sent?: string;
@@ -102,7 +103,7 @@ export function ParticipantRightPanel({
         
         // Show specific toast based on field
         const fieldKey = Object.keys(patch)[0];
-        if (fieldKey === "stay_status") {
+        if (fieldKey === "stay_status" || fieldKey === "lodging_status") {
           toast.success("숙박 현황이 변경되었습니다.");
         } else if (fieldKey === "memo") {
           toast.success("요청사항이 저장되었습니다.");
@@ -240,7 +241,7 @@ export function ParticipantRightPanel({
             onMemoChange={(newMemo) => handleFieldChange("memo", newMemo)}
           />
 
-          {/* Stay Status */}
+          {/* Lodging Status */}
           <Card>
             <CardHeader>
               <CardTitle className="text-sm font-medium">숙박 현황</CardTitle>
@@ -248,17 +249,37 @@ export function ParticipantRightPanel({
             <CardContent className="space-y-3">
               <div className="space-y-1">
                 <Label className="text-xs">숙박 계획</Label>
-                <Input
-                  value={localData?.stay_status || ""}
+                <select
+                  value={localData?.lodging_status || ""}
                   onChange={(e) => {
                     if (!localData) return;
-                    setLocalData({ ...localData, stay_status: e.target.value });
+                    setLocalData({ ...localData, lodging_status: e.target.value });
+                    handleFieldChange("lodging_status", e.target.value);
                   }}
-                  onBlur={(e) => handleFieldChange("stay_status", e.target.value)}
-                  placeholder="예: 1일차, 2일차, 미숙박"
-                  className="h-8 text-sm"
-                />
+                  className="flex h-8 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                >
+                  <option value="">선택하세요</option>
+                  <option value="미숙박">미숙박</option>
+                  <option value="1일차">1일차</option>
+                  <option value="2일차">2일차</option>
+                  <option value="직접입력">직접입력</option>
+                </select>
               </div>
+              {localData?.lodging_status === "직접입력" && (
+                <div className="space-y-1">
+                  <Label className="text-xs">직접 입력</Label>
+                  <Input
+                    value={localData?.stay_status || ""}
+                    onChange={(e) => {
+                      if (!localData) return;
+                      setLocalData({ ...localData, stay_status: e.target.value });
+                    }}
+                    onBlur={(e) => handleFieldChange("stay_status", e.target.value)}
+                    placeholder="예: 1박 2일"
+                    className="h-8 text-sm"
+                  />
+                </div>
+              )}
             </CardContent>
           </Card>
 

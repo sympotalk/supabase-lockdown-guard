@@ -30,7 +30,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import useSWR from "swr";
 
-// [71-J.1] Extended participant interface with new fields
+// [71-J.2] Extended participant interface with lodging_status
 interface Participant {
   id: string;
   name: string;
@@ -47,6 +47,7 @@ interface Participant {
   status?: string;
   classification?: string;
   stay_status?: string;
+  lodging_status?: string;
   companion?: string;
   recruitment_status?: string;
   message_sent?: string;
@@ -182,11 +183,9 @@ export default function ParticipantsPanel() {
   }
 
   return (
-    <div className="grid grid-cols-[7fr_3fr] gap-6 h-full px-8">
-      {/* Left: Table */}
-      <div className="space-y-6 overflow-y-auto pr-4">
-          {/* Header */}
-          <div className="flex items-center justify-between">
+    <div className="h-full flex flex-col bg-background">
+      {/* Header */}
+      <div className="flex items-center justify-between px-4 py-4 border-b bg-white">
         <div className="flex items-center gap-4">
           <div className="relative flex-1 min-w-[300px]">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -263,16 +262,19 @@ export default function ParticipantsPanel() {
         </div>
       </div>
 
-      {/* Table */}
-      <Card>
-        <CardContent className="p-0">
-          {!filteredParticipants || filteredParticipants.length === 0 ? (
-            <div className="text-center text-muted-foreground py-16">
-              등록된 참가자가 없습니다. 업로드 또는 추가 버튼을 클릭하여 참가자를 등록하세요.
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <Table>
+      {/* Main Content: Full Width Table with Fixed Right Panel */}
+      <div className="flex-1 overflow-hidden relative">
+        {/* Table Section */}
+        <div className="h-full overflow-auto pr-[380px] px-4 py-4">
+          <Card>
+            <CardContent className="p-0">
+              {!filteredParticipants || filteredParticipants.length === 0 ? (
+                <div className="text-center text-muted-foreground py-16">
+                  등록된 참가자가 없습니다. 업로드 또는 추가 버튼을 클릭하여 참가자를 등록하세요.
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <Table>
                 <TableHeader>
                   <TableRow className="bg-muted hover:bg-muted">
                     <TableHead className="w-12">
@@ -343,7 +345,7 @@ export default function ParticipantsPanel() {
                       </TableCell>
                       <TableCell>
                         <Badge variant="secondary" className="text-xs">
-                          {participant.stay_status || "미정"}
+                          {participant.lodging_status || "미정"}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-sm">
@@ -399,10 +401,24 @@ export default function ParticipantsPanel() {
                   ))}
                 </TableBody>
               </Table>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Fixed Right Panel */}
+        <div className="fixed right-0 top-[80px] w-[360px] h-[calc(100vh-80px)] bg-white shadow-md border-l overflow-y-auto z-10">
+          <ParticipantRightPanel
+            participant={selectedParticipant}
+            onUpdate={() => mutate()}
+            onDelete={() => {
+              setSelectedParticipant(null);
+              mutate();
+            }}
+          />
+        </div>
+      </div>
 
       {/* Upload Modal */}
       <UploadParticipantsModal
@@ -410,19 +426,6 @@ export default function ParticipantsPanel() {
         onOpenChange={setUploadOpen}
         events={[{ id: eventId, name: "Current Event" }]}
       />
-      </div>
-
-      {/* Right: Detail Panel */}
-      <div className="overflow-y-auto pl-4 border-l">
-        <ParticipantRightPanel
-          participant={selectedParticipant}
-          onUpdate={() => mutate()}
-          onDelete={() => {
-            setSelectedParticipant(null);
-            mutate();
-          }}
-        />
-      </div>
     </div>
   );
 }

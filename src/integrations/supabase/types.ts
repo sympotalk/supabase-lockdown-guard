@@ -3353,6 +3353,7 @@ export type Database = {
           last_edited_by: string | null
           last_modified_at: string | null
           last_modified_by: string | null
+          lodging_status: string | null
           manager_info: Json | null
           memo: string | null
           message_sent: string | null
@@ -3385,6 +3386,7 @@ export type Database = {
           last_edited_by?: string | null
           last_modified_at?: string | null
           last_modified_by?: string | null
+          lodging_status?: string | null
           manager_info?: Json | null
           memo?: string | null
           message_sent?: string | null
@@ -3417,6 +3419,7 @@ export type Database = {
           last_edited_by?: string | null
           last_modified_at?: string | null
           last_modified_by?: string | null
+          lodging_status?: string | null
           manager_info?: Json | null
           memo?: string | null
           message_sent?: string | null
