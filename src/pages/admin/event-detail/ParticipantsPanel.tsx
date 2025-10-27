@@ -189,9 +189,9 @@ export default function ParticipantsPanel() {
   return (
     <div className="h-full flex flex-col w-full bg-background" style={{ maxWidth: 'none' }}>
       {/* Header */}
-      <div className="flex items-center justify-between px-2 py-4 border-b bg-white">
-        <div className="flex items-center gap-4">
-          <div className="relative flex-1 min-w-[300px]">
+      <div className="tabs-header flex items-center justify-between w-full px-2 py-3 border-b bg-white">
+        <div className="flex items-center gap-4 flex-1">
+          <div className="relative min-w-[300px]">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               placeholder="이름 또는 소속으로 검색..."
@@ -204,7 +204,7 @@ export default function ParticipantsPanel() {
             총 {participants?.length || 0}명
           </Badge>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-shrink-0 min-w-[280px] justify-end">
           {selectedIds.length > 0 && (
             <>
               <Button
@@ -428,7 +428,7 @@ export default function ParticipantsPanel() {
         </div>
 
         {/* Fixed Right Panel */}
-        <div className="fixed right-0 top-[80px] w-[320px] h-[calc(100vh-80px)] bg-white shadow-md border-l overflow-y-auto z-10 scrollbar-hide">
+        <div className="right-panel scrollbar-hide">
           <ParticipantRightPanel
             participant={selectedParticipant}
             onUpdate={() => mutate()}
