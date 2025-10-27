@@ -1,0 +1,82 @@
+/* [71-J.9.E] Button Hover Cleanup */
+
+/* Action buttons in header - clean hover without artifacts */
+.tabs-header .flex.gap-2 button,
+.action-buttons button {
+  border: none !important;
+  font-weight: 500;
+  border-radius: 8px;
+  padding: 6px 12px;
+  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: none !important;
+  outline: none !important;
+}
+
+/* Primary button styles */
+.tabs-header button[class*="bg-primary"],
+.action-buttons button[class*="bg-primary"] {
+  background-color: hsl(var(--primary)) !important;
+  color: hsl(var(--primary-foreground)) !important;
+}
+
+.tabs-header button[class*="bg-primary"]:hover,
+.action-buttons button[class*="bg-primary"]:hover {
+  background-color: hsl(var(--primary) / 0.9) !important;
+  filter: brightness(1.05);
+  box-shadow: none !important;
+}
+
+/* Outline button styles */
+.tabs-header button[class*="variant-outline"],
+.action-buttons button[class*="variant-outline"] {
+  background-color: transparent !important;
+  border: 1px solid hsl(var(--border)) !important;
+  color: hsl(var(--foreground)) !important;
+}
+
+.tabs-header button[class*="variant-outline"]:hover,
+.action-buttons button[class*="variant-outline"]:hover {
+  background-color: hsl(var(--accent)) !important;
+  border-color: hsl(var(--border)) !important;
+  box-shadow: none !important;
+}
+
+/* Remove all unwanted focus/hover effects */
+.tabs-header button:focus,
+.action-buttons button:focus,
+.tabs-header button:focus-visible,
+.action-buttons button:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+  ring: 0 !important;
+}
+
+/* Icon color consistency */
+.tabs-header button svg,
+.action-buttons button svg {
+  transition: none;
+}
+
+/* Prevent any residual shadows or outlines */
+.tabs-header button::before,
+.tabs-header button::after,
+.action-buttons button::before,
+.action-buttons button::after {
+  display: none !important;
+}
+
+/* Dark mode button styles */
+.dark .tabs-header button[class*="bg-primary"],
+.dark .action-buttons button[class*="bg-primary"] {
+  background-color: hsl(var(--primary)) !important;
+}
+
+.dark .tabs-header button[class*="bg-primary"]:hover,
+.dark .action-buttons button[class*="bg-primary"]:hover {
+  background-color: hsl(var(--primary) / 0.85) !important;
+}
+
+.dark .tabs-header button[class*="variant-outline"]:hover,
+.dark .action-buttons button[class*="variant-outline"]:hover {
+  background-color: hsl(var(--accent)) !important;
+}

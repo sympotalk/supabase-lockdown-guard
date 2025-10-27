@@ -2,8 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 
-/* [71-J.9.C+D] Import sidebar styles */
+/* [71-J.9.E] Import custom styles */
 @import './styles/sidebar.css';
+@import './styles/buttons.css';
 
 @layer utilities {
   /* Hide scrollbar for Chrome, Safari and Opera */
@@ -178,19 +179,23 @@ All colors MUST be HSL.
   padding-right: 16px;
 }
 
-/* [71-J.9.C+D] Center alignment for participants layout */
+/* [71-J.9.E] Expanded table width with center alignment */
 .layout-center {
-  max-width: 1360px;
+  max-width: none !important;
+  width: calc(100vw - 340px); /* Full viewport minus sidebar + right panel */
   margin: 0 auto;
-  padding-left: 16px;
-  padding-right: 340px; /* Right panel width + gap */
+  padding-left: 24px;
+  padding-right: 320px;
   box-sizing: border-box;
   position: relative;
+  transition: width 0.2s ease;
 }
 
 .layout-center .tabs-header {
-  justify-content: flex-start !important;
-  margin-left: 4px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
 }
 
 /* Dark mode layout alignment fix */
@@ -327,7 +332,7 @@ body {
   margin-bottom: 16px;
 }
 
-/* [71-J.9.C+D] Participants card with proper overflow */
+/* [71-J.9.E] Participants card expanded width */
 .participants-card {
   width: 100%;
   border-radius: 16px;
@@ -336,6 +341,7 @@ body {
   overflow: visible !important;
   margin-top: 16px;
   border: 1px solid hsl(var(--border));
+  transition: all 0.2s ease;
 }
 
 .dark .participants-card {
@@ -343,13 +349,14 @@ body {
   border-color: hsl(var(--border));
 }
 
-/* [71-J.9.C+D] Participants container with scroll */
+/* [71-J.9.E] Participants container with expanded width */
 .participants-container {
   overflow-y: auto;
   overflow-x: hidden;
   max-height: calc(100vh - 320px);
   margin-right: 0;
-  padding-right: 8px;
+  padding-right: 4px;
+  width: 100%;
 }
 
 /* Custom scrollbar for participants container */
