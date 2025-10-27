@@ -3349,10 +3349,13 @@ export type Database = {
           is_active: boolean | null
           last_modified_at: string | null
           last_modified_by: string | null
+          manager_info: Json | null
           memo: string | null
           name: string
           organization: string | null
           phone: string | null
+          sfe_agency_code: string | null
+          sfe_customer_code: string | null
           status: string | null
           stay_plan: string | null
           updated_at: string
@@ -3370,10 +3373,13 @@ export type Database = {
           is_active?: boolean | null
           last_modified_at?: string | null
           last_modified_by?: string | null
+          manager_info?: Json | null
           memo?: string | null
           name: string
           organization?: string | null
           phone?: string | null
+          sfe_agency_code?: string | null
+          sfe_customer_code?: string | null
           status?: string | null
           stay_plan?: string | null
           updated_at?: string
@@ -3391,10 +3397,13 @@ export type Database = {
           is_active?: boolean | null
           last_modified_at?: string | null
           last_modified_by?: string | null
+          manager_info?: Json | null
           memo?: string | null
           name?: string
           organization?: string | null
           phone?: string | null
+          sfe_agency_code?: string | null
+          sfe_customer_code?: string | null
           status?: string | null
           stay_plan?: string | null
           updated_at?: string

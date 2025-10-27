@@ -1,4 +1,4 @@
-// [LOCKED][71-I.QA2] Participants panel with bulk actions & export modes
+// [LOCKED][71-I.QA3-FIX.R10] Participants panel with resizable fixed sidebar
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { useUser } from "@/context/UserContext";
@@ -22,6 +22,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
 import { ParticipantRightPanel } from "@/components/participants/ParticipantRightPanel";
 import { UploadParticipantsModal } from "@/components/dashboard/UploadParticipantsModal";
 import { exportParticipantsToExcel, type ExportMode } from "@/utils/exportParticipants";
@@ -30,7 +31,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import useSWR from "swr";
 
-// [71-I.QA3-FIX.R3] Use actual DB schema
+// [71-I.QA3-FIX.R10] Use actual DB schema with SFE codes
 interface Participant {
   id: string;
   name: string;
@@ -42,8 +43,17 @@ interface Participant {
   manager_name?: string;
   manager_phone?: string;
   manager_info?: any;
+  sfe_agency_code?: string;
+  sfe_customer_code?: string;
   status?: string;
   created_at: string;
+}
+
+// [71-I.QA3-FIX.R10] Parse memo badges for display
+function parseBadges(memo: string | undefined): Array<{ label: string; icon?: string }> {
+  if (!memo) return [];
+  const items = memo.split(",").map((s) => s.trim()).filter(Boolean);
+  return items.slice(0, 2).map((label) => ({ label }));
 }
 
 export default function ParticipantsPanel() {
@@ -165,9 +175,11 @@ export default function ParticipantsPanel() {
   }
 
   return (
-    <div className="space-y-6 p-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
+    <ResizablePanelGroup direction="horizontal" className="h-full">
+      <ResizablePanel defaultSize={65} minSize={40}>
+        <div className="space-y-6 p-6 h-full overflow-y-auto">
+          {/* Header */}
+          <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <div className="relative flex-1 min-w-[300px]">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -262,19 +274,20 @@ export default function ParticipantsPanel() {
                         onCheckedChange={toggleSelectAll}
                       />
                     </TableHead>
-                    <TableHead className="font-semibold">성명</TableHead>
-                    <TableHead className="font-semibold">소속</TableHead>
-                    <TableHead className="font-semibold">연락처</TableHead>
-                    <TableHead className="font-semibold">팀명</TableHead>
-                    <TableHead className="font-semibold">담당자</TableHead>
-                    <TableHead className="font-semibold">상태</TableHead>
+                    <TableHead className="font-semibold w-[15%]">성명</TableHead>
+                    <TableHead className="font-semibold w-[20%]">소속</TableHead>
+                    <TableHead className="font-semibold w-[15%]">연락처</TableHead>
+                    <TableHead className="font-semibold w-[20%]">요청사항</TableHead>
+                    <TableHead className="font-semibold w-[10%]">상태</TableHead>
+                    <TableHead className="font-semibold w-[15%] text-right">등록일</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filteredParticipants.map((participant) => (
                     <TableRow
                       key={participant.id}
-                      className="hover:bg-muted/50 transition-colors"
+                      className="hover:bg-blue-50/40 transition-colors cursor-pointer"
+                      onClick={() => handleRowClick(participant)}
                     >
                       <TableCell onClick={(e) => e.stopPropagation()}>
                         <Checkbox
@@ -288,37 +301,38 @@ export default function ParticipantsPanel() {
                           }}
                         />
                       </TableCell>
-                      <TableCell
-                        className="font-semibold cursor-pointer"
-                        onClick={() => handleRowClick(participant)}
-                      >
+                      <TableCell className="font-semibold">
                         {participant.name}
                       </TableCell>
-                      <TableCell onClick={() => handleRowClick(participant)}>
+                      <TableCell>
                         {participant.organization || "-"}
                       </TableCell>
-                      <TableCell onClick={() => handleRowClick(participant)}>
+                      <TableCell className="text-center">
                         {participant.phone || "-"}
                       </TableCell>
-                      <TableCell onClick={() => handleRowClick(participant)}>
-                        {participant.team_name ? (
-                          <Badge variant="secondary" className="rounded-xl">
-                            {participant.team_name}
-                          </Badge>
-                        ) : (
-                          <span className="text-muted-foreground text-sm">-</span>
-                        )}
+                      <TableCell>
+                        <div className="flex gap-1 flex-wrap">
+                          {parseBadges(participant.memo).map((badge, idx) => (
+                            <Badge key={idx} variant="outline" className="text-xs rounded-md">
+                              {badge.label}
+                            </Badge>
+                          ))}
+                        </div>
                       </TableCell>
-                      <TableCell onClick={() => handleRowClick(participant)}>
-                        {participant.manager_name || "-"}
-                      </TableCell>
-                      <TableCell onClick={() => handleRowClick(participant)}>
+                      <TableCell className="text-center">
                         <Badge
                           variant={participant.status === "VIP" ? "default" : "secondary"}
                           className="rounded-xl"
                         >
                           {participant.status || "일반"}
                         </Badge>
+                      </TableCell>
+                      <TableCell className="text-right text-sm text-muted-foreground">
+                        {new Date(participant.created_at).toLocaleDateString('ko-KR', {
+                          year: 'numeric',
+                          month: '2-digit',
+                          day: '2-digit'
+                        }).replace(/\. /g, '.').replace(/\.$/, '')}
                       </TableCell>
                     </TableRow>
                   ))}
@@ -329,21 +343,24 @@ export default function ParticipantsPanel() {
         </CardContent>
       </Card>
 
-      {/* Right Panel */}
-      <ParticipantRightPanel
-        participant={selectedParticipant}
-        open={panelOpen}
-        onOpenChange={setPanelOpen}
-        onUpdate={() => mutate()}
-        onDelete={() => mutate()}
-      />
+        {/* Upload Modal */}
+        <UploadParticipantsModal
+          open={uploadOpen}
+          onOpenChange={setUploadOpen}
+          events={[{ id: eventId, name: "Current Event" }]}
+        />
+        </div>
+      </ResizablePanel>
 
-      {/* Upload Modal */}
-      <UploadParticipantsModal
-        open={uploadOpen}
-        onOpenChange={setUploadOpen}
-        events={[{ id: eventId, name: "Current Event" }]}
-      />
-    </div>
+      <ResizableHandle withHandle />
+
+      <ResizablePanel defaultSize={35} minSize={30} maxSize={50}>
+        <ParticipantRightPanel
+          participant={selectedParticipant}
+          onUpdate={() => mutate()}
+          onDelete={() => mutate()}
+        />
+      </ResizablePanel>
+    </ResizablePanelGroup>
   );
 }
