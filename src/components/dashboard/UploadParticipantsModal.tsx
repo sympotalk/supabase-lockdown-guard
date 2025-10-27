@@ -204,14 +204,16 @@ export function UploadParticipantsModal({
         console.error("[71-I.QA3-FIX.R3] RPC upload error →", error);
         throw error;
       }
-      console.log("[71-I.QA3-FIX.R4] RPC response →", data);
+      console.log("[71-I.QA3-FIX.R6] RPC response →", data);
       const result = data as {
         inserted: number;
+        new: number;
+        updated: number;
       };
-      const eventName = events.find(e => e.id === activeEventId)?.name || '현재 행사';
+      
       toast({
         title: "업로드 완료",
-        description: `${eventName}에 ${result.inserted}명의 참가자를 반영했습니다.`
+        description: `신규 ${result.new}명, 갱신 ${result.updated}명 반영`
       });
 
       // [71-I.QA3-FIX.R4] Invalidate SWR cache for participants
