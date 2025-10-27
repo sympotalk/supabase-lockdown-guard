@@ -179,16 +179,22 @@ All colors MUST be HSL.
   padding-right: 16px;
 }
 
-/* [71-J.9.E] Expanded table width with center alignment */
+/* [71-J.9.H] EventDetailLayout boundary - responsive to sidebar state */
 .layout-center {
   max-width: none !important;
-  width: calc(100vw - 340px); /* Full viewport minus sidebar + right panel */
+  width: 100%;
   margin: 0 auto;
   padding-left: 24px;
-  padding-right: 320px;
+  padding-right: 340px; /* 320px panel + 20px spacing */
   box-sizing: border-box;
   position: relative;
-  transition: width 0.2s ease;
+  transition: padding 0.2s ease;
+}
+
+/* Adjust for collapsed sidebar */
+[data-state="collapsed"] ~ * .layout-center,
+body:has([data-state="collapsed"]) .layout-center {
+  padding-right: 340px;
 }
 
 .layout-center .tabs-header {

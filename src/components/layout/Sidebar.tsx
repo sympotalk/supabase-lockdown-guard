@@ -87,14 +87,18 @@ export function Sidebar() {
                     <SidebarMenuButton 
                       asChild 
                       isActive={active}
-                      className={cn(
-                        "relative flex items-center gap-2 px-3 py-2 rounded-xl text-[15px] font-medium transition-all duration-150",
-                        "hover:bg-primary/8 hover:text-primary",
-                        "sidebar-item",
-                        active && "bg-transparent text-primary"
-                      )}
+                      className="p-0 h-auto hover:bg-transparent"
                     >
-                      <NavLink to={item.url}>
+                      <NavLink 
+                        to={item.url}
+                        className={cn(
+                          "relative flex items-center gap-2 px-3 py-2 rounded-xl text-[15px] font-medium w-full",
+                          "transition-all duration-150",
+                          "sidebar-item",
+                          active && "text-primary"
+                        )}
+                        data-active={active}
+                      >
                         {active && (
                           <div className="absolute left-0 top-1/2 h-8 w-1 -translate-y-1/2 rounded-r-full bg-primary" />
                         )}

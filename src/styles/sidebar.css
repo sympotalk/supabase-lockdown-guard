@@ -1,4 +1,4 @@
-/* [71-J.9.C+D] SympoHub Sidebar Design Restoration */
+/* [71-J.9.H] SympoHub Sidebar Design - Clean & Minimal */
 
 /* Remove all unwanted sidebar artifacts */
 .sidebar-container {
@@ -9,9 +9,10 @@
   background: transparent !important;
 }
 
-/* Hide scroll shadow effect */
-.sidebar-scroll-shadow {
-  display: none !important;
+/* Remove any unwanted borders or shadows */
+[data-sidebar] {
+  border-right: 1px solid hsl(var(--border)) !important;
+  box-shadow: none !important;
 }
 
 /* Sidebar item base styles */
@@ -23,45 +24,40 @@
   transition: all 0.15s ease;
 }
 
-/* Hover effect - subtle blue tint */
+/* [71-J.9.H] Hover effect - subtle blue tint with smooth transition */
 .sidebar-item:hover {
-  background: rgba(37, 99, 235, 0.08) !important;
+  background-color: hsl(var(--accent)) !important;
   color: hsl(var(--primary)) !important;
   border-radius: 12px;
 }
 
-/* Dark mode hover */
-.dark .sidebar-item:hover {
-  background: rgba(37, 99, 235, 0.12) !important;
+/* Remove any conflicting hover effects from shadcn */
+[data-sidebar] button {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+[data-sidebar] button:hover {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+[data-sidebar] button:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* [71-J.9.H] Active menu - transparent background, primary text */
+.sidebar-item[data-active="true"] {
+  background: transparent !important;
   color: hsl(var(--primary)) !important;
 }
 
-/* Remove any conflicting hover effects from shadcn */
-[data-sidebar] button:hover {
-  background: transparent;
-}
-
-[data-sidebar] button:hover .sidebar-item {
-  background: rgba(37, 99, 235, 0.08);
-}
-
-/* Active menu indicator - left border only */
-.sidebar-item[data-active="true"]::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 3px;
-  height: 32px;
-  background: hsl(var(--primary));
-  border-radius: 0 4px 4px 0;
-}
-
-/* Remove background on active items */
-.sidebar-item[data-active="true"] {
-  background: transparent !important;
-  color: hsl(var(--primary));
+/* Keep hover effect even on active items */
+.sidebar-item[data-active="true"]:hover {
+  background-color: hsl(var(--accent)) !important;
 }
 
 /* Clean transitions */
