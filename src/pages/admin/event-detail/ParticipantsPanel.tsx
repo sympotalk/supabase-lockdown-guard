@@ -22,7 +22,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { StatusBadge } from "@/components/ui/status-badge";
 import { ParticipantRightPanel } from "@/components/participants/ParticipantRightPanel";
 import { UploadParticipantsModal } from "@/components/dashboard/UploadParticipantsModal";
 import { exportParticipantsToExcel, type ExportMode } from "@/utils/exportParticipants";
@@ -36,12 +35,8 @@ interface Participant {
   id: string;
   name: string;
   organization?: string;
-  position?: string;
   phone?: string;
   email?: string;
-  gender?: string;
-  birth_date?: string;
-  participation_type?: string;
   memo?: string;
   team_name?: string;
   manager_name?: string;
@@ -57,8 +52,6 @@ interface Participant {
   companion_memo?: string;
   adult_count?: number;
   child_ages?: string[];
-  room_assignment?: string;
-  special_requests?: string;
   recruitment_status?: string;
   message_sent?: string;
   survey_completed?: string;
@@ -122,14 +115,6 @@ export default function ParticipantsPanel() {
       shouldRetryOnError: false
     }
   );
-
-  // [71-J.9] Reset scroll position when event changes
-  useEffect(() => {
-    const scrollContainer = document.querySelector('.participants-scroll');
-    if (scrollContainer) {
-      scrollContainer.scrollTop = 0;
-    }
-  }, [eventId]);
 
   const handleRowClick = (participant: Participant) => {
     setSelectedParticipant(participant);
@@ -292,82 +277,147 @@ export default function ParticipantsPanel() {
                     등록된 참가자가 없습니다. 업로드 또는 추가 버튼을 클릭하여 참가자를 등록하세요.
                   </div>
                 ) : (
-      <div className="participants-card">
-        <div className="participants-scroll">
-          <div className="participants-table-wrapper">
-            <Table className="participants-table">
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="text-center">번호</TableHead>
-                  <TableHead className="text-center">성명</TableHead>
-                  <TableHead className="text-center">소속</TableHead>
-                  <TableHead className="text-center">직책</TableHead>
-                  <TableHead className="text-center">연락처</TableHead>
-                  <TableHead className="text-center">이메일</TableHead>
-                  <TableHead className="text-center">성별</TableHead>
-                  <TableHead className="text-center">생년월일</TableHead>
-                  <TableHead className="text-center">참가유형</TableHead>
-                  <TableHead className="text-center">성인</TableHead>
-                  <TableHead className="text-center">소아</TableHead>
-                  <TableHead className="text-center">객실배정</TableHead>
-                  <TableHead className="text-center requests-column">요청사항</TableHead>
-                  <TableHead className="text-center">등록일시</TableHead>
-                  <TableHead className="text-center">상태</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredParticipants.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={15} className="text-center text-muted-foreground py-8">
-                      참가자가 없습니다
-                    </TableCell>
+                  <div className="participants-table-wrapper">
+                    <Table className="participants-table">
+                <TableHeader className="bg-muted/80 backdrop-blur-sm">
+                  <TableRow className="hover:bg-muted">
+                    <TableHead className="w-12">
+                      <Checkbox
+                        checked={selectedIds.length === filteredParticipants.length}
+                        onCheckedChange={toggleSelectAll}
+                      />
+                    </TableHead>
+                    <TableHead className="font-semibold w-12 text-center">No.</TableHead>
+                    <TableHead className="font-semibold w-20">구분</TableHead>
+                    <TableHead className="font-semibold w-24">성명</TableHead>
+                    <TableHead className="font-semibold w-32">소속</TableHead>
+                    <TableHead className="font-semibold w-28">연락처</TableHead>
+                    <TableHead className="font-semibold w-36">요청사항</TableHead>
+                    <TableHead className="font-semibold w-24">숙박현황</TableHead>
+                    <TableHead className="font-semibold w-16 text-center">성인</TableHead>
+                    <TableHead className="font-semibold w-32 text-center">소아</TableHead>
+                    <TableHead className="font-semibold w-24">동반인</TableHead>
+                    <TableHead className="font-semibold w-20 text-center">모객</TableHead>
+                    <TableHead className="font-semibold w-20 text-center">문자</TableHead>
+                    <TableHead className="font-semibold w-20 text-center">설문</TableHead>
+                    <TableHead className="font-semibold w-20 text-center">상태</TableHead>
+                    <TableHead className="font-semibold w-24 text-right">등록일</TableHead>
                   </TableRow>
-                ) : (
-                  filteredParticipants.map((participant, index) => (
+                </TableHeader>
+                <TableBody>
+                  {filteredParticipants.map((participant, index) => (
                     <TableRow
                       key={participant.id}
-                      className="cursor-pointer hover:bg-muted/50"
+                      className="hover:bg-accent/50 transition-colors cursor-pointer"
                       onClick={() => handleRowClick(participant)}
                     >
-                      <TableCell className="text-center">{index + 1}</TableCell>
-                      <TableCell className="text-center font-medium">{participant.name}</TableCell>
-                      <TableCell 
-                        className="text-center company-name-column" 
-                        title={participant.organization}
-                      >
-                        {participant.organization}
-                      </TableCell>
-                      <TableCell className="text-center">{participant.position || '-'}</TableCell>
-                      <TableCell className="text-center">{participant.phone}</TableCell>
-                      <TableCell className="text-center">{participant.email}</TableCell>
-                      <TableCell className="text-center">{participant.gender === 'male' ? '남성' : '여성'}</TableCell>
-                      <TableCell className="text-center">{participant.birth_date || '-'}</TableCell>
-                      <TableCell className="text-center">
-                        {participant.participation_type === 'individual' ? '개인' : '동반'}
-                      </TableCell>
-                      <TableCell className="text-center">{participant.adult_count || 0}명</TableCell>
-                      <TableCell className="text-center">
-                        {participant.child_ages?.length ? participant.child_ages.join(' / ') : '-'}
-                      </TableCell>
-                      <TableCell className="text-center">{participant.room_assignment || '미배정'}</TableCell>
-                      <TableCell className="requests-column">{participant.special_requests || '-'}</TableCell>
-                      <TableCell className="text-center">
-                        {participant.created_at ? new Date(participant.created_at).toLocaleDateString('ko-KR') : '-'}
-                      </TableCell>
-                      <TableCell className="text-center">
-                        <StatusBadge
-                          status={(participant.status as any) || 'pending'}
-                          className="inline-flex"
+                      <TableCell onClick={(e) => e.stopPropagation()}>
+                        <Checkbox
+                          checked={selectedIds.includes(participant.id)}
+                          onCheckedChange={(checked) => {
+                            if (checked) {
+                              setSelectedIds([...selectedIds, participant.id]);
+                            } else {
+                              setSelectedIds(selectedIds.filter((id) => id !== participant.id));
+                            }
+                          }}
                         />
                       </TableCell>
+                      <TableCell className="text-center text-sm text-muted-foreground">
+                        {index + 1}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline" className="text-xs">
+                          {participant.classification || "일반"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="font-semibold">
+                        {participant.name}
+                      </TableCell>
+                      <TableCell className="text-sm company-name-column" title={participant.organization || "-"}>
+                        {participant.organization || "-"}
+                      </TableCell>
+                      <TableCell className="text-center text-sm">
+                        {participant.phone || "-"}
+                      </TableCell>
+                      <TableCell className="requests-column">
+                        <div className="flex gap-1 flex-wrap">
+                          {parseBadges(participant.memo).slice(0, 3).map((badge, idx) => (
+                            <Badge key={idx} variant="outline" className="text-xs">
+                              {badge.label}
+                            </Badge>
+                          ))}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="secondary" className="text-xs">
+                          {participant.lodging_status || "미정"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-center">
+                        {participant.adult_count ? (
+                          <Badge variant="outline" className="text-xs">{participant.adult_count}</Badge>
+                        ) : "-"}
+                      </TableCell>
+                      <TableCell className="text-center text-sm">
+                        {participant.child_ages && participant.child_ages.length > 0
+                          ? participant.child_ages.join(' / ')
+                          : "-"}
+                      </TableCell>
+                      <TableCell className="text-sm">
+                        {participant.companion || "-"}
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <Badge 
+                          variant={participant.recruitment_status === "O" ? "default" : "outline"}
+                          className="text-xs"
+                        >
+                          {participant.recruitment_status || "X"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <Badge 
+                          variant={participant.message_sent === "O" ? "default" : "outline"}
+                          className="text-xs"
+                        >
+                          {participant.message_sent || "X"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <Badge 
+                          variant={participant.survey_completed === "O" ? "default" : "outline"}
+                          className="text-xs"
+                        >
+                          {participant.survey_completed || "X"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <Badge
+                          variant={
+                            participant.status === "confirmed" ? "default" : 
+                            participant.status === "cancelled" ? "destructive" : 
+                            "secondary"
+                          }
+                          className="text-xs"
+                        >
+                          {participant.status === "pending" ? "대기중" :
+                           participant.status === "confirmed" ? "확정" :
+                           participant.status === "cancelled" ? "취소" :
+                           participant.status || "일반"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-right text-sm text-muted-foreground">
+                        {new Date(participant.created_at).toLocaleDateString('ko-KR', {
+                          year: 'numeric',
+                          month: '2-digit',
+                          day: '2-digit'
+                        }).replace(/\. /g, '.').replace(/\.$/, '')}
+                      </TableCell>
                     </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </div>
-        </div>
-      </div>
+                  ))}
+                </TableBody>
+              </Table>
+                  </div>
                 )}
               </CardContent>
             </Card>
