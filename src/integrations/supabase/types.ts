@@ -3342,6 +3342,7 @@ export type Database = {
           agency_id: string
           call_checked: boolean | null
           child_age: string | null
+          child_ages: string[] | null
           child_count: number | null
           classification: string | null
           companion: string | null
@@ -3379,6 +3380,7 @@ export type Database = {
           agency_id: string
           call_checked?: boolean | null
           child_age?: string | null
+          child_ages?: string[] | null
           child_count?: number | null
           classification?: string | null
           companion?: string | null
@@ -3416,6 +3418,7 @@ export type Database = {
           agency_id?: string
           call_checked?: boolean | null
           child_age?: string | null
+          child_ages?: string[] | null
           child_count?: number | null
           classification?: string | null
           companion?: string | null

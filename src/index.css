@@ -239,25 +239,49 @@ body {
 [data-sidebar] {
   background-color: hsl(var(--sidebar-background));
   border-right: 1px solid hsl(var(--sidebar-border));
+  color: hsl(var(--sidebar-foreground));
+}
+
+[data-sidebar] nav span {
+  display: inline;
+  opacity: 1;
+}
+
+[data-sidebar][data-state="collapsed"] nav span {
+  display: none;
+}
+
+/* Main content wrapper */
+.main-wrapper {
+  display: flex;
+  height: calc(100vh - 80px);
+  overflow: hidden;
 }
 
 /* Main content margins adjust based on sidebar state */
 .main-content {
+  flex: 1;
   transition: margin-left 0.25s ease;
   width: 100%;
-  overflow-y: auto;
-  overflow-x: hidden;
-  height: calc(100vh - 80px);
-  padding-bottom: 16px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
-/* Participants table wrapper with internal scroll */
+/* Participants container with vertical scroll */
+.participants-container {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  margin-right: 320px;
+  padding-bottom: 32px;
+  background: hsl(var(--background));
+}
+
+/* Participants table wrapper - no horizontal scroll */
 .participants-table-wrapper {
-  overflow-x: auto;
-  overflow-y: hidden;
-  max-width: 100%;
-  border-bottom: 1px solid hsl(var(--border));
-  padding-bottom: 4px;
+  overflow: visible;
+  width: 100%;
 }
 
 /* Participants table alignment */

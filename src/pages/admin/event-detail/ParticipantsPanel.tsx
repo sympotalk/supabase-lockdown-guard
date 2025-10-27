@@ -188,7 +188,7 @@ export default function ParticipantsPanel() {
   return (
     <div className="h-full flex flex-col w-full bg-background" style={{ maxWidth: 'none' }}>
       {/* Header */}
-      <div className="tabs-header flex items-center justify-between w-full px-2 py-3 border-b">
+      <div className="tabs-header flex items-center justify-between w-full px-2 py-3 border-b relative">
         <div className="flex items-center gap-4 flex-1">
           <div className="relative min-w-[300px]">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -203,7 +203,7 @@ export default function ParticipantsPanel() {
             총 {participants?.length || 0}명
           </Badge>
         </div>
-        <div className="flex gap-2 flex-shrink-0 min-w-[280px] justify-end">
+        <div className="flex gap-2 flex-shrink-0 absolute right-[340px] top-3 z-20">
           {selectedIds.length > 0 && (
             <>
               <Button
@@ -267,17 +267,18 @@ export default function ParticipantsPanel() {
 
       {/* Main Content: Full Width Table with Fixed Right Panel */}
       <div className="flex-1 overflow-hidden relative">
-        {/* Table Section */}
-        <div className="h-full overflow-auto pr-[328px] pl-2 py-4" style={{ width: '100%', maxWidth: 'none' }}>
-          <Card>
-            <CardContent className="p-0">
-              {!filteredParticipants || filteredParticipants.length === 0 ? (
-                <div className="text-center text-muted-foreground py-16">
-                  등록된 참가자가 없습니다. 업로드 또는 추가 버튼을 클릭하여 참가자를 등록하세요.
-                </div>
-              ) : (
-                <div className="participants-table-wrapper">
-                  <Table className="participants-table">
+        {/* Table Section with Vertical Scroll Only */}
+        <div className="participants-container">
+          <div className="px-2 py-4">
+            <Card>
+              <CardContent className="p-0">
+                {!filteredParticipants || filteredParticipants.length === 0 ? (
+                  <div className="text-center text-muted-foreground py-16">
+                    등록된 참가자가 없습니다. 업로드 또는 추가 버튼을 클릭하여 참가자를 등록하세요.
+                  </div>
+                ) : (
+                  <div className="participants-table-wrapper">
+                    <Table className="participants-table">
                 <TableHeader className="bg-muted/80 backdrop-blur-sm">
                   <TableRow className="hover:bg-muted">
                     <TableHead className="w-12">
@@ -416,10 +417,11 @@ export default function ParticipantsPanel() {
                   ))}
                 </TableBody>
               </Table>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
         </div>
 
         {/* Fixed Right Panel */}
