@@ -265,7 +265,7 @@ export default function ParticipantsPanel({ onMutate }: ParticipantsPanelProps) 
           </Button>
           <Button 
             size="sm"
-            className="bg-primary hover:bg-primary-hover text-primary-foreground font-medium rounded-xl transition-all duration-150 ease-in-out shadow-sm hover:shadow-md"
+            className="bg-primary hover:bg-primary-hover text-white font-medium rounded-xl transition-all duration-150 ease-in-out shadow-sm hover:shadow-md"
           >
             <Plus className="h-4 w-4 mr-2" />
             추가
