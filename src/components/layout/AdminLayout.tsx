@@ -33,14 +33,16 @@ export function AdminLayout() {
 
   return (
     <AgencyDataProvider>
-      <div className="relative w-full h-screen bg-gray-50 overflow-hidden">
+      <div className="flex w-full h-screen bg-background">
         <Sidebar />
-        <Header />
-        <main className="ml-[240px] pt-[64px] h-screen overflow-y-auto bg-gray-50">
-          <div className="p-6">
-            <Outlet />
-          </div>
-        </main>
+        <div className="flex-1 ml-[240px] flex flex-col h-screen">
+          <Header />
+          <main className="flex-1 pt-[64px] overflow-y-auto bg-background">
+            <div className="p-6">
+              <Outlet />
+            </div>
+          </main>
+        </div>
       </div>
     </AgencyDataProvider>
   );

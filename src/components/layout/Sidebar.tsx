@@ -32,10 +32,12 @@ export function Sidebar() {
   const isActive = (url: string) => currentPath === url;
 
   return (
-    <aside className="fixed top-0 left-0 h-screen w-[240px] bg-white border-r border-gray-100 z-30">
-      <div className="h-[64px] flex items-center gap-2 px-5 border-b border-gray-100">
-        <Building2 className="w-5 h-5 text-primary" />
-        <span className="text-[15px] font-semibold text-foreground">SympoHub</span>
+    <aside className="group fixed top-0 left-0 h-screen w-[240px] bg-sidebar-background z-30 transition-all duration-300">
+      <div className="h-[64px] flex items-center justify-between px-5">
+        <div className="flex items-center gap-2">
+          <Building2 className="w-5 h-5 text-primary" />
+          <span className="text-[15px] font-semibold text-sidebar-foreground">SympoHub</span>
+        </div>
       </div>
       
       <nav className="flex flex-col gap-1 px-3 py-4">
@@ -48,8 +50,8 @@ export function Sidebar() {
               className={cn(
                 "relative flex items-center gap-3 px-3 py-3 rounded-lg text-[15px] font-medium",
                 "transition-all duration-150",
-                "text-gray-700 hover:bg-sympoblue-50/40 hover:text-foreground",
-                active && "bg-sympoblue-50 text-sympoblue-700"
+                "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+                active && "bg-sidebar-accent text-sidebar-accent-foreground"
               )}
             >
               {active && (

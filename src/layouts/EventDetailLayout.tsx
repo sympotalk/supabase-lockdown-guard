@@ -80,9 +80,9 @@ export default function EventDetailLayout() {
   }
 
   return (
-    <div className="w-full h-full px-6 py-4">
+    <div className="w-full h-full">
       {/* Event Title Section */}
-      <div className="flex items-center gap-4 mb-4">
+      <div className="flex items-center gap-4 px-6 py-4 bg-card border-b border-border">
         <Button
           variant="ghost"
           size="icon"
@@ -91,7 +91,7 @@ export default function EventDetailLayout() {
           <ArrowLeft className="h-5 w-5" />
         </Button>
         <div>
-          <h1 className="text-xl font-semibold leading-tight text-primary">
+          <h1 className="text-xl font-semibold leading-tight text-card-foreground">
             {event.name}
           </h1>
           <p className="text-sm text-muted-foreground mt-0.5">
@@ -100,54 +100,58 @@ export default function EventDetailLayout() {
         </div>
       </div>
 
-      {/* Tabs Section */}
-      <Tabs value={tab} onValueChange={setTab} className="w-full">
-        <TabsList className="flex space-x-3 border-b border-gray-100 pb-2 bg-white h-auto rounded-none mb-4">
-          <TabsTrigger 
-            value="participants"
-            className="data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none bg-transparent"
-          >
-            참가자 관리
-          </TabsTrigger>
-          <TabsTrigger 
-            value="rooming"
-            className="data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none bg-transparent"
-          >
-            숙박 및 룸핑
-          </TabsTrigger>
-          <TabsTrigger 
-            value="messages"
-            className="data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none bg-transparent"
-          >
-            문자·알림 발송
-          </TabsTrigger>
-          <TabsTrigger 
-            value="forms"
-            className="data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none bg-transparent"
-          >
-            설문·초청장
-          </TabsTrigger>
-        </TabsList>
+      {/* Card Container with Tabs */}
+      <div className="p-6">
+        <div className="bg-card rounded-xl border border-border shadow-sm">
+          <Tabs value={tab} onValueChange={setTab} className="w-full">
+            <TabsList className="flex space-x-6 border-b border-border px-6 pt-4 pb-0 bg-transparent h-auto rounded-none">
+              <TabsTrigger 
+                value="participants"
+                className="relative pb-3 text-sm font-medium rounded-none bg-transparent border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:text-primary text-muted-foreground hover:text-foreground transition-colors"
+              >
+                참가자 관리
+              </TabsTrigger>
+              <TabsTrigger 
+                value="rooming"
+                className="relative pb-3 text-sm font-medium rounded-none bg-transparent border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:text-primary text-muted-foreground hover:text-foreground transition-colors"
+              >
+                숙박 및 룸핑
+              </TabsTrigger>
+              <TabsTrigger 
+                value="messages"
+                className="relative pb-3 text-sm font-medium rounded-none bg-transparent border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:text-primary text-muted-foreground hover:text-foreground transition-colors"
+              >
+                문자·알림 발송
+              </TabsTrigger>
+              <TabsTrigger 
+                value="forms"
+                className="relative pb-3 text-sm font-medium rounded-none bg-transparent border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:text-primary text-muted-foreground hover:text-foreground transition-colors"
+              >
+                설문·초청장
+              </TabsTrigger>
+            </TabsList>
 
-        {/* Content Section */}
-        <div className="w-full h-[calc(100vh-240px)]">
-          <TabsContent value="participants" className="mt-0 h-full">
-            <ParticipantsTab 
-              selectedParticipant={selectedParticipant}
-              onSelectParticipant={setSelectedParticipant}
-            />
-          </TabsContent>
-          <TabsContent value="rooming" className="mt-0 h-full">
-            <RoomingTab />
-          </TabsContent>
-          <TabsContent value="messages" className="mt-0 h-full">
-            <MessagesTab />
-          </TabsContent>
-          <TabsContent value="forms" className="mt-0 h-full">
-            <FormsTab />
-          </TabsContent>
+            {/* Content Section */}
+            <div className="w-full h-[calc(100vh-280px)]">
+              <TabsContent value="participants" className="mt-0 h-full">
+                <ParticipantsTab 
+                  selectedParticipant={selectedParticipant}
+                  onSelectParticipant={setSelectedParticipant}
+                />
+              </TabsContent>
+              <TabsContent value="rooming" className="mt-0 h-full">
+                <RoomingTab />
+              </TabsContent>
+              <TabsContent value="messages" className="mt-0 h-full">
+                <MessagesTab />
+              </TabsContent>
+              <TabsContent value="forms" className="mt-0 h-full">
+                <FormsTab />
+              </TabsContent>
+            </div>
+          </Tabs>
         </div>
-      </Tabs>
+      </div>
     </div>
   );
 }

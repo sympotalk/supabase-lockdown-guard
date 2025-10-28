@@ -66,7 +66,7 @@ export function Header() {
   const roleLabel = role === "master" ? "관리자" : role === "agency_owner" ? "에이전시 오너" : "스태프";
 
   return (
-    <header className="fixed top-0 left-[240px] right-0 h-[64px] border-b border-gray-100 bg-white shadow-sm z-20">
+    <header className="fixed top-0 left-[240px] right-0 h-[64px] bg-sidebar-background z-20">
       <div className="flex h-full items-center px-6">
         <div className="flex items-center gap-3">
           {role === "master" && 
