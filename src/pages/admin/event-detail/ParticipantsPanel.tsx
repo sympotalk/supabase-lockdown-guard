@@ -67,12 +67,20 @@ function parseBadges(memo: string | undefined): Array<{ label: string; icon?: st
   return items.slice(0, 2).map((label) => ({ label }));
 }
 
-export default function ParticipantsPanel() {
+interface ParticipantsPanelProps {
+  selectedParticipant: Participant | null;
+  onSelectParticipant: (participant: Participant | null) => void;
+  onMutate?: () => void;
+}
+
+export default function ParticipantsPanel({ 
+  selectedParticipant, 
+  onSelectParticipant,
+  onMutate 
+}: ParticipantsPanelProps) {
   const { eventId } = useParams();
   const { agencyScope, user } = useUser();
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedParticipant, setSelectedParticipant] = useState<Participant | null>(null);
-  const [panelOpen, setPanelOpen] = useState(false);
   const [uploadOpen, setUploadOpen] = useState(false);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
@@ -117,8 +125,7 @@ export default function ParticipantsPanel() {
   );
 
   const handleRowClick = (participant: Participant) => {
-    setSelectedParticipant(participant);
-    setPanelOpen(true);
+    onSelectParticipant(participant);
   };
 
   const handleExport = (mode: ExportMode = 'work') => {
@@ -151,6 +158,7 @@ export default function ParticipantsPanel() {
       toast.success(`${selectedIds.length}명 일괄 수정 완료`);
       setSelectedIds([]);
       mutate();
+      onMutate?.();
     }
   };
 
@@ -186,7 +194,7 @@ export default function ParticipantsPanel() {
   }
 
   return (
-    <div className="h-full flex flex-col w-full bg-background" style={{ maxWidth: 'none' }}>
+    <div className="h-full flex flex-col w-full">
       {/* Header */}
       <div className="tabs-header flex items-center justify-between w-full px-2 py-3 border-b">
         <div className="flex items-center gap-4">
@@ -263,9 +271,8 @@ export default function ParticipantsPanel() {
         </div>
       </div>
 
-      {/* Main Content: Full Width Table with Fixed Right Panel */}
-      <div className="flex-1 overflow-hidden relative">
-        {/* Table Section with Vertical Scroll Only */}
+      {/* Main Content: Table Only (Panel is rendered in EventPageContainer) */}
+      <div className="flex-1 overflow-hidden">
         <div className="participants-container">
           <div className="px-2 py-4">
             <Card>
@@ -420,18 +427,6 @@ export default function ParticipantsPanel() {
               </CardContent>
             </Card>
           </div>
-        </div>
-
-        {/* Fixed Right Panel */}
-        <div className="right-panel scrollbar-hide">
-          <ParticipantRightPanel
-            participant={selectedParticipant}
-            onUpdate={() => mutate()}
-            onDelete={() => {
-              setSelectedParticipant(null);
-              mutate();
-            }}
-          />
         </div>
       </div>
 

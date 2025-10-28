@@ -1,4 +1,4 @@
-// [LOCKED][71-H5.UNIFIED-DETAIL.LAYOUT] Unified Event Tabs with State-based Switching
+// [UNLOCKED-PATCH-71-H9] Unified Event Tabs with Parallel Layout for Participants
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useParams, useNavigate } from "react-router-dom";
 import { useUser } from "@/context/UserContext";
@@ -9,6 +9,8 @@ import ParticipantsTab from "@/pages/admin/event-detail/ParticipantsTab";
 import RoomingTab from "@/pages/admin/event-detail/RoomingTab";
 import MessagesTab from "@/pages/admin/event-detail/MessagesTab";
 import FormsTab from "@/pages/admin/event-detail/FormsTab";
+import EventPageContainer from "@/layouts/EventPageContainer";
+import { ParticipantRightPanel } from "@/components/participants/ParticipantRightPanel";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 
@@ -24,6 +26,7 @@ export default function EventDetailLayout() {
   
   const [event, setEvent] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [selectedParticipant, setSelectedParticipant] = useState<any>(null);
 
   // Load event data
   useEffect(() => {
@@ -142,7 +145,20 @@ export default function EventDetailLayout() {
 
           <div className="rounded-2xl bg-card shadow-card p-6 mt-4">
             <TabsContent value="participants" className="mt-0">
-              <ParticipantsTab />
+              <EventPageContainer>
+                <ParticipantsTab 
+                  selectedParticipant={selectedParticipant}
+                  onSelectParticipant={setSelectedParticipant}
+                />
+                <ParticipantRightPanel
+                  participant={selectedParticipant}
+                  onUpdate={() => {
+                    // Force re-render by updating state
+                    setSelectedParticipant(selectedParticipant ? { ...selectedParticipant } : null);
+                  }}
+                  onDelete={() => setSelectedParticipant(null)}
+                />
+              </EventPageContainer>
             </TabsContent>
             <TabsContent value="rooming" className="mt-0">
               <RoomingTab />

@@ -1,10 +1,16 @@
-// [LOCKED][71-H6.QA] Participants tab wrapper with validation
+// [71-H.9.REBUILD-FINAL] Participants tab wrapper with state pass-through
 import ParticipantsPanel from "./ParticipantsPanel";
 import { useParams } from "react-router-dom";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
-export default function ParticipantsTab() {
+interface ParticipantsTabProps {
+  selectedParticipant: any;
+  onSelectParticipant: (participant: any) => void;
+}
+
+export default function ParticipantsTab({ selectedParticipant, onSelectParticipant }: ParticipantsTabProps) {
   const { eventId } = useParams();
+  const mutateRef = useRef<() => void>();
   
   // [71-H6.QA] Validate eventId propagation
   useEffect(() => {
@@ -14,5 +20,11 @@ export default function ParticipantsTab() {
     }
   }, [eventId]);
   
-  return <ParticipantsPanel />;
+  return (
+    <ParticipantsPanel 
+      selectedParticipant={selectedParticipant}
+      onSelectParticipant={onSelectParticipant}
+      onMutate={() => mutateRef.current?.()}
+    />
+  );
 }

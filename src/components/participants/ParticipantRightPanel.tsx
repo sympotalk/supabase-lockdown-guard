@@ -173,7 +173,7 @@ export function ParticipantRightPanel({
   }
 
   return (
-    <div className="h-full flex flex-col bg-background">
+    <div className="flex h-full flex-col overflow-y-auto p-4 bg-card">
       {/* Header */}
       <div className="p-4 border-b bg-white shadow-sm">
         <div className="flex items-center justify-between">
