@@ -173,6 +173,17 @@ All colors MUST be HSL.
   }
 }
 
+@layer components {
+  /* SympoHub Button Primary Override */
+  .btn-primary {
+    @apply bg-primary text-white hover:bg-primary-hover shadow-sm hover:shadow-md transition-all duration-150;
+  }
+  
+  .btn-primary * {
+    @apply text-white;
+  }
+}
+
 /* Smooth theme transitions */
 * {
   transition-property: background-color, border-color, color, fill, stroke;
