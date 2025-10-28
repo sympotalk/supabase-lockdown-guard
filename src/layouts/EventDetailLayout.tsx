@@ -93,9 +93,9 @@ export default function EventDetailLayout() {
   }
 
   return (
-    <div className="layout-full pt-4 pb-8 space-y-4">
+    <div className="layout-full pt-0 pb-8">
       <div className="layout-center">
-        <div className="flex items-center justify-between mb-2">
+        <div className="flex items-end justify-between mb-3">
           <div className="flex items-center gap-4">
             <Button
               variant="ghost"
@@ -105,10 +105,10 @@ export default function EventDetailLayout() {
               <ArrowLeft className="h-5 w-5" />
             </Button>
             <div>
-              <h1 className="text-2xl font-semibold text-primary">
+              <h1 className="text-xl font-semibold leading-tight mb-1 event-title text-primary">
                 {event.name}
               </h1>
-              <p className="text-sm text-muted-foreground mt-1">
+              <p className="text-sm text-muted-foreground">
                 {format(new Date(event.start_date), "yyyy.MM.dd")} ~ {format(new Date(event.end_date), "yyyy.MM.dd")}
               </p>
             </div>
@@ -116,7 +116,7 @@ export default function EventDetailLayout() {
         </div>
 
         <Tabs value={tab} onValueChange={setTab} className="w-full">
-          <TabsList className="flex space-x-3 border-b border-border pb-2 bg-transparent h-auto rounded-none">
+          <TabsList className="sticky top-16 z-10 flex space-x-3 border-b border-border pb-2 bg-background h-auto rounded-none mb-4">
             <TabsTrigger 
               value="participants"
               className="data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none bg-transparent"

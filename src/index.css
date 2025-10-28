@@ -231,6 +231,26 @@ All colors MUST be HSL.
   color: hsl(var(--foreground)) !important;
 }
 
+/* [71-H.9.LAYOUT-POLISH] Event title styling */
+.event-title {
+  line-height: 1.2;
+  margin-bottom: 2px;
+  padding-top: 2px;
+}
+
+/* [71-H.9.LAYOUT-POLISH] TabsList alignment */
+.tabs-header,
+.tabs-list {
+  margin-top: 4px !important;
+}
+
+/* [71-H.9.LAYOUT-POLISH] Layout full max-width */
+.layout-full {
+  margin-left: auto;
+  margin-right: auto;
+  max-width: 1440px;
+}
+
 .layout-center .tabs-header {
   display: flex;
   justify-content: flex-start !important;
