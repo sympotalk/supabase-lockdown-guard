@@ -5212,48 +5212,6 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "fk_rooming_participants_participant"
-            columns: ["participant_id"]
-            isOneToOne: false
-            referencedRelation: "participants"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "rooming_participants_agency_id_fkey"
-            columns: ["agency_id"]
-            isOneToOne: false
-            referencedRelation: "agencies"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "rooming_participants_agency_id_fkey"
-            columns: ["agency_id"]
-            isOneToOne: false
-            referencedRelation: "agency_performance_summary"
-            referencedColumns: ["agency_id"]
-          },
-          {
-            foreignKeyName: "rooming_participants_agency_id_fkey"
-            columns: ["agency_id"]
-            isOneToOne: false
-            referencedRelation: "agency_summary"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "rooming_participants_agency_id_fkey"
-            columns: ["agency_id"]
-            isOneToOne: false
-            referencedRelation: "master_agency_overview"
-            referencedColumns: ["agency_id"]
-          },
-          {
-            foreignKeyName: "rooming_participants_agency_id_fkey"
-            columns: ["agency_id"]
-            isOneToOne: false
-            referencedRelation: "v_master_operations"
-            referencedColumns: ["agency_id"]
-          },
-          {
             foreignKeyName: "rooming_participants_event_fk"
             columns: ["event_id"]
             isOneToOne: false
@@ -5269,27 +5227,6 @@ export type Database = {
           },
           {
             foreignKeyName: "rooming_participants_event_fk"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "v_event_room_summary"
-            referencedColumns: ["event_id"]
-          },
-          {
-            foreignKeyName: "rooming_participants_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "event_progress_view"
-            referencedColumns: ["event_id"]
-          },
-          {
-            foreignKeyName: "rooming_participants_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "events"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "rooming_participants_event_id_fkey"
             columns: ["event_id"]
             isOneToOne: false
             referencedRelation: "v_event_room_summary"
@@ -5297,13 +5234,6 @@ export type Database = {
           },
           {
             foreignKeyName: "rooming_participants_participant_fk"
-            columns: ["participant_id"]
-            isOneToOne: false
-            referencedRelation: "participants"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "rooming_participants_participant_id_fkey"
             columns: ["participant_id"]
             isOneToOne: false
             referencedRelation: "participants"
