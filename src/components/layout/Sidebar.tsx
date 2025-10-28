@@ -45,7 +45,10 @@ export function Sidebar() {
   return (
     <ShadcnSidebar
       collapsible="icon"
-      className="min-w-[240px] max-w-[240px] h-screen border-r border-gray-100 bg-white p-0"
+      className={cn(
+        "transition-all duration-300 ease-in-out bg-white border-r border-gray-100 h-screen",
+        state === "collapsed" ? "w-0 overflow-hidden border-r-0" : "w-[240px]"
+      )}
     >
       <SidebarContent className="px-0">
         <div className="text-[15px] font-semibold text-foreground flex items-center gap-2 px-4 py-4 border-b border-gray-100">
@@ -70,9 +73,9 @@ export function Sidebar() {
                         className={cn(
                           "relative flex items-center gap-3 px-3 py-2 rounded-lg text-[15px] font-medium w-full",
                           "transition-all duration-150",
-                          "text-muted-foreground hover:text-foreground hover:bg-muted",
+                          "text-muted-foreground hover:text-foreground",
                           "sidebar-item",
-                          active && "text-primary bg-muted/50"
+                          active && "text-primary"
                         )}
                         data-active={active}
                       >

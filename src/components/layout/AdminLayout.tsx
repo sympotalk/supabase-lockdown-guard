@@ -37,11 +37,11 @@ export function AdminLayout() {
   return (
     <AgencyDataProvider>
       <SidebarProvider>
-        <div className="w-full h-screen grid grid-cols-[240px_1fr] bg-background overflow-hidden">
+        <div className="relative flex w-full h-screen bg-white overflow-hidden">
           <Sidebar />
-          <div className="flex flex-col">
+          <div className="flex flex-col flex-1">
             <Header />
-            <main className="w-full h-full bg-white overflow-hidden">
+            <main className="flex-1 w-full bg-white overflow-hidden">
               <Outlet />
             </main>
           </div>
