@@ -5152,6 +5152,7 @@ export type Database = {
           event_id: string | null
           id: string
           is_active: boolean | null
+          manual_assigned: boolean | null
           memo: string | null
           participant_id: string | null
           room_type: string | null
@@ -5167,6 +5168,7 @@ export type Database = {
           event_id?: string | null
           id?: string
           is_active?: boolean | null
+          manual_assigned?: boolean | null
           memo?: string | null
           participant_id?: string | null
           room_type?: string | null
@@ -5182,6 +5184,7 @@ export type Database = {
           event_id?: string | null
           id?: string
           is_active?: boolean | null
+          manual_assigned?: boolean | null
           memo?: string | null
           participant_id?: string | null
           room_type?: string | null
@@ -6899,6 +6902,10 @@ export type Database = {
         Returns: undefined
       }
       refresh_dashboard_metrics: { Args: never; Returns: undefined }
+      refresh_rooming_assignments: {
+        Args: { p_event_id: string }
+        Returns: Json
+      }
       rpc_activate_account: { Args: { token: string }; Returns: Json }
       rpc_create_agency: {
         Args: {
