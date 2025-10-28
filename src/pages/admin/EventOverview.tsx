@@ -172,11 +172,18 @@ export default function EventOverview() {
     };
   }, [eventId]);
 
-  // [71-HOTEL.REALTIME.R3] Toggle room selection
+  // [71-HOTEL.REALTIME.R5] Toggle room selection with immediate UI update
   const toggleRoomSelection = async (room: RoomRow) => {
     if (!eventId || !hotelId || !eventAgencyId) return;
 
     if (room.isSelected) {
+      // Immediate UI update
+      setRooms((prev) =>
+        prev.map((r) =>
+          r.id === room.id ? { ...r, isSelected: false } : r
+        )
+      );
+
       // Remove from event
       const { error } = await supabase
         .from("event_room_refs")
@@ -185,11 +192,32 @@ export default function EventOverview() {
 
       if (error) {
         toast.error("삭제 실패");
+        load(); // Revert on error
       } else {
-        toast.info(`${room.room_name} 객실이 제외되었습니다`);
+        toast.info(`${room.room_name} 객실이 제외되었습니다`, { duration: 1500 });
       }
     } else {
-      // Add to event - use upsert to prevent 409 conflicts
+      // Check if already exists first
+      const { data: existing } = await supabase
+        .from("event_room_refs")
+        .select("id")
+        .eq("event_id", eventId)
+        .eq(room.isStandard ? "room_type_id" : "local_type_id", room.isStandard ? room.room_type_id : room.local_type_id)
+        .maybeSingle();
+
+      if (existing) {
+        toast.info(`${room.room_name} 객실이 이미 선택되어 있습니다`, { duration: 1500 });
+        return;
+      }
+
+      // Immediate UI update
+      setRooms((prev) =>
+        prev.map((r) =>
+          r.id === room.id ? { ...r, isSelected: true } : r
+        )
+      );
+
+      // Add to event
       const insertData: any = {
         event_id: eventId,
         hotel_id: hotelId,
@@ -204,19 +232,6 @@ export default function EventOverview() {
         insertData.local_type_id = room.local_type_id;
       }
 
-      // Check if already exists first
-      const { data: existing } = await supabase
-        .from("event_room_refs")
-        .select("id")
-        .eq("event_id", eventId)
-        .eq(room.isStandard ? "room_type_id" : "local_type_id", room.isStandard ? room.room_type_id : room.local_type_id)
-        .maybeSingle();
-
-      if (existing) {
-        toast.info(`${room.room_name} 객실이 이미 선택되어 있습니다`);
-        return;
-      }
-
       const { error } = await supabase
         .from("event_room_refs")
         .insert([insertData]);
@@ -224,25 +239,36 @@ export default function EventOverview() {
       if (error) {
         console.error("Insert error:", error);
         toast.error("추가 실패: " + error.message);
+        load(); // Revert on error
       } else {
-        toast.success(`${room.room_name} 객실이 추가되었습니다`);
+        toast.success(`${room.room_name} 객실이 추가되었습니다`, { duration: 1500 });
       }
     }
   };
 
-  // [71-HOTEL.REALTIME.R3] Auto-save on change
+  // [71-HOTEL.REALTIME.R5] Auto-save on change with immediate UI update
   const handleChange = async (room: RoomRow, field: "credit" | "stock", value: string) => {
     if (!room.isSelected) return;
 
     const numValue = Math.max(0, Number(value) || 0);
+
+    // Immediate UI update
+    setRooms((prev) =>
+      prev.map((r) =>
+        r.id === room.id ? { ...r, [field]: numValue } : r
+      )
+    );
 
     const { error } = await supabase
       .from("event_room_refs")
       .update({ [field]: numValue })
       .eq("id", room.id);
 
-    if (!error) {
-      toast.success("변경사항이 저장되었습니다");
+    if (error) {
+      toast.error("저장 실패");
+      load(); // Revert on error
+    } else {
+      toast.success("저장되었습니다", { duration: 1200 });
     }
   };
 
@@ -287,7 +313,7 @@ export default function EventOverview() {
 
       if (refError) throw refError;
 
-      toast.success(`${newRoomName} 객실이 추가되었습니다`);
+      toast.success(`${newRoomName} 객실이 추가되었습니다`, { duration: 1500 });
       setNewRoomName("");
     } catch (error: any) {
       toast.error(error.message || "객실 추가 실패");
@@ -322,7 +348,7 @@ export default function EventOverview() {
     if (error) {
       toast.error("삭제 실패");
     } else {
-      toast.info(`${room.room_name} 객실이 삭제되었습니다`);
+      toast.info(`${room.room_name} 객실이 삭제되었습니다`, { duration: 1500 });
     }
   };
 
@@ -393,6 +419,7 @@ export default function EventOverview() {
                         disabled={!room.isSelected}
                         placeholder="지원 크레딧"
                         min="0"
+                        step="1000"
                       />
                     </div>
                     <div className="p-3">
@@ -404,6 +431,7 @@ export default function EventOverview() {
                         disabled={!room.isSelected}
                         placeholder="객실 수량"
                         min="0"
+                        step="1"
                       />
                     </div>
                     <div className="p-3 text-center">
