@@ -105,43 +105,11 @@ export default function Dashboard() {
   return (
     <div className="layout-full space-y-8">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">에이전시 대시보드</h1>
-          <p className="mt-2 text-muted-foreground">
-            진행 중인 행사와 진행률을 한눈에 확인하세요
-          </p>
-        </div>
-        
-        {/* Quick Actions */}
-        <div className="flex gap-3">
-          <Button 
-            size="lg" 
-            className="gap-2"
-            onClick={() => setCreateModalOpen(true)}
-          >
-            <Calendar className="h-5 w-5" />
-            새 행사 등록
-          </Button>
-          <Button 
-            size="lg" 
-            variant="outline"
-            className="gap-2"
-            onClick={() => setUploadModalOpen(true)}
-          >
-            <Upload className="h-5 w-5" />
-            참가자 업로드
-          </Button>
-          <Button 
-            size="lg" 
-            variant="outline"
-            className="gap-2"
-            onClick={() => navigate('/admin/rooming')}
-          >
-            <Hotel className="h-5 w-5" />
-            객실 관리
-          </Button>
-        </div>
+      <div>
+        <h1 className="text-3xl font-bold">에이전시 대시보드</h1>
+        <p className="mt-2 text-muted-foreground">
+          진행 중인 행사와 진행률을 한눈에 확인하세요
+        </p>
       </div>
 
       {/* Status Cards */}

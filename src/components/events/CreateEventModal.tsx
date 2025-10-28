@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Plus, Trash2, Building } from "lucide-react";
+import { Plus, Trash2 } from "lucide-react";
 import { useAppData } from "@/contexts/AppDataContext";
 import { useUser } from "@/context/UserContext";
 import DualDatePicker from "@/components/common/DualDatePicker";
@@ -27,9 +27,7 @@ export default function CreateEventModal({ open, onOpenChange }: CreateEventModa
     from: undefined,
     to: undefined,
   });
-  const [agencies, setAgencies] = useState<any[]>([]);
   const [selectedAgencyId, setSelectedAgencyId] = useState<string | undefined>(undefined);
-  const [isMaster, setIsMaster] = useState(false);
 
   // [71-E.FIXSELECT] Debug log
   useEffect(() => {
@@ -61,38 +59,25 @@ export default function CreateEventModal({ open, onOpenChange }: CreateEventModa
     }
   }, [open]);
 
-  // Load session and check role
+  // [71-DASHBOARD.CLEANUP.FINAL] Auto-load agency_id from logged-in user
   useEffect(() => {
-    const loadUserRole = async () => {
+    const loadAgencyId = async () => {
       const { data: session } = await supabase.auth.getSession();
-      const role = session?.session?.user?.user_metadata?.role;
-      const isMasterUser = role === "master";
-      setIsMaster(isMasterUser);
-
-      if (isMasterUser) {
-        // Load all agencies for Master
-        const { data: agenciesList } = await supabase
-          .from("agencies")
-          .select("id, name")
-          .eq("is_active", true)
-          .order("name");
-        setAgencies(agenciesList || []);
-      } else {
-        // Get agency_id from agency_members for non-master users
-        const userId = session?.session?.user?.id;
-        if (userId) {
-          const { data: memberData } = await supabase
-            .from("agency_members")
-            .select("agency_id")
-            .eq("user_id", userId)
-            .single();
-          if (memberData?.agency_id) {
-            setSelectedAgencyId(memberData.agency_id);
-          }
+      const userId = session?.session?.user?.id;
+      
+      if (userId) {
+        const { data: memberData } = await supabase
+          .from("agency_members")
+          .select("agency_id")
+          .eq("user_id", userId)
+          .single();
+        
+        if (memberData?.agency_id) {
+          setSelectedAgencyId(memberData.agency_id);
         }
       }
     };
-    loadUserRole();
+    loadAgencyId();
   }, []);
 
   useEffect(() => {
@@ -326,7 +311,6 @@ export default function CreateEventModal({ open, onOpenChange }: CreateEventModa
       // Reset form
       setEventName("");
       setDateRange({ from: new Date(), to: new Date(Date.now() + 86400000 * 2) });
-      setSelectedAgencyId(isMaster ? undefined : selectedAgencyId);
       setSelectedHotel(null);
       setRoomTypes([]);
       setCheckedRooms({});
@@ -348,36 +332,6 @@ export default function CreateEventModal({ open, onOpenChange }: CreateEventModa
         </DialogHeader>
 
         <div className="space-y-6 px-1">
-          {/* Agency Selection - Master Only */}
-          {isMaster && (
-            <div className="p-4 bg-blue-50/50 rounded-xl space-y-3 border border-blue-100">
-              <div className="flex items-center gap-2">
-                <Building className="h-4 w-4 text-blue-600" />
-                <Label className="text-base font-semibold text-blue-700">에이전시 선택</Label>
-              </div>
-              <Select 
-                value={selectedAgencyId || undefined} 
-                onValueChange={(v) => setSelectedAgencyId(v || undefined)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="에이전시를 선택하세요" />
-                </SelectTrigger>
-                <SelectContent>
-                  {agencies
-                    .filter((agency) => 
-                      typeof agency.id === "string" && 
-                      agency.id.match(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/)
-                    )
-                    .map((agency) => (
-                      <SelectItem key={agency.id} value={agency.id}>
-                        {agency.name}
-                      </SelectItem>
-                    ))}
-                </SelectContent>
-              </Select>
-            </div>
-          )}
-
           {/* Basic Event Info */}
           <div className="grid grid-cols-2 gap-5 items-center">
             <div className="space-y-2">
@@ -440,8 +394,7 @@ export default function CreateEventModal({ open, onOpenChange }: CreateEventModa
 
             {selectedHotel && (
               <div className="border border-blue-200 rounded-2xl p-5 space-y-4 bg-gradient-to-br from-blue-50/30 to-white animate-fade-in shadow-sm">
-                <div className="font-semibold text-blue-700 flex items-center gap-2">
-                  <Building className="h-4 w-4" />
+                <div className="font-semibold text-blue-700">
                   {selectedHotel.name} — 표준 객실 타입
                 </div>
 
