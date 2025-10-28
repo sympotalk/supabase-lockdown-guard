@@ -1,3 +1,4 @@
+// [71-H.REBUILD-FINAL] Header - Fixed positioning with proper offset
 import { useState, useEffect } from "react";
 import { Bell, Settings, ChevronDown, Moon, Sun, LogOut, X } from "lucide-react";
 import { useTheme } from "next-themes";
@@ -23,7 +24,6 @@ export function Header() {
   const { user, role, agencyScope, setAgencyScope } = useUser();
   const [agencyName, setAgencyName] = useState<string | null>(null);
 
-  // Fetch agency name when viewing as agency
   useEffect(() => {
     const fetchAgencyName = async () => {
       if (role === "master" && agencyScope) {
@@ -58,7 +58,6 @@ export function Header() {
   };
 
   const handleExitViewMode = () => {
-    console.log("[Header] Exiting View Mode");
     setAgencyScope(null);
     toast.info("View Mode가 종료되었습니다.");
     navigate("/master/dashboard");
@@ -68,13 +67,12 @@ export function Header() {
   const roleLabel = role === "master" ? "관리자" : role === "agency_owner" ? "에이전시 오너" : "스태프";
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-40 h-[72px] border-b border-border bg-background transition-colors duration-300">
+    <header className="fixed top-0 left-0 right-0 z-40 h-[72px] border-b border-border bg-background">
       <div className="flex h-full items-center px-6">
         <div className="flex items-center gap-3">
           <SidebarTrigger className="-ml-2" />
           <span className="text-xl font-bold text-primary">SympoHub</span>
           
-          {/* View Mode Badge - Only for master with active scope in /admin routes */}
           {role === "master" && 
            agencyScope && 
            agencyName && 
@@ -158,6 +156,6 @@ export function Header() {
           </DropdownMenu>
         </div>
       </div>
-      </header>
+    </header>
   );
 }

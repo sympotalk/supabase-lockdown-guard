@@ -201,9 +201,9 @@ All colors MUST be HSL.
   box-shadow: -4px 0 12px rgba(0, 0, 0, 0.3);
 }
 
-/* [71-H.REBUILD-CORE] Global Layout Reset */
+/* [71-H.REBUILD-FINAL] Global Layout Reset */
 
-/* Body & HTML reset */
+/* Body & HTML */
 body, html {
   margin: 0;
   padding: 0;
@@ -215,54 +215,7 @@ body {
   overflow-y: auto;
 }
 
-/* [71-H.REBUILD-CORE] Layout containers */
-.layout-full {
-  max-width: 1440px;
-  margin: 0 auto;
-  padding: 0 24px;
-  box-sizing: border-box;
-}
-
-.layout-center {
-  max-width: none;
-  width: 100%;
-  margin: 0 auto;
-  box-sizing: border-box;
-}
-
-/* [71-H.REBUILD-CORE] Sidebar & Navigation */
-.sidebar-item {
-  transition: all 0.15s ease-in-out;
-}
-
-.sidebar-item:hover {
-  background-color: hsl(var(--muted)) !important;
-  color: hsl(var(--foreground)) !important;
-}
-
-.sidebar-item:hover .lucide {
-  color: hsl(var(--foreground)) !important;
-}
-
-/* [71-H.REBUILD-CORE] Typography & Spacing */
-.event-title {
-  line-height: 1.25;
-}
-
-/* [71-H.REBUILD-CORE] Interactive elements */
-button:not(:disabled):hover {
-  filter: brightness(1.03);
-  transition: filter 0.2s ease-in-out;
-}
-
-.layout-center .tabs-header {
-  display: flex;
-  justify-content: flex-start;
-  align-items: center;
-  gap: 8px;
-}
-
-/* [71-H.REBUILD-CORE] Scrollbar styling */
+/* Scrollbar Styling */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -285,13 +238,25 @@ button:not(:disabled):hover {
   background: hsl(var(--muted-foreground) / 0.4);
 }
 
-/* Dark mode consistency */
-.dark .layout-full {
-  max-width: 1440px;
-  margin: 0 auto;
+/* Sidebar Hover */
+.sidebar-item {
+  transition: all 0.15s ease-in-out;
 }
 
-/* [71-H.REBUILD-CORE] Tabs styling */
+.sidebar-item:hover {
+  background-color: hsl(var(--muted)) !important;
+  color: hsl(var(--foreground)) !important;
+}
+
+.sidebar-item:hover .lucide {
+  color: hsl(var(--foreground)) !important;
+}
+
+/* Interactive Elements */
+button:not(:disabled):hover {
+  filter: brightness(1.03);
+  transition: filter 0.2s ease-in-out;
+}
 .tabs-header {
   height: 48px;
   align-items: center;

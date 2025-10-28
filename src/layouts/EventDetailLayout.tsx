@@ -1,4 +1,4 @@
-// [71-H.REBUILD-CORE] Unified Event Layout - Clean alignment & flex-grid
+// [71-H.REBUILD-FINAL] Event Detail - Fixed scroll & alignment
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useParams, useNavigate } from "react-router-dom";
 import { useUser } from "@/context/UserContext";
@@ -82,8 +82,8 @@ export default function EventDetailLayout() {
   }
 
   return (
-    <div className="layout-full">
-      {/* Title Section */}
+    <div className="max-w-[1400px] mx-auto">
+      {/* Event Title Section */}
       <div className="flex items-center gap-4 mb-4">
         <Button
           variant="ghost"

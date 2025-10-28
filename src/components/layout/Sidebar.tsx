@@ -1,3 +1,4 @@
+// [71-H.REBUILD-FINAL] Sidebar - Clean hover and alignment
 import { NavLink, useLocation } from "react-router-dom";
 import {
   LayoutDashboard,
@@ -16,7 +17,6 @@ import {
 } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
 
-// [LOCKED][71-H.STABLE] Hide tab-merged items (moved to event detail tabs)
 const menuItems = [
   {
     title: "대시보드",
@@ -28,27 +28,6 @@ const menuItems = [
     icon: Calendar,
     url: "/admin/events",
   },
-  // [LOCKED][71-H.STABLE] 참가자, 숙박, 문자, 설문 항목은 상단 탭으로 이동 → 주석 처리
-  // {
-  //   title: "참가자 관리",
-  //   icon: Users,
-  //   url: "/admin/participants",
-  // },
-  // {
-  //   title: "숙박 및 룸핑",
-  //   icon: Hotel,
-  //   url: "/admin/rooming",
-  // },
-  // {
-  //   title: "문자·알림 발송",
-  //   icon: MessageSquare,
-  //   url: "/admin/messages",
-  // },
-  // {
-  //   title: "설문·초청장",
-  //   icon: FileText,
-  //   url: "/admin/forms",
-  // },
   {
     title: "계정 관리",
     icon: Building2,
@@ -57,7 +36,7 @@ const menuItems = [
 ];
 
 export function Sidebar() {
-  const { state, toggleSidebar } = useSidebar();
+  const { state } = useSidebar();
   const location = useLocation();
   const currentPath = location.pathname;
 
@@ -71,7 +50,7 @@ export function Sidebar() {
         state === "collapsed" ? "w-[64px]" : "w-[220px]"
       )}
     >
-      <SidebarContent className="px-3 py-4 sidebar-container">
+      <SidebarContent className="px-3 py-4">
         <div className="text-[15px] font-semibold text-foreground flex items-center gap-2 pl-1 mb-6">
           <Building2 className="w-4 h-4 text-primary" />
           {state !== "collapsed" && <span>SympoHub</span>}
@@ -92,7 +71,7 @@ export function Sidebar() {
                       <NavLink 
                         to={item.url}
                         className={cn(
-                          "relative flex items-center gap-2 px-3 py-2 rounded-xl text-[15px] font-medium w-full",
+                          "relative flex items-center gap-3 px-3 py-2 rounded-lg text-[15px] font-medium w-full",
                           "transition-all duration-150",
                           "text-muted-foreground hover:text-foreground hover:bg-muted",
                           "sidebar-item",

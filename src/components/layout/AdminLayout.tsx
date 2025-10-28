@@ -1,4 +1,4 @@
-// [71-H.REBUILD-CORE] Admin Layout - Clean flex-grid structure
+// [71-H.REBUILD-FINAL] Admin Layout - Complete restructure
 import { Outlet, useNavigate } from "react-router-dom";
 import { Header } from "./Header";
 import { Sidebar } from "./Sidebar";
@@ -15,9 +15,9 @@ export function AdminLayout() {
   if (role === "master" && !agencyScope) {
     return (
       <SidebarProvider>
-        <div className="flex min-h-screen w-full bg-background">
+        <div className="flex h-screen w-full bg-background overflow-hidden">
           <Sidebar />
-          <div className="flex-1 flex flex-col">
+          <div className="flex flex-col flex-1">
             <Header />
             <main className="flex-1 overflow-y-auto px-6 pt-[72px] pb-8">
               <div className="flex flex-col items-center justify-center h-96 text-muted-foreground">
@@ -37,9 +37,9 @@ export function AdminLayout() {
   return (
     <AgencyDataProvider>
       <SidebarProvider>
-        <div className="flex min-h-screen w-full bg-background">
+        <div className="flex h-screen w-full bg-background overflow-hidden">
           <Sidebar />
-          <div className="flex-1 flex flex-col">
+          <div className="flex flex-col flex-1">
             <Header />
             <main className="flex-1 overflow-y-auto px-6 pt-[72px] pb-8">
               <Outlet />
