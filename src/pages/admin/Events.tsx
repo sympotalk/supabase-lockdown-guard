@@ -218,13 +218,35 @@ export default function Events() {
                   </div>
                 </div>
 
-                {/* 오른쪽: 상태 및 수정 */}
+                {/* 오른쪽: 상태 및 액션 버튼 */}
                 <div className="flex items-center gap-3">
                   <Badge
                     variant={getStatusBadgeVariant(event.status)}
                   >
                     {getStatusLabel(event.status)}
                   </Badge>
+
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate(`/admin/events/${event.id}/overview`);
+                    }}
+                  >
+                    행사 개요
+                  </Button>
+
+                  <Button
+                    variant="default"
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate(`/admin/events/${event.id}/participants`);
+                    }}
+                  >
+                    참가자 관리
+                  </Button>
 
                   <Button
                     variant="outline"

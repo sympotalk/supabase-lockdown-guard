@@ -223,9 +223,8 @@ export default function CreateEventModal({ open, onOpenChange }: CreateEventModa
       return toast.error("에이전시 정보를 불러오지 못했습니다. 다시 로그인해주세요.");
     }
 
-    if (!selectedHotel) {
-      return toast.error("호텔을 선택해주세요");
-    }
+    // [71-HOTEL.ENTRY.REBUILD] Hotel selection is now optional
+    // Can be configured later in event overview page
 
     setLoading(true);
     try {
@@ -239,7 +238,7 @@ export default function CreateEventModal({ open, onOpenChange }: CreateEventModa
           name: eventName,
           start_date: dateRange.from?.toISOString().split("T")[0] || "",
           end_date: dateRange.to?.toISOString().split("T")[0] || "",
-          location: selectedHotel.name, // Hotel name as location
+          location: selectedHotel?.name || null, // Optional hotel
           agency_id: finalAgencyId, // ✅ Confirmed agency_id injection
           created_by: userId,
         })
@@ -247,6 +246,18 @@ export default function CreateEventModal({ open, onOpenChange }: CreateEventModa
         .single();
 
       if (eventError) throw eventError;
+
+      // [71-HOTEL.ENTRY.REBUILD] Only process room configurations if hotel is selected
+      if (!selectedHotel) {
+        toast.success("✅ 새 행사가 등록되었습니다.", {
+          description: `${eventName} 행사가 생성되었습니다. 행사 개요 페이지에서 호텔을 설정하세요.`,
+          duration: 3000,
+        });
+        await refresh();
+        onOpenChange(false);
+        navigate(`/admin/events/${newEvent.id}/overview`);
+        return;
+      }
 
       // Save custom rooms to room_types_local
       const customRoomIds: Record<string, string> = {};
@@ -356,12 +367,14 @@ export default function CreateEventModal({ open, onOpenChange }: CreateEventModa
           {/* Hotel Selection */}
           <div className="space-y-3 pt-2">
             <div className="h-px bg-gradient-to-r from-transparent via-border to-transparent mb-4" />
-            <Label className="text-base font-semibold text-blue-700">호텔 선택</Label>
+            <Label className="text-base font-semibold text-blue-700">
+              호텔 선택 <span className="text-xs text-muted-foreground font-normal">(선택사항)</span>
+            </Label>
             <Input
               value={hotelSearch}
               onChange={(e) => setHotelSearch(e.target.value)}
               onKeyDown={onHotelKeyDown}
-              placeholder="호텔명 검색 (Enter로 선택, ↑/↓ 이동)"
+              placeholder="호텔명 검색 (생략 가능, 추후 행사 개요에서 설정)"
             />
             
             {hotels.length > 0 && (

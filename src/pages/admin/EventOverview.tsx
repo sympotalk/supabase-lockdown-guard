@@ -231,10 +231,7 @@ export default function EventOverview() {
               </div>
             )}
 
-            <div className="text-xs text-muted-foreground pt-2 border-t">
-              * 룸크레딧은 객실 요금이 아니라 참석자 1인당 지원금입니다. 합산/평균
-              계산하지 않습니다.
-            </div>
+            <div className="h-4" />
           </CardContent>
         </Card>
       </div>
