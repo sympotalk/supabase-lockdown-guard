@@ -81,27 +81,8 @@ export default function EventDetailLayout() {
 
   return (
     <div className="w-full h-full">
-      {/* Event Title Section */}
-      <div className="flex items-center gap-4 px-6 py-4 bg-card border-b border-border">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => navigate("/admin/events")}
-        >
-          <ArrowLeft className="h-5 w-5" />
-        </Button>
-        <div>
-          <h1 className="text-xl font-semibold leading-tight text-card-foreground">
-            {event.name}
-          </h1>
-          <p className="text-sm text-muted-foreground mt-0.5">
-            {format(new Date(event.start_date), "yyyy.MM.dd")} ~ {format(new Date(event.end_date), "yyyy.MM.dd")}
-          </p>
-        </div>
-      </div>
-
       {/* Card Container with Tabs */}
-      <div className="p-6">
+      <div className="px-6 py-4">
         <div className="bg-card rounded-xl border border-border shadow-sm">
           <Tabs value={tab} onValueChange={setTab} className="w-full">
             <TabsList className="flex space-x-6 border-b border-border px-6 pt-4 pb-0 bg-transparent h-auto rounded-none">
@@ -132,7 +113,7 @@ export default function EventDetailLayout() {
             </TabsList>
 
             {/* Content Section */}
-            <div className="w-full h-[calc(100vh-280px)]">
+            <div className="w-full h-[calc(100vh-220px)]">
               <TabsContent value="participants" className="mt-0 h-full">
                 <ParticipantsTab 
                   selectedParticipant={selectedParticipant}

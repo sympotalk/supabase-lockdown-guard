@@ -1,13 +1,14 @@
-// [71-UI.STANDARD.A] Header - Fixed with left offset for sidebar
+// [71-UI.STANDARD.C] Header - Event integration & dynamic layout
 import { useState, useEffect } from "react";
-import { Bell, Settings, ChevronDown, Moon, Sun, LogOut, X } from "lucide-react";
+import { Bell, Settings, ChevronDown, Moon, Sun, LogOut, X, ArrowLeft, Menu } from "lucide-react";
 import { useTheme } from "next-themes";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useUser } from "@/context/UserContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { format } from "date-fns";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,11 +18,20 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-export function Header() {
+interface HeaderProps {
+  sidebarOpen: boolean;
+}
+
+export function Header({ sidebarOpen }: HeaderProps) {
   const { theme, setTheme } = useTheme();
   const navigate = useNavigate();
+  const location = useLocation();
+  const params = useParams();
   const { user, role, agencyScope, setAgencyScope } = useUser();
   const [agencyName, setAgencyName] = useState<string | null>(null);
+  const [eventData, setEventData] = useState<any>(null);
+  
+  const isEventDetailPage = location.pathname.includes("/admin/events/") && params.eventId;
 
   useEffect(() => {
     const fetchAgencyName = async () => {
@@ -42,6 +52,27 @@ export function Header() {
 
     fetchAgencyName();
   }, [role, agencyScope]);
+
+  useEffect(() => {
+    const fetchEventData = async () => {
+      if (isEventDetailPage && params.eventId && agencyScope) {
+        const { data, error } = await supabase
+          .from("events")
+          .select("*")
+          .eq("id", params.eventId)
+          .eq("agency_id", agencyScope)
+          .single();
+        
+        if (!error && data) {
+          setEventData(data);
+        }
+      } else {
+        setEventData(null);
+      }
+    };
+
+    fetchEventData();
+  }, [isEventDetailPage, params.eventId, agencyScope]);
 
   const handleLogout = async () => {
     try {
@@ -66,9 +97,51 @@ export function Header() {
   const roleLabel = role === "master" ? "관리자" : role === "agency_owner" ? "에이전시 오너" : "스태프";
 
   return (
-    <header className="fixed top-0 left-[240px] right-0 h-[64px] bg-sidebar-background z-20">
-      <div className="flex h-full items-center px-6">
+    <header 
+      className="fixed top-0 right-0 h-[64px] bg-sidebar-background z-20 transition-all duration-300"
+      style={{ left: sidebarOpen ? '240px' : '0px' }}
+    >
+      <div className="flex h-full items-center px-6 justify-between">
         <div className="flex items-center gap-3">
+          {!sidebarOpen && (
+            <Button 
+              variant="ghost" 
+              size="icon"
+              onClick={() => {
+                const sidebar = document.querySelector('aside');
+                if (sidebar) {
+                  const event = new CustomEvent('toggleSidebar');
+                  window.dispatchEvent(event);
+                }
+              }}
+              className="mr-2"
+            >
+              <Menu className="h-5 w-5" />
+            </Button>
+          )}
+          
+          {isEventDetailPage && eventData ? (
+            <>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => navigate("/admin/events")}
+              >
+                <ArrowLeft className="h-5 w-5" />
+              </Button>
+              <div>
+                <h1 className="text-lg font-semibold leading-tight text-sidebar-foreground">
+                  {eventData.name}
+                </h1>
+                <p className="text-sm text-muted-foreground">
+                  {format(new Date(eventData.start_date), "yyyy.MM.dd")} ~ {format(new Date(eventData.end_date), "yyyy.MM.dd")}
+                </p>
+              </div>
+            </>
+          ) : null}
+        </div>
+
+        <div className="ml-auto flex items-center gap-3">
           {role === "master" && 
            agencyScope && 
            agencyName && 
@@ -86,9 +159,6 @@ export function Header() {
               </button>
             </div>
           )}
-        </div>
-
-        <div className="ml-auto flex items-center gap-3">
           <Button variant="ghost" size="icon" className="relative">
             <Bell className="h-5 w-5" />
             <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-destructive" />
