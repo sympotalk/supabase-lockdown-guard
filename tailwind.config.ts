@@ -67,18 +67,33 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
+        sympoblue: {
+          50: "#EEF5FF",
+          100: "#D8E8FF",
+          200: "#B3D2FF",
+          300: "#85B5FF",
+          400: "#5898FF",
+          500: "#337EFF",
+          600: "#2668E0",
+          700: "#1C53B8",
+          800: "#183F8C",
+          900: "#122D66",
+        },
       },
       fontFamily: {
         sans: ['Pretendard', '-apple-system', 'BlinkMacSystemFont', 'system-ui', 'Roboto', 'sans-serif'],
+        sympo: ["'Pretendard'", "'Noto Sans KR'", "sans-serif"],
       },
       boxShadow: {
         'card': '0 2px 8px 0 rgb(0 0 0 / 0.12)',
         'card-hover': '0 4px 12px 0 rgb(0 0 0 / 0.15)',
+        'sympo': '0 4px 10px rgba(0, 0, 0, 0.08)',
       },
       borderRadius: {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
+        sympo: "16px",
       },
       keyframes: {
         "accordion-down": {
