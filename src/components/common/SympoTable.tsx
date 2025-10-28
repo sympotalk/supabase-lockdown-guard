@@ -1,112 +1,110 @@
 // [71-UI.STANDARD.D-FINAL] SympoHub unified table component
-import { ReactNode } from "react";
-import { cn } from "@/lib/utils";
+import React from "react";
+import clsx from "clsx";
 
-export interface SympoTableColumn<T = any> {
-  key: string;
-  label: string;
-  width?: string;
+interface Column {
+  header: string;
+  accessor: string;
+  maxWidth?: string;
   align?: "left" | "center" | "right";
-  sticky?: boolean;
-  stickyLeft?: string;
-  render?: (value: any, row: T, index: number) => ReactNode;
-  className?: string;
 }
 
-interface SympoTableProps<T = any> {
-  columns: SympoTableColumn<T>[];
-  data: T[];
+interface SympoTableProps {
+  columns: Column[];
+  data: any[];
+  darkMode?: boolean;
+  onRowClick?: (row: any, index: number) => void;
   minWidth?: string;
-  onRowClick?: (row: T, index: number) => void;
-  rowClassName?: (row: T, index: number) => string;
-  emptyMessage?: string;
 }
 
-export function SympoTable<T extends Record<string, any>>({
+export default function SympoTable({
   columns,
   data,
-  minWidth = "1200px",
+  darkMode = false,
   onRowClick,
-  rowClassName,
-  emptyMessage = "데이터가 없습니다",
-}: SympoTableProps<T>) {
+  minWidth = "1200px",
+}: SympoTableProps) {
   return (
-    <div className="rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 bg-white dark:bg-[#1e293b] overflow-x-auto">
+    <div
+      className={clsx(
+        "rounded-2xl shadow-sm border overflow-x-auto",
+        darkMode
+          ? "bg-[#1e293b] border-gray-700"
+          : "bg-white border-gray-100"
+      )}
+    >
       <table
-        className={cn(
-          "w-full border-collapse text-sm text-left",
-          `min-w-[${minWidth}]`
-        )}
+        className="w-full border-collapse text-sm text-left"
         style={{ minWidth }}
       >
-        <thead className="sticky top-0 bg-gray-50 dark:bg-[#27314a] z-10">
-          <tr className="border-b border-gray-100 dark:border-gray-700">
-            {columns.map((column) => (
+        <thead
+          className={clsx(
+            "sticky top-0 z-10",
+            darkMode ? "bg-[#27314a]" : "bg-gray-50"
+          )}
+        >
+          <tr>
+            {columns.map((col, i) => (
               <th
-                key={column.key}
-                className={cn(
-                  "py-3 px-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide border-b border-gray-100 dark:border-gray-700",
-                  column.align === "center" && "text-center",
-                  column.align === "right" && "text-right",
-                  column.sticky && "sticky z-20 bg-gray-50 dark:bg-[#27314a]",
-                  column.className
+                key={i}
+                className={clsx(
+                  "py-3 px-4 text-xs font-semibold uppercase tracking-wide border-b",
+                  darkMode
+                    ? "text-gray-400 border-gray-700"
+                    : "text-gray-500 border-gray-100",
+                  col.align === "center" && "text-center",
+                  col.align === "right" && "text-right"
                 )}
-                style={
-                  column.sticky && column.stickyLeft
-                    ? { left: column.stickyLeft }
-                    : column.sticky
-                    ? { left: 0 }
-                    : undefined
-                }
               >
-                {column.label}
+                {col.header}
               </th>
             ))}
           </tr>
         </thead>
-        <tbody className="bg-white dark:bg-[#1e293b]">
+
+        <tbody
+          className={clsx(
+            "divide-y",
+            darkMode ? "divide-gray-700" : "divide-gray-100"
+          )}
+        >
           {data.length === 0 ? (
             <tr>
               <td
                 colSpan={columns.length}
-                className="py-16 text-center text-gray-500 dark:text-gray-400"
+                className={clsx(
+                  "py-16 text-center",
+                  darkMode ? "text-gray-400" : "text-gray-500"
+                )}
               >
-                {emptyMessage}
+                데이터가 없습니다
               </td>
             </tr>
           ) : (
-            data.map((row, rowIndex) => (
+            data.map((row, i) => (
               <tr
-                key={row.id || rowIndex}
-                className={cn(
-                  "border-b border-gray-100 dark:border-gray-700 transition-colors",
-                  onRowClick && "cursor-pointer hover:bg-sympoblue-50/20 dark:hover:bg-gray-700/30",
-                  rowIndex === data.length - 1 && "last:rounded-b-2xl",
-                  rowClassName?.(row, rowIndex)
+                key={i}
+                className={clsx(
+                  "transition",
+                  onRowClick && "cursor-pointer",
+                  darkMode
+                    ? "hover:bg-gray-700/30"
+                    : "hover:bg-sympoblue-50/20"
                 )}
-                onClick={() => onRowClick?.(row, rowIndex)}
+                onClick={() => onRowClick?.(row, i)}
               >
-                {columns.map((column) => (
+                {columns.map((col, j) => (
                   <td
-                    key={column.key}
-                    className={cn(
-                      "py-2.5 px-4 text-sm text-gray-700 dark:text-gray-200",
-                      column.align === "center" && "text-center",
-                      column.align === "right" && "text-right",
-                      column.sticky && "sticky z-10 bg-white dark:bg-[#1e293b]",
-                      column.className
+                    key={j}
+                    className={clsx(
+                      "py-2.5 px-4 font-medium truncate whitespace-nowrap",
+                      darkMode ? "text-gray-200" : "text-gray-700",
+                      col.align === "center" && "text-center",
+                      col.align === "right" && "text-right"
                     )}
-                    style={
-                      column.sticky && column.stickyLeft
-                        ? { left: column.stickyLeft }
-                        : column.sticky
-                        ? { left: 0 }
-                        : undefined
-                    }
+                    style={{ maxWidth: col.maxWidth || "160px" }}
                   >
-                    {column.render
-                      ? column.render(row[column.key], row, rowIndex)
-                      : row[column.key] || "-"}
+                    {row[col.accessor] ?? "-"}
                   </td>
                 ))}
               </tr>
@@ -117,11 +115,3 @@ export function SympoTable<T extends Record<string, any>>({
     </div>
   );
 }
-
-// Export CSS classes for sticky columns
-export const sympoTableStyles = {
-  stickyColumn: "sticky z-10 bg-white dark:bg-[#1e293b]",
-  stickyHeader: "sticky top-0 bg-gray-50 dark:bg-[#27314a] z-20",
-  truncate: "truncate whitespace-nowrap overflow-hidden text-ellipsis",
-  hoverRow: "hover:bg-sympoblue-50/20 dark:hover:bg-gray-700/30",
-};
