@@ -5185,6 +5185,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "fk_rooming_participants_participant"
+            columns: ["participant_id"]
+            isOneToOne: false
+            referencedRelation: "participants"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "rooming_participants_agency_id_fkey"
             columns: ["agency_id"]
             isOneToOne: false

@@ -19,7 +19,7 @@ export default function RoomingTab() {
           check_in,
           check_out,
           stay_days,
-          participants (name)
+          participants:participant_id (name)
         `)
         .eq("event_id", eventId)
         .order("check_in");
@@ -33,15 +33,15 @@ export default function RoomingTab() {
   console.log("[71-H6.QA.Rooming] Loading:", isLoading, "Error:", error?.message, "Count:", roomingList?.length);
 
   if (isLoading) {
-    return <div className="p-6 text-muted-foreground">숙박 데이터를 불러오는 중...</div>;
+    return <div className="p-6 text-muted-foreground">참가자 정보를 불러오는 중입니다...</div>;
   }
 
   if (error) {
+    console.error("[71-H6.QA.Rooming] Error:", error);
     return (
-      <div className="p-8 text-destructive bg-destructive/10 rounded-xl shadow-sm">
-        <p className="font-semibold">데이터 로드 중 오류가 발생했습니다.</p>
-        <p className="text-sm mt-1">{error.message}</p>
-        <p className="text-xs mt-2 text-muted-foreground">잠시 후 다시 시도해주세요.</p>
+      <div className="p-8 text-muted-foreground bg-muted/10 rounded-xl shadow-sm">
+        <p className="font-medium">숙박 데이터를 불러올 수 없습니다.</p>
+        <p className="text-xs mt-2">참가자 정보를 확인해주세요.</p>
       </div>
     );
   }
