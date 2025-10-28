@@ -94,8 +94,9 @@ export function Sidebar() {
                         className={cn(
                           "relative flex items-center gap-2 px-3 py-2 rounded-xl text-[15px] font-medium w-full",
                           "transition-all duration-150",
+                          "text-muted-foreground hover:text-foreground hover:bg-muted",
                           "sidebar-item",
-                          active && "text-primary"
+                          active && "text-primary bg-muted/50"
                         )}
                         data-active={active}
                       >

@@ -15,11 +15,11 @@ export function AdminLayout() {
   if (role === "master" && !agencyScope) {
     return (
       <SidebarProvider>
-        <div className="min-h-screen w-full bg-background flex">
+        <div className="flex min-h-screen w-full">
           <Sidebar />
-          <div className="flex-1 flex flex-col">
+          <main className="flex-1 flex flex-col bg-background">
             <Header />
-            <main className="flex-1 p-8 pt-24">
+            <div className="flex-1 px-6 pt-12 pb-8">
               <div className="flex flex-col items-center justify-center h-96 text-muted-foreground">
                 <h2 className="text-2xl font-semibold mb-2">에이전시 선택 필요</h2>
                 <p className="text-lg mb-6">에이전시 관리에서 대상을 선택하면 대시보드가 활성화됩니다.</p>
@@ -27,8 +27,8 @@ export function AdminLayout() {
                   에이전시 선택하기
                 </Button>
               </div>
-            </main>
-          </div>
+            </div>
+          </main>
         </div>
       </SidebarProvider>
     );
@@ -37,14 +37,14 @@ export function AdminLayout() {
   return (
     <AgencyDataProvider>
       <SidebarProvider>
-        <div className="min-h-screen w-full bg-background flex">
+        <div className="flex min-h-screen w-full">
           <Sidebar />
-          <div className="flex-1 flex flex-col">
+          <main className="flex-1 flex flex-col bg-background">
             <Header />
-            <main className="flex-1 p-8 pt-24">
+            <div className="flex-1 px-6 pt-12 pb-8">
               <Outlet />
-            </main>
-          </div>
+            </div>
+          </main>
         </div>
       </SidebarProvider>
     </AgencyDataProvider>

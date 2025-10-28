@@ -93,9 +93,9 @@ export default function EventDetailLayout() {
   }
 
   return (
-    <div className="layout-full py-8 space-y-6">
+    <div className="layout-full pt-4 pb-8 space-y-4">
       <div className="layout-center">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-4">
             <Button
               variant="ghost"
