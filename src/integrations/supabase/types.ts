@@ -5262,6 +5262,13 @@ export type Database = {
             referencedRelation: "v_event_room_summary"
             referencedColumns: ["event_id"]
           },
+          {
+            foreignKeyName: "rooming_participants_participant_id_fkey"
+            columns: ["participant_id"]
+            isOneToOne: false
+            referencedRelation: "participants"
+            referencedColumns: ["id"]
+          },
         ]
       }
       rooming_rules: {
@@ -6512,6 +6519,7 @@ export type Database = {
             }
             Returns: string
           }
+      debug_rooming_data: { Args: { p_event_id: string }; Returns: Json }
       ensure_default_room_types: {
         Args: { p_brand?: string; p_hotel: string }
         Returns: undefined

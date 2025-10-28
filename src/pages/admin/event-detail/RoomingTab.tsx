@@ -50,6 +50,10 @@ export default function RoomingTab() {
   const { data: roomingList, error, isLoading, mutate } = useSWR(
     eventId ? `rooming_${eventId}` : null,
     async () => {
+      if (!eventId) return [];
+      
+      console.log('[72-RULE.R2.FIX] Fetching rooming data for event:', eventId);
+      
       const { data, error } = await supabase
         .from("rooming_participants")
         .select(`
@@ -62,32 +66,51 @@ export default function RoomingTab() {
           manual_assigned,
           assigned_at,
           participant_id,
-          participants:participant_id (name, composition)
+          participants:participant_id (
+            name,
+            composition
+          )
         `)
         .eq("event_id", eventId)
         .eq("is_active", true)
         .order("assigned_at", { ascending: false });
-      if (error) throw error;
+      
+      if (error) {
+        console.error('[72-RULE.R2.FIX] Query error:', error);
+        throw error;
+      }
+      
+      console.log('[72-RULE.R2.FIX] Fetched rooming data:', data?.length || 0, 'records');
       return data || [];
     },
-    { revalidateOnFocus: false, dedupingInterval: 60000 }
+    { 
+      revalidateOnFocus: false, 
+      dedupingInterval: 60000,
+      onError: (err) => {
+        console.error('[72-RULE.R2.FIX] SWR error:', err);
+      }
+    }
   );
 
   // [72-RULE.R2] Realtime subscription
   useEffect(() => {
     if (!eventId) return;
 
+    console.log('[72-RULE.R2.FIX] Setting up realtime channel for event:', eventId);
+
     const channel = supabase
       .channel("rooming_realtime")
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "rooming_participants", filter: `event_id=eq.${eventId}` },
-        () => {
-          console.log("[72-RULE.R2] Rooming update detected");
+        (payload) => {
+          console.log("[72-RULE.R2.FIX] Rooming update detected:", payload);
           mutate();
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log('[72-RULE.R2.FIX] Channel status:', status);
+      });
 
     return () => {
       supabase.removeChannel(channel);
@@ -95,18 +118,26 @@ export default function RoomingTab() {
   }, [eventId, mutate]);
 
   // [72-RULE.R2] Data flow validation
-  console.log("[72-RULE.R2.Rooming] Loading:", isLoading, "Error:", error?.message, "Count:", roomingList?.length);
+  console.log("[72-RULE.R2.FIX] State - Loading:", isLoading, "Error:", error?.message, "Count:", roomingList?.length);
 
   if (isLoading) {
-    return <div className="p-6 text-muted-foreground">참가자 정보를 불러오는 중입니다...</div>;
+    return (
+      <div className="p-6 text-muted-foreground">
+        <p>참가자 룸핑 정보를 불러오는 중입니다...</p>
+        <p className="text-xs mt-2">Event ID: {eventId}</p>
+      </div>
+    );
   }
 
   if (error) {
-    console.error("[71-H6.QA.Rooming] Error:", error);
+    console.error("[72-RULE.R2.FIX] Render error:", error);
     return (
-      <div className="p-8 text-muted-foreground bg-muted/10 rounded-xl shadow-sm">
-        <p className="font-medium">숙박 데이터를 불러올 수 없습니다.</p>
-        <p className="text-xs mt-2">참가자 정보를 확인해주세요.</p>
+      <div className="p-8 text-destructive bg-destructive/10 rounded-xl shadow-sm">
+        <p className="font-medium">룸핑 데이터를 불러올 수 없습니다.</p>
+        <p className="text-sm mt-1">{error.message}</p>
+        <p className="text-xs mt-2 text-muted-foreground">
+          페이지를 새로고침하거나, RLS 정책을 확인해주세요.
+        </p>
       </div>
     );
   }
@@ -140,7 +171,17 @@ export default function RoomingTab() {
                 <p className="text-xs mt-2">참가자 정보를 확인해주세요.</p>
               </div>
             ) : !roomingList || roomingList.length === 0 ? (
-              <div className="text-muted-foreground text-center py-16">숙박 데이터가 없습니다.</div>
+              <div className="p-12 text-center border rounded-lg bg-muted/20">
+                <p className="text-lg font-medium text-muted-foreground">
+                  아직 배정된 참가자가 없습니다
+                </p>
+                <p className="text-sm text-muted-foreground mt-2">
+                  참가자를 추가하거나, "룰셋 관리" 탭에서 자동 배정 규칙을 설정하세요
+                </p>
+                <p className="text-xs text-muted-foreground mt-4">
+                  Event ID: {eventId}
+                </p>
+              </div>
             ) : (
               <div className="rounded-lg border bg-card">
                 <Table>
