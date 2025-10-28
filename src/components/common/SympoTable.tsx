@@ -1,4 +1,4 @@
-// [71-UI.STANDARD.D-FINAL] SympoHub unified table component
+// [71-UI.STANDARD.E-FINAL] SympoHub unified table component with DashStack colors
 import React from "react";
 import clsx from "clsx";
 
@@ -25,33 +25,18 @@ export default function SympoTable({
   minWidth = "1200px",
 }: SympoTableProps) {
   return (
-    <div
-      className={clsx(
-        "rounded-2xl shadow-sm border overflow-x-auto",
-        darkMode
-          ? "bg-[#1e293b] border-gray-700"
-          : "bg-white border-gray-100"
-      )}
-    >
+    <div className="rounded-2xl shadow-sm border border-border bg-card overflow-x-auto transition-all duration-150">
       <table
         className="w-full border-collapse text-sm text-left"
         style={{ minWidth }}
       >
-        <thead
-          className={clsx(
-            "sticky top-0 z-10",
-            darkMode ? "bg-[#27314a]" : "bg-gray-50"
-          )}
-        >
+        <thead className="sticky top-0 z-10 bg-muted transition-colors duration-150">
           <tr>
             {columns.map((col, i) => (
               <th
                 key={i}
                 className={clsx(
-                  "py-3 px-4 text-xs font-semibold uppercase tracking-wide border-b",
-                  darkMode
-                    ? "text-gray-400 border-gray-700"
-                    : "text-gray-500 border-gray-100",
+                  "py-3 px-4 text-xs font-semibold uppercase tracking-wide border-b border-border text-muted-foreground transition-colors duration-150",
                   col.align === "center" && "text-center",
                   col.align === "right" && "text-right"
                 )}
@@ -62,20 +47,12 @@ export default function SympoTable({
           </tr>
         </thead>
 
-        <tbody
-          className={clsx(
-            "divide-y",
-            darkMode ? "divide-gray-700" : "divide-gray-100"
-          )}
-        >
+        <tbody>
           {data.length === 0 ? (
             <tr>
               <td
                 colSpan={columns.length}
-                className={clsx(
-                  "py-16 text-center",
-                  darkMode ? "text-gray-400" : "text-gray-500"
-                )}
+                className="py-16 text-center text-muted-foreground"
               >
                 데이터가 없습니다
               </td>
@@ -85,11 +62,8 @@ export default function SympoTable({
               <tr
                 key={i}
                 className={clsx(
-                  "transition",
-                  onRowClick && "cursor-pointer",
-                  darkMode
-                    ? "hover:bg-gray-700/30"
-                    : "hover:bg-sympoblue-50/20"
+                  "border-b border-border transition-all duration-150",
+                  onRowClick && "cursor-pointer hover:bg-accent"
                 )}
                 onClick={() => onRowClick?.(row, i)}
               >
@@ -97,8 +71,7 @@ export default function SympoTable({
                   <td
                     key={j}
                     className={clsx(
-                      "py-2.5 px-4 font-medium truncate whitespace-nowrap",
-                      darkMode ? "text-gray-200" : "text-gray-700",
+                      "py-2.5 px-4 font-medium truncate whitespace-nowrap text-card-foreground transition-colors duration-150",
                       col.align === "center" && "text-center",
                       col.align === "right" && "text-right"
                     )}

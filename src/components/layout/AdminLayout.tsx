@@ -17,7 +17,7 @@ export function AdminLayout() {
         <Sidebar />
         <Header />
         <main 
-          className="pt-[64px] h-screen overflow-y-auto bg-background transition-all duration-300 ml-[240px]"
+          className="pt-[64px] h-screen overflow-y-auto bg-background transition-colors duration-150 ml-[240px]"
         >
           <div className="p-6">
             <div className="flex flex-col items-center justify-center h-96 text-muted-foreground">
@@ -35,11 +35,11 @@ export function AdminLayout() {
 
   return (
     <AgencyDataProvider>
-      <div className="flex w-full h-screen bg-background">
+      <div className="flex w-full h-screen bg-background transition-colors duration-150">
         <Sidebar />
         <div className="flex-1 flex flex-col h-screen ml-[240px]">
           <Header />
-          <main className="flex-1 pt-[64px] overflow-y-auto bg-background">
+          <main className="flex-1 pt-[64px] overflow-y-auto bg-background transition-colors duration-150">
             <div className="p-6">
               <Outlet />
             </div>

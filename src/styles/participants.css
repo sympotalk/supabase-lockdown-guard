@@ -13,54 +13,28 @@
   position: sticky;
   left: 0;
   z-index: 2;
-  box-shadow: inset -1px 0 0 rgb(243 244 246);
-}
-
-.dark .sticky-col-name {
-  box-shadow: inset -1px 0 0 rgb(55 65 81);
-}
-
-:root .sticky-col-name {
-  background: white;
-}
-
-.dark .sticky-col-name {
-  background: #1e293b;
+  box-shadow: inset -1px 0 0 hsl(var(--border));
+  background: hsl(var(--card));
+  transition: background-color 0.15s ease-in-out;
 }
 
 .sticky-col-org {
   position: sticky;
   left: 160px;
   z-index: 2;
-  box-shadow: inset -1px 0 0 rgb(243 244 246);
+  box-shadow: inset -1px 0 0 hsl(var(--border));
+  background: hsl(var(--card));
+  transition: background-color 0.15s ease-in-out;
 }
 
-.dark .sticky-col-org {
-  box-shadow: inset -1px 0 0 rgb(55 65 81);
-}
-
-:root .sticky-col-org {
-  background: white;
-}
-
-.dark .sticky-col-org {
-  background: #1e293b;
-}
-
-/* Row Hover - Updated for standard table */
+/* Row Hover - Using design system tokens */
 .participant-row {
   cursor: pointer;
-  transition: background-color 150ms ease;
+  transition: background-color 0.15s ease-in-out;
 }
 
-/* Light mode hover */
-:root .participant-row:hover {
-  background: rgba(37, 99, 235, 0.1);
-}
-
-/* Dark mode hover */
-.dark .participant-row:hover {
-  background: rgba(55, 65, 81, 0.3);
+.participant-row:hover {
+  background: hsl(var(--accent));
 }
 
 /* Drawer Container - Fixed Overlay */

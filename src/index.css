@@ -81,6 +81,11 @@ All colors MUST be HSL.
     --sidebar-accent-foreground: 227 100% 58%;
     --sidebar-border: 220 13% 91%;
     --sidebar-ring: 227 100% 58%;
+
+    /* SympoHub Color Tokens */
+    --sympo-bg-light: 0 0% 98%;
+    --sympo-border-light: 220 13% 91%;
+    --sympo-blue: 227 100% 58%;
   }
 
   .dark {
@@ -129,6 +134,10 @@ All colors MUST be HSL.
     --sidebar-accent-foreground: 227 100% 67%;
     --sidebar-border: 220 13% 17%;
     --sidebar-ring: 227 100% 67%;
+
+    /* SympoHub Dark Tokens */
+    --sympo-bg-dark: 222 14% 9%;
+    --sympo-border-dark: 220 13% 17%;
   }
 }
 
@@ -167,8 +176,8 @@ All colors MUST be HSL.
 /* Smooth theme transitions */
 * {
   transition-property: background-color, border-color, color, fill, stroke;
-  transition-duration: 0.3s;
-  transition-timing-function: ease-out;
+  transition-duration: 0.15s;
+  transition-timing-function: ease-in-out;
 }
 
 /* [71-H.9.REBUILD-FINAL] Participants wrapper - flex parallel layout */
@@ -263,12 +272,23 @@ button:not(:disabled):hover {
   height: 48px;
   align-items: center;
   border-bottom: 1px solid hsl(var(--border));
-  background-color: hsl(var(--background));
+  background-color: hsl(var(--card));
+  transition: all 0.15s ease-in-out;
+}
+
+.tabs-header button {
+  transition: all 0.15s ease-in-out;
+  color: hsl(var(--muted-foreground));
+}
+
+.tabs-header button:hover {
+  color: hsl(var(--foreground));
 }
 
 .tabs-header button.active {
   color: hsl(var(--primary));
   border-bottom: 2px solid hsl(var(--primary));
+  font-weight: 600;
 }
 
 /* [71-H.REBUILD-CORE] Tabs bar - removed legacy */

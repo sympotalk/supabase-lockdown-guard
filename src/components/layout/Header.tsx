@@ -94,7 +94,7 @@ export function Header() {
 
   return (
     <header 
-      className="fixed top-0 left-[240px] right-0 h-[64px] bg-sidebar-background z-20"
+      className="fixed top-0 left-[240px] right-0 h-[64px] bg-sidebar-background border-b border-sidebar-border shadow-sm z-20 transition-all duration-150"
     >
       <div className="flex h-full items-center px-6 justify-between">
         <div className="flex items-center gap-3">
@@ -124,12 +124,12 @@ export function Header() {
            agencyScope && 
            agencyName && 
            window.location.pathname.startsWith("/admin") && (
-            <div className="flex items-center gap-1 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-700 rounded-full px-3 py-1">
+             <div className="flex items-center gap-1 bg-primary/10 text-primary border border-primary/30 rounded-full px-3 py-1 transition-all duration-150">
               <span className="text-sm font-medium">{agencyName}</span>
               <span className="text-xs opacity-70">(View Mode)</span>
               <button
                 onClick={handleExitViewMode}
-                className="ml-1 hover:text-blue-900 dark:hover:text-blue-100 transition-colors"
+                className="ml-1 hover:text-primary/80 transition-colors duration-150"
                 title="전체 보기로 돌아가기"
                 aria-label="Exit view mode"
               >
@@ -137,12 +137,12 @@ export function Header() {
               </button>
             </div>
           )}
-          <Button variant="ghost" size="icon" className="relative">
+          <Button variant="ghost" size="icon" className="relative hover:bg-sidebar-accent transition-colors duration-150">
             <Bell className="h-5 w-5" />
             <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-destructive" />
           </Button>
 
-          <Button variant="ghost" size="icon">
+          <Button variant="ghost" size="icon" className="hover:bg-sidebar-accent transition-colors duration-150">
             <Settings className="h-5 w-5" />
           </Button>
 
@@ -150,7 +150,7 @@ export function Header() {
             variant="ghost" 
             size="icon"
             onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-            className="transition-transform duration-200 hover:rotate-12"
+            className="transition-all duration-150 hover:bg-sidebar-accent hover:rotate-12"
           >
             {theme === "dark" ? (
               <Sun className="h-5 w-5 transition-all" />

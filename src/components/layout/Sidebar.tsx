@@ -33,7 +33,7 @@ export function Sidebar() {
 
   return (
     <aside 
-      className="fixed top-0 left-0 h-screen w-[240px] bg-sidebar-background z-30"
+      className="fixed top-0 left-0 h-screen w-[240px] bg-sidebar-background border-r border-sidebar-border z-30 transition-all duration-150"
     >
       <div className="h-[64px] flex items-center px-6">
         <Building2 className="w-5 h-5 text-primary mr-2" />
@@ -49,13 +49,14 @@ export function Sidebar() {
               to={item.url}
               className={cn(
                 "relative flex items-center gap-3 px-3 py-3 rounded-lg text-[15px] font-medium",
-                "transition-all duration-150",
-                "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
-                active && "bg-sidebar-accent text-sidebar-accent-foreground"
+                "transition-all duration-150 ease-in-out",
+                active 
+                  ? "bg-sidebar-accent text-sidebar-accent-foreground" 
+                  : "text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground"
               )}
             >
               {active && (
-                <div className="absolute left-0 top-1/2 h-8 w-1 -translate-y-1/2 rounded-r-full bg-primary" />
+                <div className="absolute left-0 top-1/2 h-8 w-1 -translate-y-1/2 rounded-r-full bg-primary transition-all duration-150" />
               )}
               <item.icon className="h-[18px] w-[18px]" />
               <span className="whitespace-nowrap">{item.title}</span>
