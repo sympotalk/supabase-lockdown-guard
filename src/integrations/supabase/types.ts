@@ -6918,7 +6918,7 @@ export type Database = {
         Args: { p_agency_id: string; p_email: string }
         Returns: Json
       }
-      is_master: { Args: { user_id: string }; Returns: boolean }
+      is_master: { Args: { uid: string }; Returns: boolean }
       log_policy_test: {
         Args: {
           _action: string
