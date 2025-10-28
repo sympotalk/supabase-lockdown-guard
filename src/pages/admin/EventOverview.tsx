@@ -33,7 +33,6 @@ export default function EventOverview() {
   
   // [71-HOTEL.CUSTOM.R2] New room addition state
   const [newRoomName, setNewRoomName] = useState("");
-  const [newRoomCapacity, setNewRoomCapacity] = useState(2);
   const [addingRoom, setAddingRoom] = useState(false);
 
   const load = async () => {
@@ -155,7 +154,6 @@ export default function EventOverview() {
           agency_id: eventAgencyId,
           hotel_id: rows[0].hotel_id,
           type_name: newRoomName,
-          capacity: newRoomCapacity,
         })
         .select()
         .single();
@@ -178,7 +176,6 @@ export default function EventOverview() {
 
       toast.success(`${newRoomName} 객실이 추가되었습니다`);
       setNewRoomName("");
-      setNewRoomCapacity(2);
       load();
     } catch (error: any) {
       toast.error(error.message || "객실 추가 실패");
@@ -319,7 +316,7 @@ export default function EventOverview() {
               </div>
             )}
 
-            {/* [71-HOTEL.CUSTOM.R2] Add new room section */}
+            {/* [71-HOTEL.CUSTOM.R2-FIX.1] Add new room section - simplified */}
             <div className="border-t pt-4 mt-4">
               <div className="flex items-end gap-3">
                 <div className="flex-1">
@@ -329,18 +326,10 @@ export default function EventOverview() {
                     value={newRoomName}
                     onChange={(e) => setNewRoomName(e.target.value)}
                     onKeyDown={(e) => {
-                      if (e.key === "Enter") addCustomRoom();
+                      if (e.key === "Enter" && !addingRoom && newRoomName.trim()) {
+                        addCustomRoom();
+                      }
                     }}
-                  />
-                </div>
-                <div className="w-32">
-                  <Label className="text-sm mb-2 block">인원</Label>
-                  <Input
-                    type="number"
-                    min="1"
-                    max="10"
-                    value={newRoomCapacity}
-                    onChange={(e) => setNewRoomCapacity(Number(e.target.value))}
                   />
                 </div>
                 <Button
