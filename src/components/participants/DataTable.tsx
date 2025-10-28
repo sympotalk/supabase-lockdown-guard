@@ -53,7 +53,7 @@ export function DataTable({ participants, selectedIds, onSelectChange }: DataTab
 
   return (
     <div className="w-full h-full overflow-x-auto overflow-y-hidden">
-      <Table>
+      <Table className="min-w-[1200px]">
         <TableHeader className="bg-muted/80 backdrop-blur-sm sticky top-0 z-10">
           <TableRow className="hover:bg-muted">
             <TableHead className="w-12">
@@ -109,10 +109,10 @@ export function DataTable({ participants, selectedIds, onSelectChange }: DataTab
               <TableCell className="sticky-col-name font-semibold">
                 {participant.name}
               </TableCell>
-              <TableCell className="sticky-col-org text-sm" title={participant.organization || "-"}>
+              <TableCell className="sticky-col-org text-sm truncate max-w-[160px]" title={participant.organization || "-"}>
                 {participant.organization || "-"}
               </TableCell>
-              <TableCell className="text-center text-sm">
+              <TableCell className="text-center text-sm whitespace-nowrap">
                 {participant.phone || "-"}
               </TableCell>
               <TableCell>
@@ -139,7 +139,7 @@ export function DataTable({ participants, selectedIds, onSelectChange }: DataTab
                   ? participant.child_ages.join(' / ')
                   : "-"}
               </TableCell>
-              <TableCell className="text-sm">
+              <TableCell className="text-sm truncate max-w-[120px]" title={participant.companion || "-"}>
                 {participant.companion || "-"}
               </TableCell>
               <TableCell className="text-center">
