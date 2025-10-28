@@ -1,6 +1,6 @@
-// [71-UI.STANDARD.C] Header - Event integration & dynamic layout
+// [71-UI.STANDARD.C-FINAL] Header - Event integration & static layout
 import { useState, useEffect } from "react";
-import { Bell, Settings, ChevronDown, Moon, Sun, LogOut, X, ArrowLeft, Menu } from "lucide-react";
+import { Bell, Settings, ChevronDown, Moon, Sun, LogOut, X, ArrowLeft } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -18,11 +18,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-interface HeaderProps {
-  sidebarOpen: boolean;
-}
-
-export function Header({ sidebarOpen }: HeaderProps) {
+export function Header() {
   const { theme, setTheme } = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
@@ -98,28 +94,10 @@ export function Header({ sidebarOpen }: HeaderProps) {
 
   return (
     <header 
-      className="fixed top-0 right-0 h-[64px] bg-sidebar-background z-20 transition-all duration-300"
-      style={{ left: sidebarOpen ? '240px' : '60px' }}
+      className="fixed top-0 left-[240px] right-0 h-[64px] bg-sidebar-background z-20"
     >
       <div className="flex h-full items-center px-6 justify-between">
         <div className="flex items-center gap-3">
-          {!sidebarOpen && (
-            <Button 
-              variant="ghost" 
-              size="icon"
-              onClick={() => {
-                const sidebar = document.querySelector('aside');
-                if (sidebar) {
-                  const event = new CustomEvent('toggleSidebar');
-                  window.dispatchEvent(event);
-                }
-              }}
-              className="mr-2"
-            >
-              <Menu className="h-5 w-5" />
-            </Button>
-          )}
-          
           {isEventDetailPage && eventData ? (
             <>
               <Button

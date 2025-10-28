@@ -5,34 +5,19 @@ import { Sidebar } from "./Sidebar";
 import { useUser } from "@/context/UserContext";
 import { Button } from "@/components/ui/button";
 import { AgencyDataProvider } from "@/context/AgencyDataContext";
-import { useState, useEffect } from "react";
 
 export function AdminLayout() {
   const navigate = useNavigate();
   const { role, agencyScope } = useUser();
-  
-  const [sidebarOpen, setSidebarOpen] = useState(() => {
-    const saved = localStorage.getItem("sympohub_sidebar");
-    return saved !== null ? saved === "true" : true;
-  });
-
-  useEffect(() => {
-    localStorage.setItem("sympohub_sidebar", String(sidebarOpen));
-  }, [sidebarOpen]);
-
-  const toggleSidebar = () => {
-    requestAnimationFrame(() => setSidebarOpen((prev) => !prev));
-  };
 
   // Guard: Master without agency scope
   if (role === "master" && !agencyScope) {
     return (
       <div className="relative w-full h-screen bg-background overflow-hidden">
-        <Sidebar isOpen={sidebarOpen} onToggle={toggleSidebar} />
-        <Header sidebarOpen={sidebarOpen} />
+        <Sidebar />
+        <Header />
         <main 
-          className="pt-[64px] h-screen overflow-y-auto bg-background transition-all duration-300"
-          style={{ marginLeft: sidebarOpen ? '240px' : '60px' }}
+          className="pt-[64px] h-screen overflow-y-auto bg-background transition-all duration-300 ml-[240px]"
         >
           <div className="p-6">
             <div className="flex flex-col items-center justify-center h-96 text-muted-foreground">
@@ -51,12 +36,9 @@ export function AdminLayout() {
   return (
     <AgencyDataProvider>
       <div className="flex w-full h-screen bg-background">
-        <Sidebar isOpen={sidebarOpen} onToggle={toggleSidebar} />
-        <div 
-          className="flex-1 flex flex-col h-screen transition-all duration-300"
-          style={{ marginLeft: sidebarOpen ? '240px' : '60px' }}
-        >
-          <Header sidebarOpen={sidebarOpen} />
+        <Sidebar />
+        <div className="flex-1 flex flex-col h-screen ml-[240px]">
+          <Header />
           <main className="flex-1 pt-[64px] overflow-y-auto bg-background">
             <div className="p-6">
               <Outlet />
