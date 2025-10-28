@@ -1,5 +1,5 @@
-// [LOCKED][71-J.1] Participants panel with grid layout
-import { useState, useEffect } from "react";
+// [71-J.2-FINAL] Participants panel with grid + drawer layout
+import { useState } from "react";
 import { useParams } from "react-router-dom";
 import { useUser } from "@/context/UserContext";
 import { Plus, Search, Download, Upload, CheckSquare } from "lucide-react";
@@ -22,13 +22,17 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { ParticipantRightPanel } from "@/components/participants/ParticipantRightPanel";
+import { DataTable } from "@/components/participants/DataTable";
+import { DrawerPanel } from "@/components/participants/DrawerPanel";
 import { UploadParticipantsModal } from "@/components/dashboard/UploadParticipantsModal";
 import { exportParticipantsToExcel, type ExportMode } from "@/utils/exportParticipants";
 import { LoadingSkeleton } from "@/components/pd/LoadingSkeleton";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useParticipantsPanel } from "@/state/participantsPanel";
+import { cn } from "@/lib/utils";
 import useSWR from "swr";
+import "@/styles/participants.css";
 
 // [71-J.7] Extended participant interface with child_ages array
 interface Participant {
@@ -73,13 +77,10 @@ interface ParticipantsPanelProps {
   onMutate?: () => void;
 }
 
-export default function ParticipantsPanel({ 
-  selectedParticipant, 
-  onSelectParticipant,
-  onMutate 
-}: ParticipantsPanelProps) {
+export default function ParticipantsPanel({ onMutate }: ParticipantsPanelProps) {
   const { eventId } = useParams();
   const { agencyScope, user } = useUser();
+  const { isOpen } = useParticipantsPanel();
   const [searchQuery, setSearchQuery] = useState("");
   const [uploadOpen, setUploadOpen] = useState(false);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
@@ -124,9 +125,6 @@ export default function ParticipantsPanel({
     }
   );
 
-  const handleRowClick = (participant: Participant) => {
-    onSelectParticipant(participant);
-  };
 
   const handleExport = (mode: ExportMode = 'work') => {
     if (!participants || participants.length === 0) {
@@ -194,8 +192,9 @@ export default function ParticipantsPanel({
   }
 
   return (
-    <div className="h-full flex flex-col w-full">
-      {/* Header */}
+    <div className={cn("participants-grid h-full", isOpen && "drawer-open")}>
+      <div className="h-full flex flex-col w-full">
+        {/* Header */}
       <div className="tabs-header flex items-center justify-between w-full px-2 py-3 border-b">
         <div className="flex items-center gap-4">
           <div className="relative min-w-[300px]">
@@ -271,171 +270,43 @@ export default function ParticipantsPanel({
         </div>
       </div>
 
-      {/* Main Content: Table Only (Panel is rendered in EventPageContainer) */}
-      <div className="flex-1 overflow-hidden">
-        <div className="participants-container">
-          <div className="px-2 py-4">
-            <Card>
-              <CardContent className="p-0">
-                {!filteredParticipants || filteredParticipants.length === 0 ? (
-                  <div className="text-center text-muted-foreground py-16">
-                    등록된 참가자가 없습니다. 업로드 또는 추가 버튼을 클릭하여 참가자를 등록하세요.
-                  </div>
-                ) : (
-                  <div className="participants-table-wrapper">
-                    <Table className="participants-table">
-                <TableHeader className="bg-muted/80 backdrop-blur-sm">
-                  <TableRow className="hover:bg-muted">
-                    <TableHead className="w-12">
-                      <Checkbox
-                        checked={selectedIds.length === filteredParticipants.length}
-                        onCheckedChange={toggleSelectAll}
-                      />
-                    </TableHead>
-                    <TableHead className="font-semibold w-12 text-center">No.</TableHead>
-                    <TableHead className="font-semibold w-20">구분</TableHead>
-                    <TableHead className="font-semibold w-24">성명</TableHead>
-                    <TableHead className="font-semibold w-32">소속</TableHead>
-                    <TableHead className="font-semibold w-28">연락처</TableHead>
-                    <TableHead className="font-semibold w-36">요청사항</TableHead>
-                    <TableHead className="font-semibold w-24">숙박현황</TableHead>
-                    <TableHead className="font-semibold w-16 text-center">성인</TableHead>
-                    <TableHead className="font-semibold w-32 text-center">소아</TableHead>
-                    <TableHead className="font-semibold w-24">동반인</TableHead>
-                    <TableHead className="font-semibold w-20 text-center">모객</TableHead>
-                    <TableHead className="font-semibold w-20 text-center">문자</TableHead>
-                    <TableHead className="font-semibold w-20 text-center">설문</TableHead>
-                    <TableHead className="font-semibold w-20 text-center">상태</TableHead>
-                    <TableHead className="font-semibold w-24 text-right">등록일</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredParticipants.map((participant, index) => (
-                    <TableRow
-                      key={participant.id}
-                      className="hover:bg-accent/50 transition-colors cursor-pointer"
-                      onClick={() => handleRowClick(participant)}
-                    >
-                      <TableCell onClick={(e) => e.stopPropagation()}>
-                        <Checkbox
-                          checked={selectedIds.includes(participant.id)}
-                          onCheckedChange={(checked) => {
-                            if (checked) {
-                              setSelectedIds([...selectedIds, participant.id]);
-                            } else {
-                              setSelectedIds(selectedIds.filter((id) => id !== participant.id));
-                            }
-                          }}
-                        />
-                      </TableCell>
-                      <TableCell className="text-center text-sm text-muted-foreground">
-                        {index + 1}
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="outline" className="text-xs">
-                          {participant.classification || "일반"}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="font-semibold">
-                        {participant.name}
-                      </TableCell>
-                      <TableCell className="text-sm company-name-column" title={participant.organization || "-"}>
-                        {participant.organization || "-"}
-                      </TableCell>
-                      <TableCell className="text-center text-sm">
-                        {participant.phone || "-"}
-                      </TableCell>
-                      <TableCell className="requests-column">
-                        <div className="flex gap-1 flex-wrap">
-                          {parseBadges(participant.memo).slice(0, 3).map((badge, idx) => (
-                            <Badge key={idx} variant="outline" className="text-xs">
-                              {badge.label}
-                            </Badge>
-                          ))}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="secondary" className="text-xs">
-                          {participant.lodging_status || "미정"}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-center">
-                        {participant.adult_count ? (
-                          <Badge variant="outline" className="text-xs">{participant.adult_count}</Badge>
-                        ) : "-"}
-                      </TableCell>
-                      <TableCell className="text-center text-sm">
-                        {participant.child_ages && participant.child_ages.length > 0
-                          ? participant.child_ages.join(' / ')
-                          : "-"}
-                      </TableCell>
-                      <TableCell className="text-sm">
-                        {participant.companion || "-"}
-                      </TableCell>
-                      <TableCell className="text-center">
-                        <Badge 
-                          variant={participant.recruitment_status === "O" ? "default" : "outline"}
-                          className="text-xs"
-                        >
-                          {participant.recruitment_status || "X"}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-center">
-                        <Badge 
-                          variant={participant.message_sent === "O" ? "default" : "outline"}
-                          className="text-xs"
-                        >
-                          {participant.message_sent || "X"}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-center">
-                        <Badge 
-                          variant={participant.survey_completed === "O" ? "default" : "outline"}
-                          className="text-xs"
-                        >
-                          {participant.survey_completed || "X"}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-center">
-                        <Badge
-                          variant={
-                            participant.status === "confirmed" ? "default" : 
-                            participant.status === "cancelled" ? "destructive" : 
-                            "secondary"
-                          }
-                          className="text-xs"
-                        >
-                          {participant.status === "pending" ? "대기중" :
-                           participant.status === "confirmed" ? "확정" :
-                           participant.status === "cancelled" ? "취소" :
-                           participant.status || "일반"}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-right text-sm text-muted-foreground">
-                        {new Date(participant.created_at).toLocaleDateString('ko-KR', {
-                          year: 'numeric',
-                          month: '2-digit',
-                          day: '2-digit'
-                        }).replace(/\. /g, '.').replace(/\.$/, '')}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
+        {/* Main Content: Table */}
+        <div className="flex-1 overflow-hidden px-2 py-4">
+          <Card>
+            <CardContent className="p-0 h-[calc(100vh-280px)]">
+              {!filteredParticipants || filteredParticipants.length === 0 ? (
+                <div className="text-center text-muted-foreground py-16">
+                  등록된 참가자가 없습니다. 업로드 또는 추가 버튼을 클릭하여 참가자를 등록하세요.
+                </div>
+              ) : (
+                <DataTable
+                  participants={filteredParticipants}
+                  selectedIds={selectedIds}
+                  onSelectChange={setSelectedIds}
+                />
+              )}
+            </CardContent>
+          </Card>
         </div>
+
+        {/* Upload Modal */}
+        <UploadParticipantsModal
+          open={uploadOpen}
+          onOpenChange={setUploadOpen}
+          events={[{ id: eventId, name: "Current Event" }]}
+        />
       </div>
 
-      {/* Upload Modal */}
-      <UploadParticipantsModal
-        open={uploadOpen}
-        onOpenChange={setUploadOpen}
-        events={[{ id: eventId, name: "Current Event" }]}
-      />
+      {/* Drawer Panel */}
+      {filteredParticipants && filteredParticipants.length > 0 && (
+        <DrawerPanel
+          participants={filteredParticipants}
+          onUpdate={() => {
+            mutate();
+            onMutate?.();
+          }}
+        />
+      )}
     </div>
   );
 }

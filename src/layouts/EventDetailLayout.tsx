@@ -9,8 +9,6 @@ import ParticipantsTab from "@/pages/admin/event-detail/ParticipantsTab";
 import RoomingTab from "@/pages/admin/event-detail/RoomingTab";
 import MessagesTab from "@/pages/admin/event-detail/MessagesTab";
 import FormsTab from "@/pages/admin/event-detail/FormsTab";
-import EventPageContainer from "@/layouts/EventPageContainer";
-import { ParticipantRightPanel } from "@/components/participants/ParticipantRightPanel";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 
@@ -134,19 +132,10 @@ export default function EventDetailLayout() {
         {/* Content Section */}
         <div className="rounded-2xl bg-card shadow-card p-6">
           <TabsContent value="participants" className="mt-0">
-            <EventPageContainer>
-              <ParticipantsTab 
-                selectedParticipant={selectedParticipant}
-                onSelectParticipant={setSelectedParticipant}
-              />
-              <ParticipantRightPanel
-                participant={selectedParticipant}
-                onUpdate={() => {
-                  setSelectedParticipant(selectedParticipant ? { ...selectedParticipant } : null);
-                }}
-                onDelete={() => setSelectedParticipant(null)}
-              />
-            </EventPageContainer>
+            <ParticipantsTab 
+              selectedParticipant={selectedParticipant}
+              onSelectParticipant={setSelectedParticipant}
+            />
           </TabsContent>
           <TabsContent value="rooming" className="mt-0">
             <RoomingTab />
