@@ -6858,6 +6858,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      initialize_rooming_for_event: {
+        Args: { p_event_id: string }
+        Returns: Json
+      }
       invite_agency_user: {
         Args: { p_agency_id: string; p_email: string; p_role?: string }
         Returns: Json
