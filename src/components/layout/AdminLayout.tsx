@@ -5,7 +5,6 @@ import { Sidebar } from "./Sidebar";
 import { useUser } from "@/context/UserContext";
 import { Button } from "@/components/ui/button";
 import { AgencyDataProvider } from "@/context/AgencyDataContext";
-import { SidebarProvider } from "@/components/ui/sidebar";
 
 export function AdminLayout() {
   const navigate = useNavigate();
@@ -14,39 +13,35 @@ export function AdminLayout() {
   // Guard: Master without agency scope
   if (role === "master" && !agencyScope) {
     return (
-      <SidebarProvider>
-        <div className="flex h-screen w-full bg-background overflow-hidden">
-          <Sidebar />
-          <div className="flex flex-col flex-1">
-            <Header />
-            <main className="flex-1 overflow-y-auto px-6 pt-[72px] pb-8">
-              <div className="flex flex-col items-center justify-center h-96 text-muted-foreground">
-                <h2 className="text-2xl font-semibold mb-2">에이전시 선택 필요</h2>
-                <p className="text-lg mb-6">에이전시 관리에서 대상을 선택하면 대시보드가 활성화됩니다.</p>
-                <Button size="lg" onClick={() => navigate('/master/agencies')}>
-                  에이전시 선택하기
-                </Button>
-              </div>
-            </main>
+      <div className="relative w-full h-screen bg-gray-50 overflow-hidden">
+        <Sidebar />
+        <Header />
+        <main className="ml-[240px] pt-[64px] h-screen overflow-y-auto bg-gray-50">
+          <div className="p-6">
+            <div className="flex flex-col items-center justify-center h-96 text-muted-foreground">
+              <h2 className="text-2xl font-semibold mb-2">에이전시 선택 필요</h2>
+              <p className="text-lg mb-6">에이전시 관리에서 대상을 선택하면 대시보드가 활성화됩니다.</p>
+              <Button size="lg" onClick={() => navigate('/master/agencies')}>
+                에이전시 선택하기
+              </Button>
+            </div>
           </div>
-        </div>
-      </SidebarProvider>
+        </main>
+      </div>
     );
   }
 
   return (
     <AgencyDataProvider>
-      <SidebarProvider>
-        <div className="relative flex w-full h-screen bg-white overflow-hidden">
-          <Sidebar />
-          <div className="flex flex-col flex-1">
-            <Header />
-            <main className="flex-1 w-full bg-white overflow-hidden">
-              <Outlet />
-            </main>
+      <div className="relative w-full h-screen bg-gray-50 overflow-hidden">
+        <Sidebar />
+        <Header />
+        <main className="ml-[240px] pt-[64px] h-screen overflow-y-auto bg-gray-50">
+          <div className="p-6">
+            <Outlet />
           </div>
-        </div>
-      </SidebarProvider>
+        </main>
+      </div>
     </AgencyDataProvider>
   );
 }

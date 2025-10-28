@@ -1,4 +1,4 @@
-// [71-H.REBUILD-FINAL] Header - Fixed positioning with proper offset
+// [71-UI.STANDARD.A] Header - Fixed with left offset for sidebar
 import { useState, useEffect } from "react";
 import { Bell, Settings, ChevronDown, Moon, Sun, LogOut, X } from "lucide-react";
 import { useTheme } from "next-themes";
@@ -8,7 +8,6 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useUser } from "@/context/UserContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { SidebarTrigger } from "@/components/ui/sidebar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -67,11 +66,9 @@ export function Header() {
   const roleLabel = role === "master" ? "관리자" : role === "agency_owner" ? "에이전시 오너" : "스태프";
 
   return (
-    <header className="h-[72px] border-b border-gray-100 bg-white">
+    <header className="fixed top-0 left-[240px] right-0 h-[64px] border-b border-gray-100 bg-white shadow-sm z-20">
       <div className="flex h-full items-center px-6">
         <div className="flex items-center gap-3">
-          <SidebarTrigger className="-ml-2" />
-          
           {role === "master" && 
            agencyScope && 
            agencyName && 

@@ -1,20 +1,10 @@
-// [71-H.REBUILD-FINAL] Sidebar - Clean hover and alignment
+// [71-UI.STANDARD.A] Sidebar - Fixed layout standard
 import { NavLink, useLocation } from "react-router-dom";
 import {
   LayoutDashboard,
   Calendar,
   Building2,
 } from "lucide-react";
-import {
-  Sidebar as ShadcnSidebar,
-  SidebarContent,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarMenu,
-  SidebarMenuItem,
-  SidebarMenuButton,
-  useSidebar,
-} from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
 
 const menuItems = [
@@ -36,63 +26,41 @@ const menuItems = [
 ];
 
 export function Sidebar() {
-  const { state } = useSidebar();
   const location = useLocation();
   const currentPath = location.pathname;
 
   const isActive = (url: string) => currentPath === url;
 
   return (
-    <ShadcnSidebar
-      collapsible="icon"
-      className={cn(
-        "transition-all duration-300 ease-in-out bg-white border-r border-gray-100 h-screen",
-        state === "collapsed" ? "w-0 overflow-hidden border-r-0" : "w-[240px]"
-      )}
-    >
-      <SidebarContent className="px-0">
-        <div className="text-[15px] font-semibold text-foreground flex items-center gap-2 px-4 py-4 border-b border-gray-100">
-          <Building2 className="w-4 h-4 text-primary" />
-          <span>SympoHub</span>
-        </div>
-        
-        <SidebarGroup className="px-3 py-4">
-          <SidebarGroupContent>
-            <SidebarMenu className="space-y-2">
-              {menuItems.map((item) => {
-                const active = isActive(item.url);
-                return (
-                  <SidebarMenuItem key={item.url}>
-                    <SidebarMenuButton 
-                      asChild 
-                      isActive={active}
-                      className="p-0 h-auto hover:bg-transparent"
-                    >
-                      <NavLink 
-                        to={item.url}
-                        className={cn(
-                          "relative flex items-center gap-3 px-3 py-2 rounded-lg text-[15px] font-medium w-full",
-                          "transition-all duration-150",
-                          "text-muted-foreground hover:text-foreground",
-                          "sidebar-item",
-                          active && "text-primary"
-                        )}
-                        data-active={active}
-                      >
-                        {active && (
-                          <div className="absolute left-0 top-1/2 h-8 w-1 -translate-y-1/2 rounded-r-full bg-primary" />
-                        )}
-                        <item.icon className="h-[18px] w-[18px]" />
-                        <span>{item.title}</span>
-                      </NavLink>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                );
-              })}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-      </SidebarContent>
-    </ShadcnSidebar>
+    <aside className="fixed top-0 left-0 h-screen w-[240px] bg-white border-r border-gray-100 z-30">
+      <div className="h-[64px] flex items-center gap-2 px-5 border-b border-gray-100">
+        <Building2 className="w-5 h-5 text-primary" />
+        <span className="text-[15px] font-semibold text-foreground">SympoHub</span>
+      </div>
+      
+      <nav className="flex flex-col gap-1 px-3 py-4">
+        {menuItems.map((item) => {
+          const active = isActive(item.url);
+          return (
+            <NavLink
+              key={item.url}
+              to={item.url}
+              className={cn(
+                "relative flex items-center gap-3 px-3 py-3 rounded-lg text-[15px] font-medium",
+                "transition-all duration-150",
+                "text-gray-700 hover:bg-sympoblue-50/40 hover:text-foreground",
+                active && "bg-sympoblue-50 text-sympoblue-700"
+              )}
+            >
+              {active && (
+                <div className="absolute left-0 top-1/2 h-8 w-1 -translate-y-1/2 rounded-r-full bg-primary" />
+              )}
+              <item.icon className="h-[18px] w-[18px]" />
+              <span>{item.title}</span>
+            </NavLink>
+          );
+        })}
+      </nav>
+    </aside>
   );
 }
