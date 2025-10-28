@@ -74,7 +74,7 @@ export default function RoomingTab() {
           participants:participant_id (
             name,
             phone,
-            company_name
+            organization
           )
         `)
         .eq("event_id", eventId)
@@ -121,7 +121,7 @@ export default function RoomingTab() {
               participants:participant_id (
                 name,
                 phone,
-                company_name
+                organization
               )
             `)
             .eq("event_id", eventId)
