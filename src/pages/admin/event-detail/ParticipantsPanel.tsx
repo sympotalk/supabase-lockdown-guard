@@ -263,7 +263,10 @@ export default function ParticipantsPanel({ onMutate }: ParticipantsPanelProps) 
             <Upload className="h-4 w-4 mr-2" />
             업로드
           </Button>
-          <Button size="sm">
+          <Button 
+            size="sm"
+            className="bg-primary hover:bg-primary-hover text-primary-foreground font-medium rounded-xl transition-all duration-150 ease-in-out shadow-sm hover:shadow-md"
+          >
             <Plus className="h-4 w-4 mr-2" />
             추가
           </Button>
