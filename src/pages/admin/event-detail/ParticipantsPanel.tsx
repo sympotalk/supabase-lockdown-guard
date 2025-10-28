@@ -273,7 +273,7 @@ export default function ParticipantsPanel({ onMutate }: ParticipantsPanelProps) 
         {/* Main Content: Table */}
         <div className="flex-1 overflow-hidden px-2 py-4">
           <Card>
-            <CardContent className="p-0 h-[calc(100vh-280px)]">
+            <CardContent className="p-0 h-[calc(100vh-280px)] overflow-x-auto">
               {!filteredParticipants || filteredParticipants.length === 0 ? (
                 <div className="text-center text-muted-foreground py-16">
                   등록된 참가자가 없습니다. 업로드 또는 추가 버튼을 클릭하여 참가자를 등록하세요.

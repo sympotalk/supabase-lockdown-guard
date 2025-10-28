@@ -83,7 +83,7 @@ export function DataTable({ participants, selectedIds, onSelectChange }: DataTab
           {participants.map((participant, index) => (
             <TableRow
               key={participant.id}
-              className="participant-row"
+              className="participant-row border-b hover:bg-accent/50 transition-colors cursor-pointer"
               onClick={() => handleRowClick(participant.id)}
             >
               <TableCell onClick={(e) => e.stopPropagation()}>
@@ -112,7 +112,7 @@ export function DataTable({ participants, selectedIds, onSelectChange }: DataTab
               <TableCell className="sticky-col-org text-sm truncate max-w-[160px]" title={participant.organization || "-"}>
                 {participant.organization || "-"}
               </TableCell>
-              <TableCell className="text-center text-sm whitespace-nowrap">
+              <TableCell className="px-4 py-3 truncate max-w-[160px] whitespace-nowrap overflow-hidden text-ellipsis text-center text-sm">
                 {participant.phone || "-"}
               </TableCell>
               <TableCell>
