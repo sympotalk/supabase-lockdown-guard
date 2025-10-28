@@ -3347,6 +3347,7 @@ export type Database = {
           classification: string | null
           companion: string | null
           companion_memo: string | null
+          composition: Json | null
           created_at: string
           created_by: string | null
           email: string | null
@@ -3366,6 +3367,7 @@ export type Database = {
           organization: string | null
           phone: string | null
           recruitment_status: string | null
+          room_preference: string | null
           sfe_agency_code: string | null
           sfe_customer_code: string | null
           status: string | null
@@ -3385,6 +3387,7 @@ export type Database = {
           classification?: string | null
           companion?: string | null
           companion_memo?: string | null
+          composition?: Json | null
           created_at?: string
           created_by?: string | null
           email?: string | null
@@ -3404,6 +3407,7 @@ export type Database = {
           organization?: string | null
           phone?: string | null
           recruitment_status?: string | null
+          room_preference?: string | null
           sfe_agency_code?: string | null
           sfe_customer_code?: string | null
           status?: string | null
@@ -3423,6 +3427,7 @@ export type Database = {
           classification?: string | null
           companion?: string | null
           companion_memo?: string | null
+          composition?: Json | null
           created_at?: string
           created_by?: string | null
           email?: string | null
@@ -3442,6 +3447,7 @@ export type Database = {
           organization?: string | null
           phone?: string | null
           recruitment_status?: string | null
+          room_preference?: string | null
           sfe_agency_code?: string | null
           sfe_customer_code?: string | null
           status?: string | null
@@ -5242,6 +5248,73 @@ export type Database = {
           },
           {
             foreignKeyName: "rooming_participants_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "v_event_room_summary"
+            referencedColumns: ["event_id"]
+          },
+        ]
+      }
+      rooming_rules: {
+        Row: {
+          allow_extra_bed: boolean | null
+          created_at: string | null
+          event_id: string
+          id: string
+          is_active: boolean | null
+          max_adult: number | null
+          max_child: number | null
+          min_adult: number | null
+          min_child: number | null
+          preferred_room_type: string | null
+          priority: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          allow_extra_bed?: boolean | null
+          created_at?: string | null
+          event_id: string
+          id?: string
+          is_active?: boolean | null
+          max_adult?: number | null
+          max_child?: number | null
+          min_adult?: number | null
+          min_child?: number | null
+          preferred_room_type?: string | null
+          priority?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          allow_extra_bed?: boolean | null
+          created_at?: string | null
+          event_id?: string
+          id?: string
+          is_active?: boolean | null
+          max_adult?: number | null
+          max_child?: number | null
+          min_adult?: number | null
+          min_child?: number | null
+          preferred_room_type?: string | null
+          priority?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rooming_rules_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "event_progress_view"
+            referencedColumns: ["event_id"]
+          },
+          {
+            foreignKeyName: "rooming_rules_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rooming_rules_event_id_fkey"
             columns: ["event_id"]
             isOneToOne: false
             referencedRelation: "v_event_room_summary"
