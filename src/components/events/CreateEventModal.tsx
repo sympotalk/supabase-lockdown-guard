@@ -21,7 +21,7 @@ interface CreateEventModalProps {
 export default function CreateEventModal({ open, onOpenChange }: CreateEventModalProps) {
   const { refresh } = useAppData();
   const navigate = useNavigate();
-  const { user } = useUser();
+  const { userId, agencyScope } = useUser();
   const [eventName, setEventName] = useState("");
   const [dateRange, setDateRange] = useState<{ from?: Date; to?: Date }>({
     from: undefined,
@@ -59,13 +59,11 @@ export default function CreateEventModal({ open, onOpenChange }: CreateEventModa
     }
   }, [open]);
 
-  // [71-DASHBOARD.CLEANUP.FINAL] Auto-load agency_id from logged-in user
+  // [71-DASHBOARD.FIX.R2] Auto-bind agency_id from logged-in user
   useEffect(() => {
-    const loadAgencyId = async () => {
-      const { data: session } = await supabase.auth.getSession();
-      const userId = session?.session?.user?.id;
-      
-      if (userId) {
+    if (userId) {
+      // Get agency_id from user context or agency_members
+      const loadAgencyId = async () => {
         const { data: memberData } = await supabase
           .from("agency_members")
           .select("agency_id")
@@ -74,11 +72,12 @@ export default function CreateEventModal({ open, onOpenChange }: CreateEventModa
         
         if (memberData?.agency_id) {
           setSelectedAgencyId(memberData.agency_id);
+          console.log('[71-DASHBOARD.FIX.R2] Agency ID loaded:', memberData.agency_id);
         }
-      }
-    };
-    loadAgencyId();
-  }, []);
+      };
+      loadAgencyId();
+    }
+  }, [userId]);
 
   useEffect(() => {
     let cancelled = false;
@@ -218,8 +217,10 @@ export default function CreateEventModal({ open, onOpenChange }: CreateEventModa
       return toast.error("일정을 선택해주세요");
     }
 
-    if (!selectedAgencyId) {
-      return toast.error("에이전시를 선택해주세요");
+    // [71-DASHBOARD.FIX.R2] Safe agency_id validation
+    const finalAgencyId = selectedAgencyId || agencyScope;
+    if (!finalAgencyId) {
+      return toast.error("에이전시 정보를 불러오지 못했습니다. 다시 로그인해주세요.");
     }
 
     if (!selectedHotel) {
@@ -231,7 +232,7 @@ export default function CreateEventModal({ open, onOpenChange }: CreateEventModa
       const { data: session } = await supabase.auth.getSession();
       const userId = session?.session?.user?.id;
 
-      // Create event
+      // Create event with confirmed agency_id
       const { data: newEvent, error: eventError } = await supabase
         .from("events")
         .insert({
@@ -239,7 +240,7 @@ export default function CreateEventModal({ open, onOpenChange }: CreateEventModa
           start_date: dateRange.from?.toISOString().split("T")[0] || "",
           end_date: dateRange.to?.toISOString().split("T")[0] || "",
           location: selectedHotel.name, // Hotel name as location
-          agency_id: selectedAgencyId,
+          agency_id: finalAgencyId, // ✅ Confirmed agency_id injection
           created_by: userId,
         })
         .select()
@@ -254,7 +255,7 @@ export default function CreateEventModal({ open, onOpenChange }: CreateEventModa
           const { data: localRoom, error: localError } = await supabase
             .from("room_types_local")
             .insert({
-              agency_id: selectedAgencyId,
+              agency_id: finalAgencyId,
               hotel_id: selectedHotel.id,
               type_name: cr.type_name,
               capacity: cr.capacity,
@@ -277,7 +278,7 @@ export default function CreateEventModal({ open, onOpenChange }: CreateEventModa
           event_id: newEvent.id,
           hotel_id: selectedHotel.id,
           room_type_id: rt.id,
-          agency_id: selectedAgencyId,
+          agency_id: finalAgencyId,
           credit: config.credit,
           stock: config.stock,
         } as any);
@@ -291,7 +292,7 @@ export default function CreateEventModal({ open, onOpenChange }: CreateEventModa
             event_id: newEvent.id,
             hotel_id: selectedHotel.id,
             local_type_id: customRoomIds[cr.id],
-            agency_id: selectedAgencyId,
+            agency_id: finalAgencyId,
             credit: config.credit,
             stock: config.stock,
           } as any);
