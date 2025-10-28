@@ -201,16 +201,15 @@ All colors MUST be HSL.
   box-shadow: -4px 0 12px rgba(0, 0, 0, 0.3);
 }
 
-/* [71-H.9.LAYOUT-CLEANUP] Layout Full - Unified wrapper for admin pages */
+/* [71-H.9.FINAL] Layout Full - Unified wrapper for admin pages */
 .layout-full {
-  width: 100%;
-  max-width: none;
-  margin: 0;
+  max-width: 1440px;
+  margin: 0 auto;
   padding: 0;
   box-sizing: border-box;
 }
 
-/* [71-H.9.LAYOUT-CLEANUP] EventDetailLayout boundary - no more padding-right */
+/* [71-H.9.FINAL] EventDetailLayout boundary - no more padding-right */
 .layout-center {
   max-width: none !important;
   width: 100%;
@@ -221,34 +220,34 @@ All colors MUST be HSL.
   transition: padding 0.2s ease;
 }
 
-/* [71-H.9.LAYOUT-CLEANUP] Sidebar hover enhancement */
+/* [71-H.9.FINAL] Sidebar hover enhancement */
 .sidebar-item:hover {
   background-color: hsl(var(--muted)) !important;
   color: hsl(var(--foreground)) !important;
+  transition: all 0.15s ease-in-out;
 }
 
 .sidebar-item:hover .lucide {
   color: hsl(var(--foreground)) !important;
 }
 
-/* [71-H.9.LAYOUT-POLISH] Event title styling */
+/* [71-H.9.FINAL] Event title styling */
 .event-title {
-  line-height: 1.2;
+  line-height: 1.25;
   margin-bottom: 2px;
   padding-top: 2px;
 }
 
-/* [71-H.9.LAYOUT-POLISH] TabsList alignment */
+/* [71-H.9.FINAL] TabsList alignment */
 .tabs-header,
 .tabs-list {
   margin-top: 4px !important;
 }
 
-/* [71-H.9.LAYOUT-POLISH] Layout full max-width */
-.layout-full {
-  margin-left: auto;
-  margin-right: auto;
-  max-width: 1440px;
+/* [71-H.9.FINAL] Visual Harmony - Button hover */
+button:hover {
+  filter: brightness(1.03);
+  transition: filter 0.2s ease-in-out;
 }
 
 .layout-center .tabs-header {
@@ -259,11 +258,10 @@ All colors MUST be HSL.
   padding: 0 8px;
 }
 
-/* Dark mode layout alignment fix */
+/* [71-H.9.FINAL] Dark mode layout alignment fix */
 .dark .layout-full {
-  width: 100%;
-  max-width: none;
-  margin-left: 0;
+  max-width: 1440px;
+  margin: 0 auto;
   padding: 0;
   box-sizing: border-box;
 }

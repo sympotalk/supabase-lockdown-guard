@@ -67,7 +67,7 @@ export function Sidebar() {
     <ShadcnSidebar
       collapsible="icon"
       className={cn(
-        "fixed left-0 top-16 h-[calc(100vh-4rem)] border-r bg-background transition-all duration-200",
+        "fixed left-0 top-[72px] h-[calc(100vh-72px)] border-r bg-background transition-all duration-200",
         state === "collapsed" ? "w-[64px]" : "w-[220px]"
       )}
     >

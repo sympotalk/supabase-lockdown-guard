@@ -94,7 +94,7 @@ export default function EventDetailLayout() {
 
   return (
     <div className="layout-full pt-0 pb-8">
-      <div className="layout-center">
+      <div className="layout-center px-6">
         <div className="flex items-end justify-between mb-3">
           <div className="flex items-center gap-4">
             <Button
@@ -116,7 +116,7 @@ export default function EventDetailLayout() {
         </div>
 
         <Tabs value={tab} onValueChange={setTab} className="w-full">
-          <TabsList className="sticky top-16 z-10 flex space-x-3 border-b border-border pb-2 bg-background h-auto rounded-none mb-4">
+          <TabsList className="sticky top-[72px] z-10 flex space-x-3 border-b border-border pb-2 bg-background h-auto rounded-none mb-4">
             <TabsTrigger 
               value="participants"
               className="data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none bg-transparent"

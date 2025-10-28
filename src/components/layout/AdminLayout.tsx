@@ -19,7 +19,7 @@ export function AdminLayout() {
           <Sidebar />
           <main className="flex-1 flex flex-col bg-background">
             <Header />
-            <div className="flex-1 px-6 pt-20 pb-8">
+            <div className="flex-1 px-6 pt-[72px] pb-8">
               <div className="flex flex-col items-center justify-center h-96 text-muted-foreground">
                 <h2 className="text-2xl font-semibold mb-2">에이전시 선택 필요</h2>
                 <p className="text-lg mb-6">에이전시 관리에서 대상을 선택하면 대시보드가 활성화됩니다.</p>
@@ -41,7 +41,7 @@ export function AdminLayout() {
           <Sidebar />
           <main className="flex-1 flex flex-col bg-background">
             <Header />
-            <div className="flex-1 px-6 pt-20 pb-8">
+            <div className="flex-1 px-6 pt-[72px] pb-8 overflow-y-auto">
               <Outlet />
             </div>
           </main>
