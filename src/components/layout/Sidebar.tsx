@@ -45,18 +45,15 @@ export function Sidebar() {
   return (
     <ShadcnSidebar
       collapsible="icon"
-      className={cn(
-        "fixed left-0 top-[72px] h-[calc(100vh-72px)] border-r bg-background transition-all duration-200",
-        state === "collapsed" ? "w-[64px]" : "w-[220px]"
-      )}
+      className="min-w-[240px] max-w-[240px] h-screen border-r border-gray-100 bg-white p-0"
     >
-      <SidebarContent className="px-3 py-4">
-        <div className="text-[15px] font-semibold text-foreground flex items-center gap-2 pl-1 mb-6">
+      <SidebarContent className="px-0">
+        <div className="text-[15px] font-semibold text-foreground flex items-center gap-2 px-4 py-4 border-b border-gray-100">
           <Building2 className="w-4 h-4 text-primary" />
-          {state !== "collapsed" && <span>SympoHub</span>}
+          <span>SympoHub</span>
         </div>
         
-        <SidebarGroup>
+        <SidebarGroup className="px-3 py-4">
           <SidebarGroupContent>
             <SidebarMenu className="space-y-2">
               {menuItems.map((item) => {
@@ -83,7 +80,7 @@ export function Sidebar() {
                           <div className="absolute left-0 top-1/2 h-8 w-1 -translate-y-1/2 rounded-r-full bg-primary" />
                         )}
                         <item.icon className="h-[18px] w-[18px]" />
-                        {state !== "collapsed" && <span>{item.title}</span>}
+                        <span>{item.title}</span>
                       </NavLink>
                     </SidebarMenuButton>
                   </SidebarMenuItem>

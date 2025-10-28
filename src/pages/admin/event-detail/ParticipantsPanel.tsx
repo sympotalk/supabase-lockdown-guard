@@ -192,7 +192,7 @@ export default function ParticipantsPanel({ onMutate }: ParticipantsPanelProps) 
   }
 
   return (
-    <div className={cn("participants-grid h-full", isOpen && "drawer-open")}>
+    <div className="w-full h-full overflow-hidden">
       <div className="h-full flex flex-col w-full">
         {/* Header */}
       <div className="tabs-header flex items-center justify-between w-full px-2 py-3 border-b">

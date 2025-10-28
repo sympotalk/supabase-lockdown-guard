@@ -123,8 +123,7 @@ export function DrawerPanel({ participants, onUpdate }: DrawerPanelProps) {
 
       {/* Drawer */}
       <div className={cn("drawer-panel", isOpen && "open")}>
-        {/* Header */}
-        <div className="drawer-header px-4 py-3">
+        <div className="drawer-header px-4 py-3 bg-white">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-semibold text-primary">{localData.name}</h2>
             <div className="flex items-center gap-2">

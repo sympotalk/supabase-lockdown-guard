@@ -80,7 +80,7 @@ export default function EventDetailLayout() {
   }
 
   return (
-    <div className="max-w-[1400px] mx-auto">
+    <div className="w-full h-full px-6 py-4">
       {/* Event Title Section */}
       <div className="flex items-center gap-4 mb-4">
         <Button
@@ -102,7 +102,7 @@ export default function EventDetailLayout() {
 
       {/* Tabs Section */}
       <Tabs value={tab} onValueChange={setTab} className="w-full">
-        <TabsList className="sticky top-[72px] z-10 flex space-x-3 border-b border-border pb-2 bg-background h-auto rounded-none mb-4">
+        <TabsList className="flex space-x-3 border-b border-gray-100 pb-2 bg-white h-auto rounded-none mb-4">
           <TabsTrigger 
             value="participants"
             className="data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none bg-transparent"
@@ -130,20 +130,20 @@ export default function EventDetailLayout() {
         </TabsList>
 
         {/* Content Section */}
-        <div className="rounded-2xl bg-card shadow-card p-6">
-          <TabsContent value="participants" className="mt-0">
+        <div className="w-full h-[calc(100vh-240px)]">
+          <TabsContent value="participants" className="mt-0 h-full">
             <ParticipantsTab 
               selectedParticipant={selectedParticipant}
               onSelectParticipant={setSelectedParticipant}
             />
           </TabsContent>
-          <TabsContent value="rooming" className="mt-0">
+          <TabsContent value="rooming" className="mt-0 h-full">
             <RoomingTab />
           </TabsContent>
-          <TabsContent value="messages" className="mt-0">
+          <TabsContent value="messages" className="mt-0 h-full">
             <MessagesTab />
           </TabsContent>
-          <TabsContent value="forms" className="mt-0">
+          <TabsContent value="forms" className="mt-0 h-full">
             <FormsTab />
           </TabsContent>
         </div>

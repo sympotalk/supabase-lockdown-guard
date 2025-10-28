@@ -67,11 +67,10 @@ export function Header() {
   const roleLabel = role === "master" ? "관리자" : role === "agency_owner" ? "에이전시 오너" : "스태프";
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-40 h-[72px] border-b border-border bg-background">
+    <header className="h-[72px] border-b border-gray-100 bg-white">
       <div className="flex h-full items-center px-6">
         <div className="flex items-center gap-3">
           <SidebarTrigger className="-ml-2" />
-          <span className="text-xl font-bold text-primary">SympoHub</span>
           
           {role === "master" && 
            agencyScope && 

@@ -52,7 +52,7 @@ export function DataTable({ participants, selectedIds, onSelectChange }: DataTab
   };
 
   return (
-    <div className="participants-table-wrapper h-full">
+    <div className="w-full h-full overflow-x-auto overflow-y-hidden">
       <Table>
         <TableHeader className="bg-muted/80 backdrop-blur-sm sticky top-0 z-10">
           <TableRow className="hover:bg-muted">
