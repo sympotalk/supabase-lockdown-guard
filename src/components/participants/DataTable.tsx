@@ -54,39 +54,39 @@ export function DataTable({ participants, selectedIds, onSelectChange }: DataTab
   return (
     <div className="w-full h-full overflow-auto">
       <Table className="min-w-[1200px]">
-        <TableHeader className="bg-muted/80 backdrop-blur-sm sticky top-0 z-10">
-          <TableRow className="hover:bg-muted">
-            <TableHead className="w-12">
+        <TableHeader className="sticky top-0 z-10 bg-gray-50 dark:bg-[#27314a]">
+          <TableRow className="hover:bg-transparent border-b border-gray-100 dark:border-gray-700">
+            <TableHead className="w-12 py-3 px-4">
               <Checkbox
                 checked={selectedIds.length === participants.length && participants.length > 0}
                 onCheckedChange={toggleSelectAll}
               />
             </TableHead>
-            <TableHead className="font-semibold w-12 text-center">No.</TableHead>
-            <TableHead className="font-semibold w-20">구분</TableHead>
-            <TableHead className="sticky-col-name font-semibold w-24">성명</TableHead>
-            <TableHead className="sticky-col-org font-semibold w-32">소속</TableHead>
-            <TableHead className="font-semibold w-28">연락처</TableHead>
-            <TableHead className="font-semibold w-36">요청사항</TableHead>
-            <TableHead className="font-semibold w-24">숙박현황</TableHead>
-            <TableHead className="font-semibold w-16 text-center">성인</TableHead>
-            <TableHead className="font-semibold w-32 text-center">소아</TableHead>
-            <TableHead className="font-semibold w-24">동반인</TableHead>
-            <TableHead className="font-semibold w-20 text-center">모객</TableHead>
-            <TableHead className="font-semibold w-20 text-center">문자</TableHead>
-            <TableHead className="font-semibold w-20 text-center">설문</TableHead>
-            <TableHead className="font-semibold w-20 text-center">상태</TableHead>
-            <TableHead className="font-semibold w-24 text-right">등록일</TableHead>
+            <TableHead className="w-12 py-3 px-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide text-center">No.</TableHead>
+            <TableHead className="w-20 py-3 px-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide text-left">구분</TableHead>
+            <TableHead className="sticky-col-name w-24 py-3 px-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide text-left">성명</TableHead>
+            <TableHead className="sticky-col-org w-32 py-3 px-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide text-left">소속</TableHead>
+            <TableHead className="w-28 py-3 px-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide text-left">연락처</TableHead>
+            <TableHead className="w-36 py-3 px-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide text-left">요청사항</TableHead>
+            <TableHead className="w-24 py-3 px-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide text-left">숙박현황</TableHead>
+            <TableHead className="w-16 py-3 px-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide text-center">성인</TableHead>
+            <TableHead className="w-32 py-3 px-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide text-center">소아</TableHead>
+            <TableHead className="w-24 py-3 px-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide text-left">동반인</TableHead>
+            <TableHead className="w-20 py-3 px-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide text-center">모객</TableHead>
+            <TableHead className="w-20 py-3 px-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide text-center">문자</TableHead>
+            <TableHead className="w-20 py-3 px-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide text-center">설문</TableHead>
+            <TableHead className="w-20 py-3 px-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide text-center">상태</TableHead>
+            <TableHead className="w-24 py-3 px-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide text-right">등록일</TableHead>
           </TableRow>
         </TableHeader>
-        <TableBody>
+        <TableBody className="bg-white dark:bg-[#1e293b]">
           {participants.map((participant, index) => (
             <TableRow
               key={participant.id}
-              className="participant-row border-b hover:bg-accent/50 transition-colors cursor-pointer"
+              className="participant-row transition-colors cursor-pointer last:rounded-b-2xl border-b border-gray-100 dark:border-gray-700"
               onClick={() => handleRowClick(participant.id)}
             >
-              <TableCell onClick={(e) => e.stopPropagation()}>
+              <TableCell className="py-2.5 px-4" onClick={(e) => e.stopPropagation()}>
                 <Checkbox
                   checked={selectedIds.includes(participant.id)}
                   onCheckedChange={(checked) => {
@@ -98,24 +98,24 @@ export function DataTable({ participants, selectedIds, onSelectChange }: DataTab
                   }}
                 />
               </TableCell>
-              <TableCell className="text-center text-sm text-muted-foreground">
+              <TableCell className="py-2.5 px-4 text-center text-sm text-gray-500 dark:text-gray-400">
                 {index + 1}
               </TableCell>
-              <TableCell>
+              <TableCell className="py-2.5 px-4">
                 <Badge variant="outline" className="text-xs">
                   {participant.classification || "일반"}
                 </Badge>
               </TableCell>
-              <TableCell className="sticky-col-name font-semibold">
+              <TableCell className="sticky-col-name py-2.5 px-4 font-semibold text-sm text-gray-700 dark:text-gray-200 whitespace-nowrap truncate">
                 {participant.name}
               </TableCell>
-              <TableCell className="sticky-col-org text-sm truncate max-w-[160px]" title={participant.organization || "-"}>
+              <TableCell className="sticky-col-org py-2.5 px-4 text-sm text-gray-700 dark:text-gray-200 truncate max-w-[160px]" title={participant.organization || "-"}>
                 {participant.organization || "-"}
               </TableCell>
-              <TableCell className="px-4 py-3 truncate max-w-[160px] whitespace-nowrap overflow-hidden text-ellipsis text-center text-sm">
+              <TableCell className="py-2.5 px-4 truncate max-w-[160px] whitespace-nowrap overflow-hidden text-ellipsis text-center text-sm text-gray-700 dark:text-gray-200">
                 {participant.phone || "-"}
               </TableCell>
-              <TableCell>
+              <TableCell className="py-2.5 px-4">
                 <div className="flex gap-1 flex-wrap">
                   {parseBadges(participant.memo).map((badge, idx) => (
                     <Badge key={idx} variant="outline" className="text-xs">
@@ -124,25 +124,25 @@ export function DataTable({ participants, selectedIds, onSelectChange }: DataTab
                   ))}
                 </div>
               </TableCell>
-              <TableCell>
+              <TableCell className="py-2.5 px-4">
                 <Badge variant="secondary" className="text-xs">
                   {participant.lodging_status || "미정"}
                 </Badge>
               </TableCell>
-              <TableCell className="text-center">
+              <TableCell className="py-2.5 px-4 text-center">
                 {participant.adult_count ? (
                   <Badge variant="outline" className="text-xs">{participant.adult_count}</Badge>
                 ) : "-"}
               </TableCell>
-              <TableCell className="text-center text-sm">
+              <TableCell className="py-2.5 px-4 text-center text-sm text-gray-700 dark:text-gray-200">
                 {participant.child_ages && participant.child_ages.length > 0
                   ? participant.child_ages.join(' / ')
                   : "-"}
               </TableCell>
-              <TableCell className="text-sm truncate max-w-[120px]" title={participant.companion || "-"}>
+              <TableCell className="py-2.5 px-4 text-sm text-gray-700 dark:text-gray-200 truncate max-w-[120px]" title={participant.companion || "-"}>
                 {participant.companion || "-"}
               </TableCell>
-              <TableCell className="text-center">
+              <TableCell className="py-2.5 px-4 text-center">
                 <Badge 
                   variant={participant.recruitment_status === "O" ? "default" : "outline"}
                   className="text-xs"
@@ -150,7 +150,7 @@ export function DataTable({ participants, selectedIds, onSelectChange }: DataTab
                   {participant.recruitment_status || "X"}
                 </Badge>
               </TableCell>
-              <TableCell className="text-center">
+              <TableCell className="py-2.5 px-4 text-center">
                 <Badge 
                   variant={participant.message_sent === "O" ? "default" : "outline"}
                   className="text-xs"
@@ -158,7 +158,7 @@ export function DataTable({ participants, selectedIds, onSelectChange }: DataTab
                   {participant.message_sent || "X"}
                 </Badge>
               </TableCell>
-              <TableCell className="text-center">
+              <TableCell className="py-2.5 px-4 text-center">
                 <Badge 
                   variant={participant.survey_completed === "O" ? "default" : "outline"}
                   className="text-xs"
@@ -166,7 +166,7 @@ export function DataTable({ participants, selectedIds, onSelectChange }: DataTab
                   {participant.survey_completed || "X"}
                 </Badge>
               </TableCell>
-              <TableCell className="text-center">
+              <TableCell className="py-2.5 px-4 text-center">
                 <Badge
                   variant={
                     participant.status === "confirmed" ? "default" : 
@@ -181,7 +181,7 @@ export function DataTable({ participants, selectedIds, onSelectChange }: DataTab
                    participant.status || "일반"}
                 </Badge>
               </TableCell>
-              <TableCell className="text-right text-sm text-muted-foreground">
+              <TableCell className="py-2.5 px-4 text-right text-sm text-gray-500 dark:text-gray-400">
                 {new Date(participant.created_at).toLocaleDateString('ko-KR', {
                   year: 'numeric',
                   month: '2-digit',

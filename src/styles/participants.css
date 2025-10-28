@@ -13,26 +13,54 @@
   position: sticky;
   left: 0;
   z-index: 2;
-  background: hsl(var(--background));
-  box-shadow: inset -1px 0 0 hsl(var(--border));
+  box-shadow: inset -1px 0 0 rgb(243 244 246);
+}
+
+.dark .sticky-col-name {
+  box-shadow: inset -1px 0 0 rgb(55 65 81);
+}
+
+:root .sticky-col-name {
+  background: white;
+}
+
+.dark .sticky-col-name {
+  background: #1e293b;
 }
 
 .sticky-col-org {
   position: sticky;
   left: 160px;
   z-index: 2;
-  background: hsl(var(--background));
-  box-shadow: inset -1px 0 0 hsl(var(--border));
+  box-shadow: inset -1px 0 0 rgb(243 244 246);
 }
 
-/* Row Hover */
+.dark .sticky-col-org {
+  box-shadow: inset -1px 0 0 rgb(55 65 81);
+}
+
+:root .sticky-col-org {
+  background: white;
+}
+
+.dark .sticky-col-org {
+  background: #1e293b;
+}
+
+/* Row Hover - Updated for standard table */
 .participant-row {
   cursor: pointer;
   transition: background-color 150ms ease;
 }
 
-.participant-row:hover {
-  background: hsl(var(--accent) / 0.5);
+/* Light mode hover */
+:root .participant-row:hover {
+  background: rgba(37, 99, 235, 0.1);
+}
+
+/* Dark mode hover */
+.dark .participant-row:hover {
+  background: rgba(55, 65, 81, 0.3);
 }
 
 /* Drawer Container - Fixed Overlay */
