@@ -99,7 +99,7 @@ export function Header({ sidebarOpen }: HeaderProps) {
   return (
     <header 
       className="fixed top-0 right-0 h-[64px] bg-sidebar-background z-20 transition-all duration-300"
-      style={{ left: sidebarOpen ? '240px' : '0px' }}
+      style={{ left: sidebarOpen ? '240px' : '60px' }}
     >
       <div className="flex h-full items-center px-6 justify-between">
         <div className="flex items-center gap-3">
