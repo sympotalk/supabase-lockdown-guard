@@ -5146,6 +5146,7 @@ export type Database = {
       rooming_participants: {
         Row: {
           agency_id: string | null
+          assigned_at: string | null
           check_in: string | null
           check_out: string | null
           created_at: string | null
@@ -5155,6 +5156,7 @@ export type Database = {
           manual_assigned: boolean | null
           memo: string | null
           participant_id: string | null
+          room_credit: number | null
           room_type: string | null
           stay_days: number | null
           sync_status: string | null
@@ -5162,6 +5164,7 @@ export type Database = {
         }
         Insert: {
           agency_id?: string | null
+          assigned_at?: string | null
           check_in?: string | null
           check_out?: string | null
           created_at?: string | null
@@ -5171,6 +5174,7 @@ export type Database = {
           manual_assigned?: boolean | null
           memo?: string | null
           participant_id?: string | null
+          room_credit?: number | null
           room_type?: string | null
           stay_days?: number | null
           sync_status?: string | null
@@ -5178,6 +5182,7 @@ export type Database = {
         }
         Update: {
           agency_id?: string | null
+          assigned_at?: string | null
           check_in?: string | null
           check_out?: string | null
           created_at?: string | null
@@ -5187,6 +5192,7 @@ export type Database = {
           manual_assigned?: boolean | null
           memo?: string | null
           participant_id?: string | null
+          room_credit?: number | null
           room_type?: string | null
           stay_days?: number | null
           sync_status?: string | null
