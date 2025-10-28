@@ -52,23 +52,29 @@ export default function RoomingTab() {
     async () => {
       if (!eventId) return [];
       
-      console.log('[72-RULE.R2.FIX] Fetching rooming data for event:', eventId);
+      console.log('[72-RULE.UI.BIND] Fetching from public.rooming_participants for event:', eventId);
       
       const { data, error } = await supabase
         .from("rooming_participants")
         .select(`
           id,
+          event_id,
+          participant_id,
           room_type,
           room_credit,
           check_in,
           check_out,
           stay_days,
+          status,
           manual_assigned,
           assigned_at,
-          participant_id,
+          adults,
+          children,
+          infants,
           participants:participant_id (
             name,
-            composition
+            phone,
+            company
           )
         `)
         .eq("event_id", eventId)
@@ -76,18 +82,62 @@ export default function RoomingTab() {
         .order("assigned_at", { ascending: false });
       
       if (error) {
-        console.error('[72-RULE.R2.FIX] Query error:', error);
+        console.error('[72-RULE.UI.BIND] Query error:', error);
         throw error;
       }
       
-      console.log('[72-RULE.R2.FIX] Fetched rooming data:', data?.length || 0, 'records');
+      console.log('[72-RULE.UI.BIND] Fetched rooming data:', data?.length || 0, 'records');
+      
+      // 빈 결과시 RPC로 백필 트리거
+      if (data && data.length === 0) {
+        console.log('[72-RULE.UI.BIND] Empty result, triggering seed RPC');
+        const { data: seedData, error: seedError } = await supabase.rpc(
+          'seed_rooming_from_participants',
+          { p_event: eventId }
+        );
+        
+        if (seedError) {
+          console.error('[72-RULE.UI.BIND] Seed RPC error:', seedError);
+        } else {
+          console.log('[72-RULE.UI.BIND] Seeded', seedData, 'records');
+          // 재조회
+          const { data: reloadData } = await supabase
+            .from("rooming_participants")
+            .select(`
+              id,
+              event_id,
+              participant_id,
+              room_type,
+              room_credit,
+              check_in,
+              check_out,
+              stay_days,
+              status,
+              manual_assigned,
+              assigned_at,
+              adults,
+              children,
+              infants,
+              participants:participant_id (
+                name,
+                phone,
+                company
+              )
+            `)
+            .eq("event_id", eventId)
+            .eq("is_active", true)
+            .order("assigned_at", { ascending: false });
+          return reloadData || [];
+        }
+      }
+      
       return data || [];
     },
     { 
       revalidateOnFocus: false, 
       dedupingInterval: 60000,
       onError: (err) => {
-        console.error('[72-RULE.R2.FIX] SWR error:', err);
+        console.error('[72-RULE.UI.BIND] SWR error:', err);
       }
     }
   );
@@ -96,20 +146,20 @@ export default function RoomingTab() {
   useEffect(() => {
     if (!eventId) return;
 
-    console.log('[72-RULE.R2.FIX] Setting up realtime channel for event:', eventId);
+    console.log('[72-RULE.UI.BIND] Setting up realtime channel for event:', eventId);
 
     const channel = supabase
-      .channel("rooming_realtime")
+      .channel(`rooming_${eventId}`)
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "rooming_participants", filter: `event_id=eq.${eventId}` },
         (payload) => {
-          console.log("[72-RULE.R2.FIX] Rooming update detected:", payload);
+          console.log("[72-RULE.UI.BIND] Rooming update detected:", payload);
           mutate();
         }
       )
       .subscribe((status) => {
-        console.log('[72-RULE.R2.FIX] Channel status:', status);
+        console.log('[72-RULE.UI.BIND] Realtime status:', status);
       });
 
     return () => {
@@ -117,8 +167,8 @@ export default function RoomingTab() {
     };
   }, [eventId, mutate]);
 
-  // [72-RULE.R2] Data flow validation
-  console.log("[72-RULE.R2.FIX] State - Loading:", isLoading, "Error:", error?.message, "Count:", roomingList?.length);
+  // Data flow validation
+  console.log("[72-RULE.UI.BIND] State - Loading:", isLoading, "Error:", error?.message, "Count:", roomingList?.length);
 
   if (isLoading) {
     return (
@@ -209,12 +259,7 @@ export default function RoomingTab() {
                           {r.room_credit?.toLocaleString()}원
                         </TableCell>
                         <TableCell className="text-sm text-muted-foreground">
-                          {r.participants?.composition && (
-                            <>
-                              성인 {r.participants.composition.adult || 0} /
-                              소아 {r.participants.composition.child || 0}
-                            </>
-                          )}
+                          성인 {r.adults || 0} / 소아 {r.children || 0} / 유아 {r.infants || 0}
                         </TableCell>
                         <TableCell>
                           {getStatusBadge(r.manual_assigned, r.room_type)}

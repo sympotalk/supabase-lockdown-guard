@@ -5145,55 +5145,67 @@ export type Database = {
       }
       rooming_participants: {
         Row: {
+          adults: number | null
           agency_id: string | null
           assigned_at: string | null
           check_in: string | null
           check_out: string | null
+          children: number | null
           created_at: string | null
           event_id: string | null
           id: string
+          infants: number | null
           is_active: boolean | null
           manual_assigned: boolean | null
           memo: string | null
           participant_id: string | null
           room_credit: number | null
           room_type: string | null
+          status: Database["public"]["Enums"]["rooming_status"] | null
           stay_days: number | null
           sync_status: string | null
           updated_at: string | null
         }
         Insert: {
+          adults?: number | null
           agency_id?: string | null
           assigned_at?: string | null
           check_in?: string | null
           check_out?: string | null
+          children?: number | null
           created_at?: string | null
           event_id?: string | null
           id?: string
+          infants?: number | null
           is_active?: boolean | null
           manual_assigned?: boolean | null
           memo?: string | null
           participant_id?: string | null
           room_credit?: number | null
           room_type?: string | null
+          status?: Database["public"]["Enums"]["rooming_status"] | null
           stay_days?: number | null
           sync_status?: string | null
           updated_at?: string | null
         }
         Update: {
+          adults?: number | null
           agency_id?: string | null
           assigned_at?: string | null
           check_in?: string | null
           check_out?: string | null
+          children?: number | null
           created_at?: string | null
           event_id?: string | null
           id?: string
+          infants?: number | null
           is_active?: boolean | null
           manual_assigned?: boolean | null
           memo?: string | null
           participant_id?: string | null
           room_credit?: number | null
           room_type?: string | null
+          status?: Database["public"]["Enums"]["rooming_status"] | null
           stay_days?: number | null
           sync_status?: string | null
           updated_at?: string | null
@@ -5242,6 +5254,27 @@ export type Database = {
             referencedColumns: ["agency_id"]
           },
           {
+            foreignKeyName: "rooming_participants_event_fk"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "event_progress_view"
+            referencedColumns: ["event_id"]
+          },
+          {
+            foreignKeyName: "rooming_participants_event_fk"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rooming_participants_event_fk"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "v_event_room_summary"
+            referencedColumns: ["event_id"]
+          },
+          {
             foreignKeyName: "rooming_participants_event_id_fkey"
             columns: ["event_id"]
             isOneToOne: false
@@ -5261,6 +5294,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "v_event_room_summary"
             referencedColumns: ["event_id"]
+          },
+          {
+            foreignKeyName: "rooming_participants_participant_fk"
+            columns: ["participant_id"]
+            isOneToOne: false
+            referencedRelation: "participants"
+            referencedColumns: ["id"]
           },
           {
             foreignKeyName: "rooming_participants_participant_id_fkey"
@@ -6878,6 +6918,7 @@ export type Database = {
         Args: { p_agency_id: string; p_email: string }
         Returns: Json
       }
+      is_master: { Args: { user_id: string }; Returns: boolean }
       log_policy_test: {
         Args: {
           _action: string
@@ -6990,6 +7031,10 @@ export type Database = {
           source: string
         }[]
       }
+      seed_rooming_from_participants: {
+        Args: { p_event: string }
+        Returns: number
+      }
       set_staff_role: {
         Args: { new_role: string; p_user: string }
         Returns: Json
@@ -7043,6 +7088,7 @@ export type Database = {
         | "staff"
         | "viewer"
         | "guest"
+      rooming_status: "대기" | "배정" | "확정" | "취소"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -7172,6 +7218,7 @@ export const Constants = {
     Enums: {
       ai_agent_role: ["insight", "analysis", "advisor", "visual"],
       app_role: ["master", "agency_owner", "admin", "staff", "viewer", "guest"],
+      rooming_status: ["대기", "배정", "확정", "취소"],
     },
   },
 } as const
