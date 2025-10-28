@@ -189,7 +189,7 @@ export default function EventOverview() {
         toast.info(`${room.room_name} 객실이 제외되었습니다`);
       }
     } else {
-      // Add to event
+      // Add to event - use upsert to prevent 409 conflicts
       const insertData: any = {
         event_id: eventId,
         hotel_id: hotelId,
@@ -204,12 +204,26 @@ export default function EventOverview() {
         insertData.local_type_id = room.local_type_id;
       }
 
+      // Check if already exists first
+      const { data: existing } = await supabase
+        .from("event_room_refs")
+        .select("id")
+        .eq("event_id", eventId)
+        .eq(room.isStandard ? "room_type_id" : "local_type_id", room.isStandard ? room.room_type_id : room.local_type_id)
+        .maybeSingle();
+
+      if (existing) {
+        toast.info(`${room.room_name} 객실이 이미 선택되어 있습니다`);
+        return;
+      }
+
       const { error } = await supabase
         .from("event_room_refs")
         .insert([insertData]);
 
       if (error) {
-        toast.error("추가 실패");
+        console.error("Insert error:", error);
+        toast.error("추가 실패: " + error.message);
       } else {
         toast.success(`${room.room_name} 객실이 추가되었습니다`);
       }
