@@ -50,6 +50,9 @@ interface Participant {
   sfe_customer_code?: string;
   status?: string;
   classification?: string;
+  fixed_role?: string;
+  custom_role?: string;
+  participant_no?: number;
   stay_status?: string;
   lodging_status?: string;
   companion?: string;

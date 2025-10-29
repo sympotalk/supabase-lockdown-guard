@@ -7,6 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
+import { cn } from "@/lib/utils";
 import RulesPanel from "@/components/rooming/RulesPanel";
 import ManualAssignPanel from "@/components/rooming/ManualAssignPanel";
 
@@ -74,7 +75,10 @@ export default function RoomingTab() {
           participants:participant_id (
             name,
             phone,
-            organization
+            organization,
+            fixed_role,
+            custom_role,
+            participant_no
           )
         `)
         .eq("event_id", eventId)
@@ -121,7 +125,10 @@ export default function RoomingTab() {
               participants:participant_id (
                 name,
                 phone,
-                organization
+                organization,
+                fixed_role,
+                custom_role,
+                participant_no
               )
             `)
             .eq("event_id", eventId)
@@ -237,6 +244,7 @@ export default function RoomingTab() {
                 <Table>
                   <TableHeader>
                     <TableRow>
+                      <TableHead className="w-12">No.</TableHead>
                       <TableHead>참가자명</TableHead>
                       <TableHead>객실타입</TableHead>
                       <TableHead>룸크레딧</TableHead>
@@ -251,8 +259,36 @@ export default function RoomingTab() {
                         className="cursor-pointer hover:bg-muted/50"
                         onClick={() => setSelectedParticipant(r)}
                       >
-                        <TableCell className="font-medium">
-                          {r.participants?.name || "-"}
+                        <TableCell className="text-center text-muted-foreground text-sm">
+                          {r.participant_no || "-"}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <span className="font-medium">
+                              {r.participants?.name || "-"}
+                            </span>
+                            {r.fixed_role && (
+                              <Badge
+                                variant="outline"
+                                className={cn(
+                                  "text-xs px-2 py-0.5",
+                                  r.fixed_role === "좌장" && "bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-200",
+                                  r.fixed_role === "연자" && "bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-200",
+                                  r.fixed_role === "참석자" && "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-200"
+                                )}
+                              >
+                                {r.fixed_role}
+                              </Badge>
+                            )}
+                            {r.custom_role && (
+                              <Badge
+                                variant="outline"
+                                className="bg-blue-50 text-blue-700 dark:bg-blue-900 dark:text-blue-200 text-xs px-2 py-0.5"
+                              >
+                                {r.custom_role}
+                              </Badge>
+                            )}
+                          </div>
                         </TableCell>
                         <TableCell>{r.room_type || "-"}</TableCell>
                         <TableCell className="text-muted-foreground">

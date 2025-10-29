@@ -3350,8 +3350,10 @@ export type Database = {
           composition: Json | null
           created_at: string
           created_by: string | null
+          custom_role: string | null
           email: string | null
           event_id: string
+          fixed_role: string | null
           form_response: Json | null
           id: string
           is_active: boolean | null
@@ -3365,6 +3367,7 @@ export type Database = {
           message_sent: string | null
           name: string
           organization: string | null
+          participant_no: number | null
           phone: string | null
           recruitment_status: string | null
           room_preference: string | null
@@ -3390,8 +3393,10 @@ export type Database = {
           composition?: Json | null
           created_at?: string
           created_by?: string | null
+          custom_role?: string | null
           email?: string | null
           event_id: string
+          fixed_role?: string | null
           form_response?: Json | null
           id?: string
           is_active?: boolean | null
@@ -3405,6 +3410,7 @@ export type Database = {
           message_sent?: string | null
           name: string
           organization?: string | null
+          participant_no?: number | null
           phone?: string | null
           recruitment_status?: string | null
           room_preference?: string | null
@@ -3430,8 +3436,10 @@ export type Database = {
           composition?: Json | null
           created_at?: string
           created_by?: string | null
+          custom_role?: string | null
           email?: string | null
           event_id?: string
+          fixed_role?: string | null
           form_response?: Json | null
           id?: string
           is_active?: boolean | null
@@ -3445,6 +3453,7 @@ export type Database = {
           message_sent?: string | null
           name?: string
           organization?: string | null
+          participant_no?: number | null
           phone?: string | null
           recruitment_status?: string | null
           room_preference?: string | null
@@ -5152,13 +5161,16 @@ export type Database = {
           check_out: string | null
           children: number | null
           created_at: string | null
+          custom_role: string | null
           event_id: string | null
+          fixed_role: string | null
           id: string
           infants: number | null
           is_active: boolean | null
           manual_assigned: boolean | null
           memo: string | null
           participant_id: string | null
+          participant_no: number | null
           room_credit: number | null
           room_type: string | null
           status: Database["public"]["Enums"]["rooming_status"] | null
@@ -5174,13 +5186,16 @@ export type Database = {
           check_out?: string | null
           children?: number | null
           created_at?: string | null
+          custom_role?: string | null
           event_id?: string | null
+          fixed_role?: string | null
           id?: string
           infants?: number | null
           is_active?: boolean | null
           manual_assigned?: boolean | null
           memo?: string | null
           participant_id?: string | null
+          participant_no?: number | null
           room_credit?: number | null
           room_type?: string | null
           status?: Database["public"]["Enums"]["rooming_status"] | null
@@ -5196,13 +5211,16 @@ export type Database = {
           check_out?: string | null
           children?: number | null
           created_at?: string | null
+          custom_role?: string | null
           event_id?: string | null
+          fixed_role?: string | null
           id?: string
           infants?: number | null
           is_active?: boolean | null
           manual_assigned?: boolean | null
           memo?: string | null
           participant_id?: string | null
+          participant_no?: number | null
           room_credit?: number | null
           room_type?: string | null
           status?: Database["public"]["Enums"]["rooming_status"] | null
