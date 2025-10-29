@@ -1,10 +1,11 @@
 // [71-J.2-FINAL] Participant detail drawer panel
 import { useEffect, useState, useCallback } from "react";
-import { X, Save, User, Building2, Phone, Mail, Code, Bed } from "lucide-react";
+import { X, Save, User, Building2, Phone, Mail, Code, Bed, Award, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
 import { useParticipantsPanel } from "@/state/participantsPanel";
 import { DrawerSection } from "./DrawerSection";
 import { SmartBadges } from "./SmartBadges";
@@ -27,6 +28,11 @@ interface Participant {
   manager_info?: any;
   sfe_agency_code?: string;
   sfe_customer_code?: string;
+  fixed_role?: string;
+  custom_role?: string;
+  participant_no?: number;
+  agency_id?: string;
+  event_id?: string;
   lodging_status?: string;
   stay_status?: string;
   companion?: string;
@@ -136,6 +142,159 @@ export function DrawerPanel({ participants, onUpdate }: DrawerPanelProps) {
 
         {/* Content */}
         <div className="px-4 py-3 space-y-3">
+          {/* Badge Section */}
+          <div id="badge-section">
+            <DrawerSection title="구분 (Badge)" icon={<Award className="h-4 w-4" />} defaultOpen>
+              <div className="space-y-3">
+                {/* Fixed role badges */}
+                <div className="space-y-2">
+                  <Label className="text-xs font-medium">고정 뱃지 (단일 선택)</Label>
+                  <div className="flex gap-2 flex-wrap">
+                    {['좌장', '연자', '참석자'].map((role) => (
+                      <Badge
+                        key={role}
+                        variant={localData.fixed_role === role ? "default" : "outline"}
+                        className={cn(
+                          "cursor-pointer px-3 py-1.5 rounded-full text-xs font-medium transition-all",
+                          localData.fixed_role === role && role === '좌장' && "bg-[#6E59F6] text-white hover:bg-[#6E59F6]/90",
+                          localData.fixed_role === role && role === '연자' && "bg-[#3B82F6] text-white hover:bg-[#3B82F6]/90",
+                          localData.fixed_role === role && role === '참석자' && "bg-[#9CA3AF] text-white hover:bg-[#9CA3AF]/90",
+                          localData.fixed_role !== role && "hover:bg-muted"
+                        )}
+                        onClick={async () => {
+                          const newRole = localData.fixed_role === role ? null : role;
+                          setLocalData({ ...localData, fixed_role: newRole || undefined });
+                          
+                          const { error } = await supabase
+                            .from("participants")
+                            .update({ 
+                              fixed_role: newRole,
+                              last_edited_by: user?.id,
+                              last_edited_at: new Date().toISOString()
+                            })
+                            .eq("id", localData.id);
+
+                          if (error) {
+                            console.error("[72-RM.BADGE.PANEL] Error updating fixed_role:", error);
+                            toast.error("저장에 실패했습니다. 다시 시도해주세요.");
+                          } else {
+                            // Log activity
+                            await supabase.from("activity_logs").insert({
+                              title: "구분 변경",
+                              description: newRole ? `구분이 '${newRole}'(으)로 변경되었습니다.` : "구분 선택이 해제되었습니다.",
+                              type: "role.update_fixed",
+                              created_by: user?.id,
+                              agency_id: localData.agency_id,
+                              event_id: localData.event_id
+                            });
+
+                            toast.success(
+                              newRole ? `구분이 '${newRole}'(으)로 변경되었습니다.` : "구분 선택이 해제되었습니다.",
+                              { duration: 1200 }
+                            );
+                            onUpdate();
+                          }
+                        }}
+                      >
+                        {role}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Custom role input */}
+                <div className="space-y-2">
+                  <Label className="text-xs font-medium">추가 뱃지 (직접입력)</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      value={localData?.custom_role || ""}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        if (value.length <= 12) {
+                          setLocalData({ ...localData, custom_role: value });
+                        }
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.currentTarget.blur();
+                        }
+                      }}
+                      onBlur={async (e) => {
+                        const trimmed = e.target.value.trim();
+                        if (trimmed === localData?.custom_role?.trim()) return;
+
+                        const { error } = await supabase
+                          .from("participants")
+                          .update({ 
+                            custom_role: trimmed || null,
+                            last_edited_by: user?.id,
+                            last_edited_at: new Date().toISOString()
+                          })
+                          .eq("id", localData.id);
+
+                        if (error) {
+                          console.error("[72-RM.BADGE.PANEL] Error updating custom_role:", error);
+                          toast.error("저장에 실패했습니다. 다시 시도해주세요.");
+                        } else {
+                          // Log activity
+                          await supabase.from("activity_logs").insert({
+                            title: "추가 뱃지 변경",
+                            description: trimmed ? `추가 뱃지 '${trimmed}'가 저장되었습니다.` : "추가 뱃지가 삭제되었습니다.",
+                            type: "role.update_custom",
+                            created_by: user?.id,
+                            agency_id: localData.agency_id,
+                            event_id: localData.event_id
+                          });
+
+                          toast.success(
+                            trimmed ? `추가 뱃지 '${trimmed}'가 저장되었습니다.` : "추가 뱃지가 삭제되었습니다.",
+                            { duration: 1200 }
+                          );
+                          onUpdate();
+                        }
+                      }}
+                      placeholder="최대 12자"
+                      maxLength={12}
+                      className="h-8 text-sm flex-1"
+                    />
+                    {localData?.custom_role && (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-8 px-2"
+                        onClick={async () => {
+                          setLocalData({ ...localData, custom_role: undefined });
+                          
+                          const { error } = await supabase
+                            .from("participants")
+                            .update({ 
+                              custom_role: null,
+                              last_edited_by: user?.id,
+                              last_edited_at: new Date().toISOString()
+                            })
+                            .eq("id", localData.id);
+
+                          if (error) {
+                            console.error("[72-RM.BADGE.PANEL] Error clearing custom_role:", error);
+                            toast.error("저장에 실패했습니다. 다시 시도해주세요.");
+                          } else {
+                            toast.success("추가 뱃지가 삭제되었습니다.", { duration: 1200 });
+                            onUpdate();
+                          }
+                        }}
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    )}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    좌장/연자/참석자는 상호배타(1개). 추가 뱃지는 1개만 입력 가능합니다.
+                  </p>
+                </div>
+              </div>
+            </DrawerSection>
+          </div>
+
           {/* Basic Info */}
           <DrawerSection title="기본 정보" icon={<User className="h-4 w-4" />} defaultOpen>
             <div className="space-y-2">

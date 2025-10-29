@@ -1,12 +1,9 @@
 // [71-J.2-FINAL] Participants data table with sticky columns
-import { useState } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useParticipantsPanel } from "@/state/participantsPanel";
 import { cn } from "@/lib/utils";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
 
 interface Participant {
   id: string;
@@ -42,68 +39,57 @@ function parseBadges(memo: string | undefined): Array<{ label: string }> {
   return items.slice(0, 2).map((label) => ({ label }));
 }
 
-// [72-RM.BADGE.HYBRID] Role badge cell with select + input
-function RoleBadgeCell({ participant }: { participant: Participant }) {
-  const [fixedRole, setFixedRole] = useState(participant.fixed_role || "");
-  const [customRole, setCustomRole] = useState(participant.custom_role || "");
-  const roles = ["좌장", "연자", "참석자"];
+// [72-RM.BADGE.PANEL] Display-only role badge cell - click to open panel
+function RoleBadgeCell({ participant, onClick }: { participant: Participant; onClick: () => void }) {
+  const { fixed_role, custom_role } = participant;
 
-  const handleFixedRoleChange = async (newRole: string) => {
-    setFixedRole(newRole);
-    const { error } = await supabase
-      .from("participants")
-      .update({ fixed_role: newRole })
-      .eq("id", participant.id);
-    
-    if (error) {
-      console.error("[72-RM.BADGE.HYBRID] Error updating fixed_role:", error);
-      toast.error("구분 변경 실패");
-    } else {
-      toast.success("구분이 변경되었습니다");
-    }
-  };
-
-  const handleCustomRoleSave = async (val: string) => {
-    const trimmed = val.trim();
-    setCustomRole(trimmed);
-    const { error } = await supabase
-      .from("participants")
-      .update({ custom_role: trimmed || null })
-      .eq("id", participant.id);
-    
-    if (error) {
-      console.error("[72-RM.BADGE.HYBRID] Error updating custom_role:", error);
-      toast.error("추가 구분 저장 실패");
-    } else if (trimmed) {
-      toast.success("추가 구분이 저장되었습니다");
+  const getRoleBadgeColor = (role: string) => {
+    switch(role) {
+      case '좌장':
+        return 'bg-[#6E59F6] text-white border-transparent';
+      case '연자':
+        return 'bg-[#3B82F6] text-white border-transparent';
+      case '참석자':
+        return 'bg-[#9CA3AF] text-white border-transparent';
+      default:
+        return 'bg-muted text-muted-foreground';
     }
   };
 
   return (
-    <div className="flex items-center gap-2">
-      {/* Fixed role select */}
-      <select
-        value={fixedRole}
-        onChange={(e) => handleFixedRoleChange(e.target.value)}
-        className="bg-muted border border-border rounded-md text-xs px-2 py-1 text-foreground focus:ring-2 focus:ring-primary focus:outline-none min-w-[70px]"
-      >
-        <option value="">선택</option>
-        {roles.map((r) => (
-          <option key={r} value={r}>
-            {r}
-          </option>
-        ))}
-      </select>
+    <div 
+      className="flex items-center gap-1 cursor-pointer hover:opacity-80 transition-opacity"
+      onClick={(e) => {
+        e.stopPropagation();
+        onClick();
+      }}
+    >
+      {/* Fixed role badge */}
+      {fixed_role ? (
+        <Badge 
+          variant="outline" 
+          className={cn(
+            "text-xs px-2.5 py-0.5 rounded-full",
+            getRoleBadgeColor(fixed_role)
+          )}
+        >
+          {fixed_role}
+        </Badge>
+      ) : (
+        <Badge variant="outline" className="text-xs px-2.5 py-0.5 rounded-full bg-muted text-muted-foreground">
+          선택
+        </Badge>
+      )}
 
-      {/* Custom role input */}
-      <input
-        type="text"
-        placeholder="추가입력"
-        value={customRole}
-        onChange={(e) => setCustomRole(e.target.value)}
-        onBlur={(e) => handleCustomRoleSave(e.target.value)}
-        className="border border-border bg-background rounded-md px-2 py-1 text-xs w-20 focus:ring-2 focus:ring-primary focus:outline-none"
-      />
+      {/* Custom role badge */}
+      {custom_role && (
+        <Badge 
+          variant="outline" 
+          className="text-xs px-2.5 py-0.5 rounded-full bg-[#E0F2FE] text-[#0369A1] border-transparent"
+        >
+          {custom_role}
+        </Badge>
+      )}
     </div>
   );
 }
@@ -173,8 +159,18 @@ export function DataTable({ participants, selectedIds, onSelectChange }: DataTab
               <TableCell className="py-2.5 px-4 text-center text-sm text-muted-foreground">
                 {participant.participant_no || index + 1}
               </TableCell>
-              <TableCell className="py-2.5 px-4" onClick={(e) => e.stopPropagation()}>
-                <RoleBadgeCell participant={participant} />
+              <TableCell className="py-2.5 px-4">
+                <RoleBadgeCell 
+                  participant={participant} 
+                  onClick={() => {
+                    handleRowClick(participant.id);
+                    // Scroll to badge section after panel opens
+                    setTimeout(() => {
+                      const badgeSection = document.getElementById('badge-section');
+                      badgeSection?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }, 300);
+                  }}
+                />
               </TableCell>
               <TableCell className="sticky-col-name py-2.5 px-4 font-semibold text-sm text-card-foreground whitespace-nowrap truncate">
                 {participant.name}
