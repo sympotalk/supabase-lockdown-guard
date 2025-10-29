@@ -92,8 +92,16 @@ export default function RoomingTab() {
       
       console.log('[72-RULE.UI.BIND] Fetched rooming data:', data?.length || 0, 'records');
       
+      // [Phase 72–RM.BADGE.SYNC.RENUM] Sort by role priority and participant_no
+      const sortedData = (data || []).sort((a: any, b: any) => {
+        // Use participant_no from participants relation
+        const noA = a.participants?.participant_no || 9999;
+        const noB = b.participants?.participant_no || 9999;
+        return noA - noB;
+      });
+      
       // 빈 결과시 RPC로 백필 트리거
-      if (data && data.length === 0) {
+      if (sortedData.length === 0) {
         console.log('[72-RULE.UI.BIND] Empty result, triggering seed RPC');
         const { data: seedData, error: seedError } = await supabase.rpc(
           'seed_rooming_from_participants',
@@ -134,11 +142,19 @@ export default function RoomingTab() {
             .eq("event_id", eventId)
             .eq("is_active", true)
             .order("assigned_at", { ascending: false });
-          return reloadData || [];
+          
+          // [Phase 72–RM.BADGE.SYNC.RENUM] Sort reloaded data as well
+          const sortedReloadData = (reloadData || []).sort((a: any, b: any) => {
+            const noA = a.participants?.participant_no || 9999;
+            const noB = b.participants?.participant_no || 9999;
+            return noA - noB;
+          });
+          
+          return sortedReloadData;
         }
       }
       
-      return data || [];
+      return sortedData;
     },
     { 
       revalidateOnFocus: false, 
@@ -150,12 +166,13 @@ export default function RoomingTab() {
   );
 
   // [72-RULE.R2] Realtime subscription
+  // [Phase 72–RM.BADGE.SYNC.RENUM] Also listen to participants table for role/number changes
   useEffect(() => {
     if (!eventId) return;
 
     console.log('[72-RULE.UI.BIND] Setting up realtime channel for event:', eventId);
 
-    const channel = supabase
+    const roomingChannel = supabase
       .channel(`rooming_${eventId}`)
       .on(
         "postgres_changes",
@@ -169,8 +186,23 @@ export default function RoomingTab() {
         console.log('[72-RULE.UI.BIND] Realtime status:', status);
       });
 
+    // Also subscribe to participants table for role changes that affect rooming
+    const participantsChannel = supabase
+      .channel(`participants_rooming_${eventId}`)
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "participants", filter: `event_id=eq.${eventId}` },
+        (payload) => {
+          console.log("[Phase 72] Participant role/number updated, refreshing rooming:", payload);
+          mutate();
+        }
+      )
+      .subscribe();
+
     return () => {
-      supabase.removeChannel(channel);
+      console.log('[72-RULE.UI.BIND] Cleaning up realtime channels');
+      supabase.removeChannel(roomingChannel);
+      supabase.removeChannel(participantsChannel);
     };
   }, [eventId, mutate]);
 

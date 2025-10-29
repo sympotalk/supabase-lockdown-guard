@@ -1,5 +1,5 @@
 // [71-J.2-FINAL] Participants panel with grid + drawer layout
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { useUser } from "@/context/UserContext";
 import { Plus, Search, Download, Upload, CheckSquare } from "lucide-react";
@@ -128,6 +128,49 @@ export default function ParticipantsPanel({ onMutate }: ParticipantsPanelProps) 
     }
   );
 
+  // [Phase 72–RM.BADGE.SYNC.RENUM] Realtime subscription for badge and participant_no changes
+  useEffect(() => {
+    if (!eventId) return;
+
+    console.log("[Phase 72] Subscribing to participants realtime for event:", eventId);
+
+    const channel = supabase
+      .channel(`participants_${eventId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "participants",
+          filter: `event_id=eq.${eventId}`,
+        },
+        (payload) => {
+          console.log("[Phase 72] Realtime change detected:", payload);
+          
+          // Show toast for role changes from other users
+          if (payload.eventType === 'UPDATE' && payload.new && payload.old) {
+            const newRole = (payload.new as any).fixed_role;
+            const oldRole = (payload.old as any).fixed_role;
+            const newNo = (payload.new as any).participant_no;
+            const oldNo = (payload.old as any).participant_no;
+            
+            if (newRole !== oldRole || newNo !== oldNo) {
+              toast.info("구분이 변경되어 목록이 재정렬되었습니다", {
+                duration: 1200
+              });
+            }
+          }
+          
+          mutate();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      console.log("[Phase 72] Unsubscribing from participants realtime");
+      supabase.removeChannel(channel);
+    };
+  }, [eventId, mutate]);
 
   const handleExport = (mode: ExportMode = 'work') => {
     if (!participants || participants.length === 0) {
@@ -171,12 +214,25 @@ export default function ParticipantsPanel({ onMutate }: ParticipantsPanelProps) 
     }
   };
 
-  const filteredParticipants = participants?.filter(
-    (p) =>
-      !searchQuery ||
-      p.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      p.organization?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // [Phase 72–RM.BADGE.SYNC.RENUM] Filter and sort by role priority
+  const filteredParticipants = participants
+    ?.filter(
+      (p) =>
+        !searchQuery ||
+        p.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        p.organization?.toLowerCase().includes(searchQuery.toLowerCase())
+    )
+    .sort((a, b) => {
+      // Role priority: 좌장(0) > 연자(1) > 참석자(2) > others(3)
+      const roleOrder: Record<string, number> = { "좌장": 0, "연자": 1, "참석자": 2 };
+      const rankA = a.fixed_role ? (roleOrder[a.fixed_role] ?? 3) : 3;
+      const rankB = b.fixed_role ? (roleOrder[b.fixed_role] ?? 3) : 3;
+      
+      if (rankA !== rankB) return rankA - rankB;
+      
+      // If same role, sort alphabetically by name
+      return (a.name || "").localeCompare(b.name || "", "ko");
+    });
 
   if (isLoading) {
     return (

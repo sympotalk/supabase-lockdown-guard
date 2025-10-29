@@ -149,7 +149,8 @@ export function UploadParticipantsModal({
             team_name: normalized.team_name || '',
             manager_info: Object.keys(managerInfo).length > 0 ? managerInfo : null,
             sfe_account_code: normalized.sfe_account_code || null,
-            sfe_customer_code: normalized.sfe_customer_code || null
+            sfe_customer_code: normalized.sfe_customer_code || null,
+            fixed_role: '참석자' // [Phase 72–RM.BADGE.SYNC.RENUM] Default role for Excel uploads
           };
         }).filter(row => row.name); // Only keep rows with names
 
@@ -229,6 +230,7 @@ export function UploadParticipantsModal({
       };
 
       // [71-I.QA3-FIX.R7] Use event_id from response for precise cache invalidation
+      // [Phase 72–RM.BADGE.SYNC.RENUM] Trigger will auto-reorder, just refresh cache
       if (result?.event_id && agencyScope) {
         const cacheKey = `participants_${agencyScope}_${result.event_id}`;
         await mutate(cacheKey);
@@ -236,7 +238,7 @@ export function UploadParticipantsModal({
         
         toast({
           title: "업로드 완료",
-          description: `신규 ${result.new ?? 0}명, 갱신 ${result.updated ?? 0}명 반영되었습니다.`
+          description: `신규 ${result.new ?? 0}명, 갱신 ${result.updated ?? 0}명 반영되었습니다. (좌장/연자 우선 정렬 완료)`
         });
       } else {
         console.warn("[71-I.QA3-FIX.R7] event_id missing in response, fallback to activeEventId");

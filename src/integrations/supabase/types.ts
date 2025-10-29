@@ -6913,6 +6913,10 @@ export type Database = {
         Args: { p_event_id: string }
         Returns: Json
       }
+      reorder_participant_numbers: {
+        Args: { p_event: string }
+        Returns: undefined
+      }
       rpc_activate_account: { Args: { token: string }; Returns: Json }
       rpc_create_agency: {
         Args: {
