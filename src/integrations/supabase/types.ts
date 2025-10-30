@@ -6573,6 +6573,10 @@ export type Database = {
       }
     }
     Functions: {
+      ai_participant_import_from_excel: {
+        Args: { p_data: Json; p_event_id: string; p_replace?: boolean }
+        Returns: Json
+      }
       assign_master_role: { Args: { user_email: string }; Returns: Json }
       cleanup_old_cache: { Args: never; Returns: undefined }
       create_agency: {

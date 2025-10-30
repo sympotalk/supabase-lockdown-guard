@@ -38,6 +38,7 @@ export function UploadParticipantsModal({
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const [parsedRows, setParsedRows] = useState<any[]>([]);
+  const [replaceMode, setReplaceMode] = useState(false);
   const activeEventId = eventId ?? "";
 
   // [LOCKED][QA3.FIX.R3] Validate event context only when modal opens
@@ -55,70 +56,56 @@ export function UploadParticipantsModal({
     }
   }, [open, activeEventId, onOpenChange, toast]);
 
-  // [Phase 73-L.1] AI Column Mapping for 13-column recruitment format
+  // [Phase 73-L.2] AI Column Mapping for 13-column format (simplified)
   const normalizeColumns = (record: any): any => {
     const columnMap: Record<string, string> = {
       // Customer fields
-      "고객 성명": "name",
-      "고객성명": "name",
-      "성명": "name",
-      "이름": "name",
-      "name": "name",
-      "Name": "name",
-      "거래처명": "organization",
-      "소속": "organization",
-      "회사": "organization",
-      "company": "organization",
-      "organization": "organization",
-      "고객 연락처": "phone",
-      "고객연락처": "phone",
-      "연락처": "phone",
-      "전화번호": "phone",
-      "전화": "phone",
-      "phone": "phone",
-      "Phone": "phone",
-      "메모": "memo",
-      "memo": "memo",
+      "고객 성명": "고객 성명",
+      "고객성명": "고객 성명",
+      "성명": "고객 성명",
+      "이름": "고객 성명",
+      "거래처명": "거래처명",
+      "소속": "거래처명",
+      "회사": "거래처명",
+      "고객 연락처": "고객 연락처",
+      "고객연락처": "고객 연락처",
+      "연락처": "고객 연락처",
+      "전화번호": "고객 연락처",
+      "메모": "메모",
       
       // Manager fields
-      "팀명": "team_name",
-      "팀": "team_name",
-      "team": "team_name",
-      "담당자 성명": "manager_name",
-      "담당자성명": "manager_name",
-      "담당자": "manager_name",
-      "담당자명": "manager_name",
-      "담당자 연락처": "manager_phone",
-      "담당자연락처": "manager_phone",
-      "담당자전화": "manager_phone",
-      "담당자 사번": "manager_emp_id",
-      "담당자사번": "manager_emp_id",
-      "사번": "manager_emp_id",
+      "팀명": "팀명",
+      "팀": "팀명",
+      "담당자 성명": "담당자 성명",
+      "담당자성명": "담당자 성명",
+      "담당자": "담당자 성명",
+      "담당자 연락처": "담당자 연락처",
+      "담당자연락처": "담당자 연락처",
+      "담당자 사번": "담당자 사번",
+      "담당자사번": "담당자 사번",
+      "사번": "담당자 사번",
       
       // SFE codes
-      "SFE 거래처코드": "sfe_hospital_code",
-      "SFE거래처코드": "sfe_hospital_code",
-      "거래처코드": "sfe_hospital_code",
-      "거래처 코드": "sfe_hospital_code",
-      "SFE 고객코드": "sfe_customer_code",
-      "SFE고객코드": "sfe_customer_code",
-      "고객코드": "sfe_customer_code",
-      "고객 코드": "sfe_customer_code",
+      "SFE 거래처코드": "SFE 거래처코드",
+      "SFE거래처코드": "SFE 거래처코드",
+      "거래처코드": "SFE 거래처코드",
+      "SFE 고객코드": "SFE 고객코드",
+      "SFE고객코드": "SFE 고객코드",
+      "고객코드": "SFE 고객코드",
       
-      // Metadata
-      "행사명": "event_name",
-      "등록 일시": "registered_at",
-      "등록일시": "registered_at",
-      "삭제유무": "is_deleted",
-      "삭제": "is_deleted"
+      // Optional metadata
+      "행사명": "행사명",
+      "삭제유무": "삭제유무"
     };
 
     const normalized: any = {};
     
     Object.entries(record).forEach(([key, value]) => {
       const trimmedKey = key.trim();
-      const mappedKey = columnMap[trimmedKey] || trimmedKey;
-      normalized[mappedKey] = value;
+      const mappedKey = columnMap[trimmedKey];
+      if (mappedKey) {
+        normalized[mappedKey] = value;
+      }
     });
 
     return normalized;
@@ -149,61 +136,25 @@ export function UploadParticipantsModal({
           return;
         }
 
-        // [Phase 73-L.1] Apply AI column mapping for 13-column format
-        const rows = json.map((row: any) => {
-          const normalized = normalizeColumns(row);
-          
-          // Build manager_info JSON (always, even if partial)
-          const managerInfo: any = {};
-          if (normalized.team_name) managerInfo.team = normalized.team_name;
-          if (normalized.manager_name) managerInfo.name = normalized.manager_name;
-          if (normalized.manager_phone) managerInfo.phone = normalized.manager_phone;
-          if (normalized.manager_emp_id) managerInfo.emp_id = normalized.manager_emp_id;
-          
-          return {
-            // Core fields
-            name: normalized.name || '',
-            organization: normalized.organization || '',
-            phone: normalized.phone || '',
-            memo: normalized.memo || '',
-            
-            // Manager fields (individual + JSON)
-            team_name: normalized.team_name || null,
-            manager_name: normalized.manager_name || null,
-            manager_phone: normalized.manager_phone || null,
-            manager_info: Object.keys(managerInfo).length > 0 ? managerInfo : null,
-            manager_emp_id: normalized.manager_emp_id || null,
-            
-            // SFE codes (handle blank/dash)
-            sfe_hospital_code: (normalized.sfe_hospital_code && normalized.sfe_hospital_code !== '-') 
-              ? normalized.sfe_hospital_code 
-              : null,
-            sfe_customer_code: (normalized.sfe_customer_code && normalized.sfe_customer_code !== '-') 
-              ? normalized.sfe_customer_code 
-              : null,
-            
-            // Metadata
-            event_name: normalized.event_name || null,
-            registered_at: normalized.registered_at || null,
-            is_deleted: normalized.is_deleted || null
-          };
-        }).filter(row => row.name); // Only keep rows with names
+        // [Phase 73-L.2] Simplified mapping - only keep what RPC expects
+        const rows = json.map((row: any) => normalizeColumns(row))
+          .filter(row => row['고객 성명'] && row['고객 연락처']); // Only keep rows with name and phone
 
         if (rows.length === 0) {
-          console.warn("[Phase 73-L.1] No valid participant rows detected.");
+          console.warn("[Phase 73-L.2] No valid participant rows detected.");
           toast({
             title: "업로드 불가",
-            description: "'고객 성명' 컬럼이 비어 있습니다.",
+            description: "'고객 성명'과 '고객 연락처' 컬럼이 필수입니다.",
             variant: "destructive"
           });
           return;
         }
         setParsedRows(rows);
-        console.info(`[Phase 73-L.1] AI Mapped ${rows.length} participants from Excel`);
-        console.log("[Phase 73-L.1] Sample (first 5):", rows.slice(0, 5));
+        console.info(`[Phase 73-L.2] Parsed ${rows.length} participants from Excel`);
+        console.log("[Phase 73-L.2] Sample (first 3):", rows.slice(0, 3));
         toast({
           title: "파일 분석 완료",
-          description: `${rows.length}명의 참가자 데이터 확인됨 (미리보기 5명).`
+          description: `${rows.length}명의 참가자 데이터 확인됨.`
         });
       } catch (err) {
         console.error("[71-I.QA3] XLSX parse error →", err);
@@ -217,11 +168,10 @@ export function UploadParticipantsModal({
     reader.readAsArrayBuffer(uploadedFile);
   };
 
-  // [LOCKED][71-I.QA3-FIX.R2] Upload with guards and realtime refresh
+  // [Phase 73-L.2] Upload with Replace mode support
   const handleUpload = async () => {
-    // [QA3.FIX.R2] Upload guard
     if (!agencyScope || !activeEventId) {
-      console.warn("[QA3.FIX.R2] Missing scope →", {
+      console.warn("[Phase 73-L.2] Missing scope →", {
         agencyScope,
         eventId: activeEventId
       });
@@ -240,61 +190,62 @@ export function UploadParticipantsModal({
       });
       return;
     }
+    
     setUploading(true);
-    console.info("[71-I.QA3-FIX.R7] Uploading rows:", parsedRows.length, "to event:", activeEventId);
+    console.info("[Phase 73-L.2] Uploading rows:", parsedRows.length, "to event:", activeEventId, "Replace mode:", replaceMode);
+    
     try {
-      const {
-        data,
-        error
-      } = await supabase.rpc('fn_bulk_upload_participants', {
+      const { data, error } = await supabase.rpc('ai_participant_import_from_excel', {
         p_event_id: activeEventId,
-        p_rows: parsedRows
+        p_data: parsedRows,
+        p_replace: replaceMode
       });
+      
       if (error) {
-        console.error("[71-I.QA3-FIX.R7] RPC upload error →", error);
+        console.error("[Phase 73-L.2] RPC upload error →", error);
         throw error;
       }
-      console.log("[Phase 73-L.1] RPC response →", data);
+      
+      console.log("[Phase 73-L.2] RPC response →", data);
       const result = data as {
+        success: boolean;
         total: number;
-        new: number;
-        updated: number;
-        skipped: number;
+        deleted: number;
+        mode: string;
         event_id?: string;
         agency_id?: string;
         session_id?: string;
-        status: string;
       };
 
-      // [Phase 73-L.1] Use event_id from response for precise cache invalidation
-      if (result?.event_id && agencyScope) {
-        const cacheKey = `participants_${agencyScope}_${result.event_id}`;
+      // Invalidate cache
+      if (agencyScope) {
+        const cacheKey = `participants_${agencyScope}_${activeEventId}`;
         await mutate(cacheKey);
-        console.info("[Phase 73-L.1] SWR cache invalidated & refetched:", cacheKey);
-        
-        toast({
-          title: "업로드 완료",
-          description: `총 ${result.total ?? 0}건 처리 → 신규 ${result.new ?? 0}명 / 갱신 ${result.updated ?? 0}명 / 스킵 ${result.skipped ?? 0}건. 담당자정보·SFE코드 보정완료.`
-        });
-      } else {
-        console.warn("[Phase 73-L.1] event_id missing in response, fallback to activeEventId");
-        if (agencyScope) {
-          mutate(`participants_${agencyScope}_${activeEventId}`);
-        }
-        toast({
-          title: "업로드 완료",
-          description: `데이터는 저장되었지만 화면 반영에 실패했습니다. 새로고침 후 확인해주세요.`
-        });
+        console.info("[Phase 73-L.2] Cache invalidated:", cacheKey);
       }
       
       mutate('event_progress_view');
 
+      // Show appropriate toast based on mode
+      if (replaceMode) {
+        toast({
+          title: "전체 교체 완료",
+          description: `기존 참가자 ${result.deleted ?? 0}명을 삭제하고 새로 ${result.total ?? 0}명을 업로드했습니다.`
+        });
+      } else {
+        toast({
+          title: "업로드 완료",
+          description: `총 ${result.total ?? 0}명 처리 완료. 담당자정보·SFE코드 자동 매핑됨.`
+        });
+      }
+      
       // Reset state
       setFile(null);
       setParsedRows([]);
+      setReplaceMode(false);
       onOpenChange(false);
     } catch (error: any) {
-      console.error("[71-I.QA3-FIX.R4] Upload failed →", error);
+      console.error("[Phase 73-L.2] Upload failed →", error);
       toast({
         title: "업로드 실패",
         description: error.message ?? "알 수 없는 오류입니다.",
@@ -334,28 +285,56 @@ export function UploadParticipantsModal({
               </p>}
           </div>
 
+          {/* Mode Selection */}
+          <div className="space-y-2">
+            <Label>업로드 모드</Label>
+            <div className="flex gap-2">
+              <Button
+                type="button"
+                variant={!replaceMode ? "default" : "outline"}
+                className="flex-1"
+                onClick={() => setReplaceMode(false)}
+              >
+                기존 유지 (업데이트)
+              </Button>
+              <Button
+                type="button"
+                variant={replaceMode ? "default" : "outline"}
+                className="flex-1"
+                onClick={() => setReplaceMode(true)}
+              >
+                전체 교체 (Replace)
+              </Button>
+            </div>
+            {replaceMode && (
+              <p className="text-xs text-destructive">
+                ⚠️ 기존 참가자가 모두 삭제되고 새 데이터로 교체됩니다.
+              </p>
+            )}
+          </div>
+
           {/* Info */}
           <div className="flex gap-2 p-3 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-900">
             <AlertCircle className="h-5 w-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
             <div className="text-sm text-blue-800 dark:text-blue-300">
-              <p className="font-medium mb-1">[Phase 73-L.1] 모객 원본 13컬럼 인식</p>
+              <p className="font-medium mb-1">[Phase 73-L.2] 모객 원본 13컬럼 자동 인식</p>
               <ul className="list-disc list-inside space-y-0.5 text-xs">
-                <li>필수: 행사명, 고객 성명, 고객 연락처</li>
-                <li>자동 매핑: 팀명, 담당자 성명/연락처/사번, 거래처명, SFE 거래처코드, SFE 고객코드, 메모, 등록일시, 삭제유무</li>
-                <li>성인/소아/유아 등은 비워두세요 (시스템이 기본값 적용)</li>
-                <li>중복 기준: 행사 + 연락처. 기존 데이터는 업데이트됩니다</li>
+                <li>필수: 고객 성명, 고객 연락처</li>
+                <li>자동 매핑: 팀명, 담당자 성명/연락처/사번, 거래처명, SFE 거래처코드, SFE 고객코드, 메모</li>
+                <li>행사명/삭제유무 컬럼은 선택적으로 포함 가능 (없어도 무방)</li>
+                <li>중복 기준: 행사 + 연락처</li>
               </ul>
             </div>
           </div>
           
-          {/* Preview of parsed rows (first 5) */}
+          {/* Preview of parsed rows (first 3) */}
           {parsedRows.length > 0 && (
             <div className="space-y-2">
-              <p className="text-xs font-medium text-muted-foreground">미리보기 (처음 5명)</p>
+              <p className="text-xs font-medium text-muted-foreground">미리보기 (처음 3명)</p>
               <div className="max-h-32 overflow-y-auto text-xs bg-muted/30 rounded p-2 space-y-1 font-mono">
-                {parsedRows.slice(0, 5).map((row, idx) => (
+                {parsedRows.slice(0, 3).map((row, idx) => (
                   <div key={idx} className="text-xs">
-                    {idx + 1}. {row.name} | {row.organization || '-'} | {row.phone || '-'} | {row.manager_name || '-'} | SFE: {row.sfe_hospital_code || '-'}/{row.sfe_customer_code || '-'}
+                    {idx + 1}. {row['고객 성명']} | {row['거래처명'] || '-'} | {row['고객 연락처'] || '-'} | {row['담당자 성명'] || '-'} | SFE: {row['SFE 거래처코드'] || '-'}/{row['SFE 고객코드'] || '-'}
                   </div>
                 ))}
               </div>
