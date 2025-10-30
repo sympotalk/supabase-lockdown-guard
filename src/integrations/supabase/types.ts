@@ -3374,6 +3374,7 @@ export type Database = {
           participant_no: number | null
           phone: string | null
           recruitment_status: string | null
+          role_badge: string | null
           room_preference: string | null
           sfe_agency_code: string | null
           sfe_customer_code: string | null
@@ -3421,6 +3422,7 @@ export type Database = {
           participant_no?: number | null
           phone?: string | null
           recruitment_status?: string | null
+          role_badge?: string | null
           room_preference?: string | null
           sfe_agency_code?: string | null
           sfe_customer_code?: string | null
@@ -3468,6 +3470,7 @@ export type Database = {
           participant_no?: number | null
           phone?: string | null
           recruitment_status?: string | null
+          role_badge?: string | null
           room_preference?: string | null
           sfe_agency_code?: string | null
           sfe_customer_code?: string | null
