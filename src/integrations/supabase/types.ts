@@ -6621,10 +6621,6 @@ export type Database = {
         Args: { p_brand?: string; p_hotel: string }
         Returns: undefined
       }
-      fn_bulk_upload_participants: {
-        Args: { p_event_id: string; p_rows: Json }
-        Returns: Json
-      }
       fn_event_statistics: {
         Args: { p_agency_id: string }
         Returns: {
@@ -7140,6 +7136,10 @@ export type Database = {
             Returns: boolean
           }
       upsert_hotels_v1: { Args: { payload: Json }; Returns: number }
+      upsert_participants_from_excel: {
+        Args: { p_event: string; p_mode: string; p_rows: Json }
+        Returns: Json
+      }
     }
     Enums: {
       ai_agent_role: "insight" | "analysis" | "advisor" | "visual"
