@@ -194,14 +194,13 @@ export function UploadParticipantsModal({
     }
     
     setUploading(true);
-    console.info("[Phase 73-L.3] Uploading rows:", parsedRows.length, "to event:", activeEventId, "Mode:", replaceMode ? 'replace' : 'update');
+    console.info("[Phase 73-L.3] RPC call → ai_participant_import_from_excel", { mode: replaceMode ? 'replace' : 'update' });
     
     try {
-      // [Phase 73-L.3.RPC.HOTFIX] Call new RPC with explicit typing
-      const { data, error } = await (supabase.rpc as any)('upsert_participants_from_excel', {
-        p_event: activeEventId,
-        p_rows: parsedRows,
-        p_mode: replaceMode ? 'replace' : 'update'
+      const { data, error } = await supabase.rpc('ai_participant_import_from_excel', {
+        p_event_id: activeEventId,
+        p_data: parsedRows,
+        p_replace: replaceMode
       });
       
       if (error) {
@@ -211,11 +210,11 @@ export function UploadParticipantsModal({
       
       console.log("[Phase 73-L.3] RPC response →", data);
       const result = {
-        success: data?.success ?? true,
-        inserted: data?.total ?? data?.inserted ?? 0,
-        updated: data?.updated ?? 0,
-        skipped: data?.skipped ?? 0,
-        skipped_rows: data?.skipped_rows ?? []
+        success: (data as any)?.success ?? true,
+        inserted: (data as any)?.total ?? (data as any)?.inserted ?? 0,
+        updated: (data as any)?.updated ?? 0,
+        skipped: (data as any)?.skipped ?? 0,
+        skipped_rows: (data as any)?.skipped_rows ?? []
       };
 
       // Invalidate cache
