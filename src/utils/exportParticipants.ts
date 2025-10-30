@@ -24,6 +24,8 @@ interface Participant {
   deleted?: boolean;
   attendance_status?: string;
   room_type?: string;
+  call_status?: string;
+  call_memo?: string;
 }
 
 export type ExportMode = 'work' | 'archive';
@@ -48,8 +50,8 @@ export function sortParticipants(participants: Participant[]): Participant[] {
 }
 
 /**
- * [Phase 72–RM.EXPORT.SORT.UNIFY] Export participants to Excel with standardized structure
- * Columns: No., 구분, 성명, 소속, 연락처, 객실타입, 숙박현황, 성인/소아, 요청사항, 상태, 등록일
+ * [Phase 72–RM.TM.SYSTEM.FINAL] Export participants to Excel with standardized structure
+ * Columns: No., 구분, 성명, 소속, 연락처, TM상태, TM메모, 객실타입, 숙박현황, 성인/소아, 요청사항, 상태, 등록일
  */
 export function exportParticipantsToExcel(
   rows: Participant[], 
@@ -94,6 +96,8 @@ export function exportParticipantsToExcel(
       "성명": r.name || "",
       "소속": r.organization || "",
       "연락처": r.phone || "",
+      "TM상태": r.call_status || "대기중",
+      "TM메모": r.call_memo || "",
       "객실타입": r.room_type || "",
       "숙박현황": r.stay_status || r.lodging_status || "",
       "성인/소아": guestComposition,
