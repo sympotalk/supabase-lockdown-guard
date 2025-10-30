@@ -27,22 +27,20 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import "@/styles/participants.css";
 
-// [Phase 73-L.7.31-D] Complete participant interface with all DB fields
+// [Phase 73-L.7.31-G] Aligned participant interface with DB schema
 interface Participant {
   id: string;
   name: string;
   organization?: string;
   phone?: string;
   email?: string;
-  memo?: string;
-  request_note?: string; // [Phase 73-L.7.31-D] Missing field
+  request_note?: string;
   team_name?: string;
   manager_name?: string;
   manager_phone?: string;
   manager_info?: any;
-  sfe_agency_code?: string;
+  sfe_company_code?: string;
   sfe_customer_code?: string;
-  sfe_company_code?: string; // [Phase 73-L.7.31-D] Missing field
   fixed_role?: string;
   custom_role?: string;
   participant_no?: number;
@@ -812,8 +810,8 @@ export function DrawerPanel({ participants, onUpdate }: DrawerPanelProps) {
 
           {/* Requests (SmartBadges) - Already has Card wrapper */}
           <SmartBadges
-            currentMemo={localData?.memo || ""}
-            onMemoChange={(newMemo) => handleFieldChange("memo", newMemo)}
+            currentMemo={localData?.request_note || ""}
+            onMemoChange={(newMemo) => handleFieldChange("request_note", newMemo)}
           />
 
           {/* SFE Codes */}
@@ -825,17 +823,7 @@ export function DrawerPanel({ participants, onUpdate }: DrawerPanelProps) {
                   value={localData?.sfe_company_code || ""}
                   onChange={(e) => setLocalData({ ...localData, sfe_company_code: e.target.value })}
                   onBlur={(e) => handleFieldChange("sfe_company_code", e.target.value)}
-                  placeholder="예: CO001"
-                  className="h-8 text-sm font-mono"
-                />
-              </div>
-              <div className="space-y-1">
-                <Label className="text-xs">Agency Code</Label>
-                <Input
-                  value={localData?.sfe_agency_code || ""}
-                  onChange={(e) => setLocalData({ ...localData, sfe_agency_code: e.target.value })}
-                  onBlur={(e) => handleFieldChange("sfe_agency_code", e.target.value)}
-                  placeholder="예: AG001"
+                  placeholder=""
                   className="h-8 text-sm font-mono"
                 />
               </div>
@@ -845,7 +833,7 @@ export function DrawerPanel({ participants, onUpdate }: DrawerPanelProps) {
                   value={localData?.sfe_customer_code || ""}
                   onChange={(e) => setLocalData({ ...localData, sfe_customer_code: e.target.value })}
                   onBlur={(e) => handleFieldChange("sfe_customer_code", e.target.value)}
-                  placeholder="예: CU001"
+                  placeholder=""
                   className="h-8 text-sm font-mono"
                 />
               </div>

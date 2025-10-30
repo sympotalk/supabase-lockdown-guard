@@ -11,14 +11,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { SmartBadges } from "./SmartBadges";
 import { useUser } from "@/context/UserContext";
 
-// [71-J.7] Extended participant interface with child_ages array
+// [Phase 73-L.7.31-G] Aligned participant interface with DB schema
 interface Participant {
   id: string;
   name: string;
   organization?: string;
   phone?: string;
   email?: string;
-  memo?: string;
+  request_note?: string;
   team_name?: string;
   manager_name?: string;
   manager_phone?: string;
@@ -27,7 +27,7 @@ interface Participant {
     manager_name?: string;
     phone?: string;
   };
-  sfe_agency_code?: string;
+  sfe_company_code?: string;
   sfe_customer_code?: string;
   status?: string;
   classification?: string;
@@ -108,13 +108,13 @@ export function ParticipantRightPanel({
         const fieldKey = Object.keys(patch)[0];
         if (fieldKey === "stay_status" || fieldKey === "lodging_status") {
           toast.success("숙박 여부가 변경되었습니다.");
-        } else if (fieldKey === "memo") {
+        } else if (fieldKey === "request_note") {
           toast.success("요청사항이 저장되었습니다.");
         } else if (fieldKey === "companion" || fieldKey === "companion_memo") {
           toast.success("동반자 정보가 반영되었습니다.");
         } else if (fieldKey === "manager_info") {
           toast.success("담당자 정보가 저장되었습니다.");
-        } else if (fieldKey === "sfe_agency_code" || fieldKey === "sfe_customer_code") {
+        } else if (fieldKey === "sfe_company_code" || fieldKey === "sfe_customer_code") {
           toast.success("SFE 코드가 업데이트되었습니다.");
         } else if (fieldKey === "adult_count" || fieldKey === "child_ages") {
           toast.success("참가자 동반 정보가 저장되었습니다.");
@@ -225,20 +225,20 @@ export function ParticipantRightPanel({
             </CardContent>
           </Card>
 
-          {/* Memo */}
+          {/* Request Note */}
           <Card className="mt-2">
             <CardHeader className="px-3 pt-3 pb-1">
-              <CardTitle className="text-sm font-semibold mb-0">메모</CardTitle>
+              <CardTitle className="text-sm font-semibold mb-0">요청사항</CardTitle>
             </CardHeader>
             <CardContent className="px-3 pt-1 pb-3">
               <Textarea
-                placeholder="메모 입력..."
-                value={localData?.memo || ""}
+                placeholder="요청사항 입력..."
+                value={localData?.request_note || ""}
                 onChange={(e) => {
                   if (!localData) return;
-                  setLocalData({ ...localData, memo: e.target.value });
+                  setLocalData({ ...localData, request_note: e.target.value });
                 }}
-                onBlur={(e) => handleFieldChange("memo", e.target.value)}
+                onBlur={(e) => handleFieldChange("request_note", e.target.value)}
                 className="min-h-[80px] resize-none text-sm"
               />
             </CardContent>
@@ -246,8 +246,8 @@ export function ParticipantRightPanel({
 
           {/* SmartBadges */}
           <SmartBadges
-            currentMemo={localData?.memo || ""}
-            onMemoChange={(newMemo) => handleFieldChange("memo", newMemo)}
+            currentMemo={localData?.request_note || ""}
+            onMemoChange={(newMemo) => handleFieldChange("request_note", newMemo)}
           />
 
           {/* Lodging Status */}
@@ -453,20 +453,20 @@ export function ParticipantRightPanel({
             </CardHeader>
             <CardContent className="space-y-2 px-3 pt-1 pb-3">
               <div className="space-y-1">
-                <Label className="text-xs">거래처 코드</Label>
+                <Label className="text-xs">Company Code (거래처코드)</Label>
                 <Input
-                  value={localData?.sfe_agency_code || ""}
+                  value={localData?.sfe_company_code || ""}
                   onChange={(e) => {
                     if (!localData) return;
-                    setLocalData({ ...localData, sfe_agency_code: e.target.value });
+                    setLocalData({ ...localData, sfe_company_code: e.target.value });
                   }}
-                  onBlur={(e) => handleFieldChange("sfe_agency_code", e.target.value)}
-                  placeholder={!localData?.sfe_agency_code ? "없음" : "예: AGN-001"}
-                  className={`h-8 text-sm font-mono ${!localData?.sfe_agency_code ? 'italic text-muted-foreground' : ''}`}
+                  onBlur={(e) => handleFieldChange("sfe_company_code", e.target.value)}
+                  placeholder={!localData?.sfe_company_code ? "없음" : ""}
+                  className={`h-8 text-sm font-mono ${!localData?.sfe_company_code ? 'italic text-muted-foreground' : ''}`}
                 />
               </div>
               <div className="space-y-1">
-                <Label className="text-xs">고객 코드</Label>
+                <Label className="text-xs">Customer Code (고객코드)</Label>
                 <Input
                   value={localData?.sfe_customer_code || ""}
                   onChange={(e) => {
@@ -474,7 +474,7 @@ export function ParticipantRightPanel({
                     setLocalData({ ...localData, sfe_customer_code: e.target.value });
                   }}
                   onBlur={(e) => handleFieldChange("sfe_customer_code", e.target.value)}
-                  placeholder={!localData?.sfe_customer_code ? "없음" : "예: CUS-001"}
+                  placeholder={!localData?.sfe_customer_code ? "없음" : ""}
                   className={`h-8 text-sm font-mono ${!localData?.sfe_customer_code ? 'italic text-muted-foreground' : ''}`}
                 />
               </div>

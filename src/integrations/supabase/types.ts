@@ -3416,16 +3416,16 @@ export type Database = {
           last_modified_by: string | null
           lodging_status: string | null
           manager_info: Json | null
-          memo: string | null
           message_sent: string | null
           name: string
           organization: string | null
           participant_no: number | null
           phone: string | null
           recruitment_status: string | null
+          request_note: string | null
           role_badge: string
           room_preference: string | null
-          sfe_agency_code: string | null
+          sfe_company_code: string | null
           sfe_customer_code: string | null
           status: string | null
           stay_plan: string | null
@@ -3464,16 +3464,16 @@ export type Database = {
           last_modified_by?: string | null
           lodging_status?: string | null
           manager_info?: Json | null
-          memo?: string | null
           message_sent?: string | null
           name: string
           organization?: string | null
           participant_no?: number | null
           phone?: string | null
           recruitment_status?: string | null
+          request_note?: string | null
           role_badge?: string
           room_preference?: string | null
-          sfe_agency_code?: string | null
+          sfe_company_code?: string | null
           sfe_customer_code?: string | null
           status?: string | null
           stay_plan?: string | null
@@ -3512,16 +3512,16 @@ export type Database = {
           last_modified_by?: string | null
           lodging_status?: string | null
           manager_info?: Json | null
-          memo?: string | null
           message_sent?: string | null
           name?: string
           organization?: string | null
           participant_no?: number | null
           phone?: string | null
           recruitment_status?: string | null
+          request_note?: string | null
           role_badge?: string
           room_preference?: string | null
-          sfe_agency_code?: string | null
+          sfe_company_code?: string | null
           sfe_customer_code?: string | null
           status?: string | null
           stay_plan?: string | null
