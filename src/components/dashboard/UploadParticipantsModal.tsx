@@ -56,9 +56,18 @@ export function UploadParticipantsModal({
     }
   }, [open, activeEventId, onOpenChange, toast]);
 
-  // [Phase 73-L.7.6] Standard English key normalization
+  // [Phase 73-L.7.31-E] Excel mapping with memo, SFE codes, manager_info
   const normalizeColumns = (record: any): any => {
     const result: any = {};
+
+    // Ignore agency-related columns
+    const columnNames = Object.keys(record);
+    const hasAgencyColumn = columnNames.some(col => 
+      col.includes('에이전시') || col.toLowerCase().includes('agency')
+    );
+    if (hasAgencyColumn) {
+      console.info('[73-L.7.31-E] Agency-related columns detected and will be ignored');
+    }
 
     // name: 고객 성명
     result.name = record['고객 성명'] || record['고객성명'] || record['성명'] || 
@@ -87,13 +96,32 @@ export function UploadParticipantsModal({
     // address: 주소
     result.address = record['주소'] || record.address || null;
 
-    // manager_name: 담당자 성명
-    result.manager_name = record['담당자 성명'] || record['담당자성명'] || 
-                         record['담당자'] || record.manager_name || null;
+    // [Phase 73-L.7.31-E] request_note: 메모/요청사항
+    result.request_note = record['메모'] || record['요청사항'] || 
+                         record.request_note || record.memo || null;
 
-    // manager_phone: 담당자 연락처
-    result.manager_phone = record['담당자 연락처'] || record['담당자연락처'] || 
-                          record.manager_phone || null;
+    // [Phase 73-L.7.31-E] SFE codes
+    result.sfe_company_code = record['SFE 거래처코드'] || record['SFE거래처코드'] || 
+                             record.sfe_company_code || record.sfe_hospital_code || null;
+    result.sfe_customer_code = record['SFE 고객코드'] || record['SFE고객코드'] || 
+                              record.sfe_customer_code || null;
+
+    // [Phase 73-L.7.31-E] manager_info JSON structure
+    const managerTeam = record['담당자 팀명'] || record['담당자팀명'] || record['팀명'] || 
+                       record.manager_team || null;
+    const managerName = record['담당자 성명'] || record['담당자성명'] || 
+                       record['담당자'] || record.manager_name || null;
+    const managerPhone = record['담당자 연락처'] || record['담당자연락처'] || 
+                        record.manager_phone || null;
+    const managerEmpId = record['담당자 사번'] || record['담당자사번'] || 
+                        record.manager_emp_id || record.emp_id || null;
+
+    result.manager_info = {
+      team: managerTeam || '',
+      name: managerName || '',
+      phone: managerPhone || '',
+      emp_id: managerEmpId || ''
+    };
 
     // manager_email: 담당자 이메일
     result.manager_email = record['담당자 이메일'] || record.manager_email || null;
@@ -192,7 +220,7 @@ export function UploadParticipantsModal({
       return;
     }
     
-    // [Phase 73-L.7.20] Final validation with role_badge default
+    // [Phase 73-L.7.31-E] Final validation with all fields including manager_info
     const payload = parsedRows.map(row => ({
       name: String(row.name || '').trim(),
       phone: String(row.phone || '').trim(),
@@ -201,8 +229,10 @@ export function UploadParticipantsModal({
       position: row.position || null,
       department: row.department || null,
       address: row.address || null,
-      manager_name: row.manager_name || null,
-      manager_phone: row.manager_phone || null,
+      request_note: row.request_note || '',
+      sfe_company_code: row.sfe_company_code || '',
+      sfe_customer_code: row.sfe_customer_code || '',
+      manager_info: row.manager_info || { team: '', name: '', phone: '', emp_id: '' },
       manager_email: row.manager_email || null,
       role_badge: row.role_badge || '참석자'  // ✅ 기본값 강제
     })).filter(row => row.name && row.phone);
@@ -271,12 +301,12 @@ export function UploadParticipantsModal({
       if (replaceMode) {
         toast({
           title: "전체 교체 완료",
-          description: `${inserted}명 신규 등록 (skipped: ${skipped})`
+          description: `${inserted}명 신규 등록 (skipped: ${skipped}) / 요청사항·SFE·담당자정보 반영됨`
         });
       } else {
         toast({
           title: "업로드 완료",
-          description: `신규: ${inserted}명 / 업데이트: ${updated}명 / 실패: ${skipped}명`
+          description: `신규: ${inserted}명 / 업데이트: ${updated}명 / 실패: ${skipped}명 / 요청사항·SFE·담당자정보 반영됨`
         });
       }
       
@@ -358,11 +388,13 @@ export function UploadParticipantsModal({
           <div className="flex gap-2 p-3 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-900">
             <AlertCircle className="h-5 w-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
             <div className="text-sm text-blue-800 dark:text-blue-300">
-              <p className="font-medium mb-1">[73-L.7.6] 한글/영문 자동 인식</p>
+              <p className="font-medium mb-1">[73-L.7.31-E] 한글/영문 자동 인식</p>
               <ul className="list-disc list-inside space-y-0.5 text-xs">
                 <li>필수: 고객 성명/name, 고객 연락처/phone</li>
-                <li>자동 인식: 거래처명/organization, 이메일/email, 직급/position, 부서/department</li>
-                <li>담당자: 담당자 성명/manager_name, 담당자 연락처/manager_phone, 담당자 이메일/manager_email</li>
+                <li>자동 인식: 거래처명, 이메일, 직급, 부서</li>
+                <li>메모: 메모/요청사항 → request_note</li>
+                <li>SFE: SFE 거래처코드, SFE 고객코드</li>
+                <li>담당자: 팀명, 성명, 연락처, 사번 → manager_info JSON</li>
                 <li>중복 기준: 행사 + 성명 + 연락처 (업데이트 모드)</li>
                 <li>Replace 모드: 기존 참가자 완전 삭제 후 신규 등록</li>
               </ul>
@@ -379,7 +411,11 @@ export function UploadParticipantsModal({
                     {idx + 1}. {row.name} | {row.organization || '-'} | {row.phone || '-'}
                     <br />
                     <span className="text-muted-foreground ml-4">
-                      담당: {row.manager_name || '-'} ({row.manager_phone || '-'})
+                      요청: {row.request_note || '-'} | SFE: {row.sfe_company_code || '-'}/{row.sfe_customer_code || '-'}
+                    </span>
+                    <br />
+                    <span className="text-muted-foreground ml-4">
+                      담당: {row.manager_info?.name || '-'} ({row.manager_info?.team || '-'})
                     </span>
                   </div>
                 ))}
