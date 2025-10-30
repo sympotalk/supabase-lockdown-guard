@@ -197,11 +197,11 @@ export function DrawerPanel({ participants, onUpdate }: DrawerPanelProps) {
       return;
     }
 
-    // Log activity
+    // [Phase 73-L.7.21] Log activity with valid type
     await supabase.from("activity_logs").insert({
       agency_id: localData.agency_id,
       event_id: localData.event_id,
-      type: "tm.status_update",
+      type: "upload",
       title: "TM 상태 변경",
       description: `${localData.name}: ${oldStatus} → ${newStatus}`,
       created_by: user?.id
@@ -376,11 +376,11 @@ export function DrawerPanel({ participants, onUpdate }: DrawerPanelProps) {
                             console.error("[72-RM.BADGE.PANEL] Error updating fixed_role:", error);
                             toast.error("저장에 실패했습니다. 다시 시도해주세요.");
                           } else {
-                            // [Phase 73-L.7.20] Log activity with valid type
+                            // [Phase 73-L.7.21] Log activity with valid type
                             await supabase.from("activity_logs").insert({
                               title: "구분 변경",
                               description: newRole ? `구분이 '${newRole}'(으)로 변경되었습니다.` : "구분 선택이 해제되었습니다.",
-                              type: "update",
+                              type: "upload",
                               created_by: user?.id,
                               agency_id: localData.agency_id,
                               event_id: localData.event_id
@@ -434,11 +434,11 @@ export function DrawerPanel({ participants, onUpdate }: DrawerPanelProps) {
                           console.error("[72-RM.BADGE.PANEL] Error updating custom_role:", error);
                           toast.error("저장에 실패했습니다. 다시 시도해주세요.");
                         } else {
-                          // Log activity
+                          // [Phase 73-L.7.21] Log activity with valid type
                           await supabase.from("activity_logs").insert({
                             title: "추가 뱃지 변경",
                             description: trimmed ? `추가 뱃지 '${trimmed}'가 저장되었습니다.` : "추가 뱃지가 삭제되었습니다.",
-                            type: "role.update_custom",
+                            type: "upload",
                             created_by: user?.id,
                             agency_id: localData.agency_id,
                             event_id: localData.event_id
