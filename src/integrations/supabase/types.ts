@@ -1517,6 +1517,55 @@ export type Database = {
           },
         ]
       }
+      event_rooms: {
+        Row: {
+          created_at: string | null
+          event_id: string | null
+          id: string
+          is_active: boolean | null
+          room_name: string | null
+          room_type: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          event_id?: string | null
+          id?: string
+          is_active?: boolean | null
+          room_name?: string | null
+          room_type?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          event_id?: string | null
+          id?: string
+          is_active?: boolean | null
+          room_name?: string | null
+          room_type?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_rooms_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "event_progress_view"
+            referencedColumns: ["event_id"]
+          },
+          {
+            foreignKeyName: "event_rooms_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_rooms_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "v_event_room_summary"
+            referencedColumns: ["event_id"]
+          },
+        ]
+      }
       events: {
         Row: {
           agency_id: string | null
@@ -7139,10 +7188,6 @@ export type Database = {
             Returns: boolean
           }
       upsert_hotels_v1: { Args: { payload: Json }; Returns: number }
-      upsert_participants_from_excel: {
-        Args: { p_event: string; p_mode: string; p_rows: Json }
-        Returns: Json
-      }
     }
     Enums: {
       ai_agent_role: "insight" | "analysis" | "advisor" | "visual"
