@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useParticipantsPanel } from "@/state/participantsPanel";
 import { cn } from "@/lib/utils";
+import { useState, useEffect } from "react";
 
 interface Participant {
   id: string;
@@ -97,6 +98,19 @@ function RoleBadgeCell({ participant, onClick }: { participant: Participant; onC
 
 export function DataTable({ participants, selectedIds, onSelectChange }: DataTableProps) {
   const { open } = useParticipantsPanel();
+  const [displayData, setDisplayData] = useState<Participant[]>([]);
+
+  // [Phase 73-L.7.15] Dynamic index re-sync: sort by name (Korean) and recalculate index
+  useEffect(() => {
+    if (participants?.length > 0) {
+      const sorted = [...participants].sort((a, b) =>
+        a.name.localeCompare(b.name, 'ko-KR')
+      );
+      setDisplayData(sorted);
+    } else {
+      setDisplayData([]);
+    }
+  }, [participants]);
 
   const toggleSelectAll = () => {
     if (selectedIds.length === participants.length) {
@@ -168,7 +182,7 @@ export function DataTable({ participants, selectedIds, onSelectChange }: DataTab
           </TableRow>
         </TableHeader>
         <TableBody className="bg-card transition-colors duration-150">
-          {participants.map((participant, index) => (
+          {displayData.map((participant, index) => (
             <TableRow
               key={participant.id}
               className="participant-row transition-all duration-150 cursor-pointer last:rounded-b-2xl border-b border-border hover:bg-accent"
@@ -187,7 +201,7 @@ export function DataTable({ participants, selectedIds, onSelectChange }: DataTab
                 />
               </TableCell>
               <TableCell className="py-2.5 px-4 text-center text-sm text-muted-foreground">
-                {participant.participant_no || index + 1}
+                {index + 1}
               </TableCell>
               <TableCell className="py-2.5 px-4">
                 <RoleBadgeCell 
