@@ -26,7 +26,8 @@ interface CreateParticipantModalProps {
   onSuccess?: (newParticipantId?: string) => void;
 }
 
-const roleBadgeOptions = ["참석자", "좌장", "연자", "패널", "스폰서"];
+// [Phase 73-L.7.31-B] Simplified to 3 role types only
+const roleBadgeOptions = ["참석자", "좌장", "연자"];
 
 export function CreateParticipantModal({
   open,

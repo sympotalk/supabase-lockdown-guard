@@ -98,6 +98,20 @@ export function UploadParticipantsModal({
     // manager_email: 담당자 이메일
     result.manager_email = record['담당자 이메일'] || record.manager_email || null;
 
+    // [Phase 73-L.7.31-B] role_badge: normalize to standard 3-type system
+    const rawRole = record['구분'] || record['역할'] || record.role_badge || 
+                   record.role || record.type || '';
+    
+    // Convert legacy values to '참석자'
+    const legacyValues = ['참가자', '패널', '스폰서', 'Participant', 'Panel', 'Sponsor'];
+    if (legacyValues.includes(rawRole.trim())) {
+      result.role_badge = '참석자';
+    } else if (['참석자', '좌장', '연자'].includes(rawRole.trim())) {
+      result.role_badge = rawRole.trim();
+    } else {
+      result.role_badge = '참석자'; // Default
+    }
+
     return result;
   };
 
