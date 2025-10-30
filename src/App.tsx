@@ -103,9 +103,9 @@ const App = () => (
 
             {/* [LOCKED] Agency view route - accessible by master for viewing agency details */}
             <Route
-              path="/agency/:id"
+              path="/master/agency/:id"
               element={
-                <ProtectedRoute allowedRoles={["master"]}>
+                <ProtectedRoute requiredRole="master">
                   <AgencyView />
                 </ProtectedRoute>
               }

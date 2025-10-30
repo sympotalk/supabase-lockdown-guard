@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Dialog,
   DialogContent,
@@ -32,6 +33,7 @@ export function AgencyModal({
   agency = null,
   onSuccess,
 }: AgencyModalProps) {
+  const navigate = useNavigate();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -40,7 +42,7 @@ export function AgencyModal({
   useEffect(() => {
     if (open && editMode && agency) {
       setName(agency.name);
-      setEmail(agency.contact_email);
+      setEmail(agency.contact_email || "");
     } else if (open && !editMode) {
       setName("");
       setEmail("");
@@ -56,57 +58,73 @@ export function AgencyModal({
   }, [open]);
 
   const handleSubmit = async () => {
-    if (!name.trim() || !email.trim()) {
+    if (!name.trim()) {
       toast({
         title: "입력 오류",
-        description: "에이전시명과 대표 이메일을 입력해주세요.",
+        description: "에이전시명을 입력해주세요.",
         variant: "destructive",
       });
       return;
     }
 
-    // Basic email validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      toast({
-        title: "입력 오류",
-        description: "올바른 이메일 형식을 입력해주세요.",
-        variant: "destructive",
-      });
-      return;
+    // Email validation only in edit mode
+    if (editMode && email && email.trim()) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        toast({
+          title: "입력 오류",
+          description: "올바른 이메일 형식을 입력해주세요.",
+          variant: "destructive",
+        });
+        return;
+      }
     }
 
     setIsLoading(true);
 
     try {
-      console.log("[AgencyModal] Submitting:", {
-        action: editMode ? "update" : "create",
-        name,
-        email,
-        agencyId: agency?.id,
-      });
+      if (editMode && agency?.id) {
+        // Update existing agency
+        const { error } = await supabase
+          .from("agencies")
+          .update({
+            name: name.trim(),
+            contact_email: email.trim() || null,
+          })
+          .eq("id", agency.id);
 
-      const { data, error } = await supabase.rpc("fn_manage_agency", {
-        p_action: editMode ? "update" : "create",
-        p_agency_id: agency?.id || null,
-        p_name: name,
-        p_email: email,
-      });
+        if (error) throw error;
 
-      if (error) {
-        console.error("[AgencyModal] RPC error:", error);
-        throw error;
+        toast({
+          title: "수정 완료",
+          description: `${name}이(가) 수정되었습니다.`,
+        });
+
+        onOpenChange(false);
+        onSuccess();
+      } else {
+        // Create new agency
+        const { data, error } = await supabase
+          .from("agencies")
+          .insert([{ name: name.trim() }])
+          .select()
+          .single();
+
+        if (error) throw error;
+
+        toast({
+          title: "등록 완료",
+          description: `${name}이(가) 등록되었습니다.`,
+        });
+
+        onOpenChange(false);
+        onSuccess();
+
+        // Navigate to the new agency detail page
+        if (data?.id) {
+          navigate(`/master/agency/${data.id}`);
+        }
       }
-
-      console.log("[AgencyModal] Success:", data);
-
-      toast({
-        title: editMode ? "수정 완료" : "등록 완료",
-        description: `${name}이(가) ${editMode ? "수정" : "등록"}되었습니다.`,
-      });
-
-      onOpenChange(false);
-      onSuccess();
     } catch (error: any) {
       console.error("[AgencyModal] Failed:", error);
       toast({
@@ -139,25 +157,25 @@ export function AgencyModal({
             </Label>
             <Input
               id="agency-name"
-              placeholder="절호의기획"
+              placeholder="예: 절호의기획"
               value={name}
               onChange={(e) => setName(e.target.value)}
               disabled={isLoading}
             />
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="agency-email">
-              대표 이메일 <span className="text-destructive">*</span>
-            </Label>
-            <Input
-              id="agency-email"
-              type="email"
-              placeholder="contact@sympohub.io"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              disabled={isLoading}
-            />
-          </div>
+          {editMode && (
+            <div className="space-y-2">
+              <Label htmlFor="agency-email">대표 이메일 (선택)</Label>
+              <Input
+                id="agency-email"
+                type="email"
+                placeholder="contact@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                disabled={isLoading}
+              />
+            </div>
+          )}
         </div>
         <DialogFooter>
           <Button

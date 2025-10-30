@@ -190,11 +190,7 @@ export default function MasterAgencies() {
                       });
                       return;
                     }
-                    if (process.env.NODE_ENV !== "production") {
-                      console.log("[Agencies] Setting agency context:", agency.id);
-                    }
-                    setAgencyScope(agency.id);
-                    navigate("/admin/dashboard");
+                    navigate(`/master/agency/${agency.id}`);
                   }}
                 >
                   <TableCell className="font-medium text-[13px]">

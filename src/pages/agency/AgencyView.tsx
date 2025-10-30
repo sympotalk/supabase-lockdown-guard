@@ -5,17 +5,29 @@ import { useUser } from "@/context/UserContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Spinner } from "@/components/pd/Spinner";
-import { ArrowLeft, Building2, Mail, Calendar, Shield } from "lucide-react";
+import { ArrowLeft, Building2, Mail, Calendar, Shield, UserPlus, Copy } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { InviteModal } from "@/components/accounts/InviteModal";
+import { format } from "date-fns";
 
 interface Agency {
   id: string;
   name: string;
-  contact_email: string;
+  contact_email: string | null;
   is_active: boolean;
   created_at: string;
   created_by: string | null;
+}
+
+interface InviteRecord {
+  id: string;
+  email: string;
+  invite_token: string;
+  expires_at: string;
+  is_used: boolean;
+  created_at: string;
 }
 
 export default function AgencyView() {
@@ -23,10 +35,13 @@ export default function AgencyView() {
   const navigate = useNavigate();
   const { setAgencyScope } = useUser();
   const [agency, setAgency] = useState<Agency | null>(null);
+  const [invites, setInvites] = useState<InviteRecord[]>([]);
   const [loading, setLoading] = useState(true);
+  const [inviteModalOpen, setInviteModalOpen] = useState(false);
 
   useEffect(() => {
     loadAgency();
+    loadInvites();
   }, [id]);
 
   // [3.14-MA.RESTORE.R2] Update document title with agency name
@@ -65,6 +80,32 @@ export default function AgencyView() {
     }
   };
 
+  const loadInvites = async () => {
+    if (!id) return;
+
+    try {
+      const { data, error } = await supabase
+        .from("account_provisioning")
+        .select("id, email, invite_token, expires_at, is_used, created_at")
+        .eq("agency_id", id)
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      setInvites(data || []);
+    } catch (error: any) {
+      console.error("[AgencyView] Error loading invites:", error);
+    }
+  };
+
+  const copyInviteLink = (token: string) => {
+    const inviteUrl = `${window.location.origin}/invite?token=${token}`;
+    navigator.clipboard.writeText(inviteUrl);
+    toast({
+      title: "복사 완료",
+      description: "초대 링크가 클립보드에 복사되었습니다.",
+    });
+  };
+
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
@@ -100,9 +141,15 @@ export default function AgencyView() {
               <p className="text-sm text-muted-foreground mt-1">에이전시 상세 정보</p>
             </div>
           </div>
-          <Badge variant={agency.is_active ? "default" : "secondary"} className="text-sm">
-            {agency.is_active ? "활성" : "비활성"}
-          </Badge>
+          <div className="flex items-center gap-3">
+            <Badge variant={agency.is_active ? "default" : "secondary"} className="text-sm">
+              {agency.is_active ? "활성" : "비활성"}
+            </Badge>
+            <Button onClick={() => setInviteModalOpen(true)} className="gap-2">
+              <UserPlus className="h-4 w-4" />
+              사용자 초대
+            </Button>
+          </div>
         </div>
 
         {/* Agency Information Cards */}
@@ -126,7 +173,7 @@ export default function AgencyView() {
                   <Mail className="h-4 w-4" />
                   대표 이메일
                 </p>
-                <p className="text-base text-foreground mt-1">{agency.contact_email}</p>
+                <p className="text-base text-foreground mt-1">{agency.contact_email || "-"}</p>
               </div>
             </CardContent>
           </Card>
@@ -197,7 +244,93 @@ export default function AgencyView() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Invite History */}
+        <Card>
+          <CardHeader>
+            <CardTitle>초대 이력</CardTitle>
+            <CardDescription>생성된 초대 링크 목록</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {invites.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                초대 이력이 없습니다
+              </div>
+            ) : (
+              <div className="overflow-hidden rounded-lg border border-border">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-muted hover:bg-muted">
+                      <TableHead className="font-semibold">이메일</TableHead>
+                      <TableHead className="font-semibold">생성일</TableHead>
+                      <TableHead className="font-semibold">만료일</TableHead>
+                      <TableHead className="font-semibold">상태</TableHead>
+                      <TableHead className="font-semibold text-right">작업</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {invites.map((invite) => {
+                      const isExpired = new Date(invite.expires_at) < new Date();
+                      const status = invite.is_used
+                        ? "used"
+                        : isExpired
+                        ? "expired"
+                        : "active";
+
+                      return (
+                        <TableRow key={invite.id} className="hover:bg-muted/50">
+                          <TableCell className="font-medium">{invite.email}</TableCell>
+                          <TableCell className="text-muted-foreground">
+                            {format(new Date(invite.created_at), "yyyy-MM-dd HH:mm")}
+                          </TableCell>
+                          <TableCell className="text-muted-foreground">
+                            {format(new Date(invite.expires_at), "yyyy-MM-dd HH:mm")}
+                          </TableCell>
+                          <TableCell>
+                            {status === "active" && (
+                              <Badge variant="default">대기</Badge>
+                            )}
+                            {status === "used" && (
+                              <Badge variant="secondary">사용됨</Badge>
+                            )}
+                            {status === "expired" && (
+                              <Badge variant="destructive">만료</Badge>
+                            )}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => copyInviteLink(invite.invite_token)}
+                              disabled={invite.is_used || isExpired}
+                            >
+                              <Copy className="h-4 w-4" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
+
+      <InviteModal
+        open={inviteModalOpen}
+        onOpenChange={setInviteModalOpen}
+        agencyId={agency.id}
+        isMaster={false}
+        onSuccess={() => {
+          loadInvites();
+          toast({
+            title: "초대 완료",
+            description: "초대 링크가 생성되었습니다.",
+          });
+        }}
+      />
     </div>
   );
 }
