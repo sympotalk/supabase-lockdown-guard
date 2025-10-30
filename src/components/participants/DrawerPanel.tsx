@@ -39,6 +39,10 @@ interface Participant {
   companion_memo?: string;
   adult_count?: number;
   child_ages?: string[];
+  call_status?: string;
+  call_updated_at?: string;
+  call_actor?: string;
+  call_memo?: string;
 }
 
 function debounce<T extends (...args: any[]) => any>(fn: T, delay: number): (...args: Parameters<T>) => void {
@@ -115,6 +119,105 @@ export function DrawerPanel({ participants, onUpdate }: DrawerPanelProps) {
     if (!localData) return;
     setLocalData({ ...localData, [field]: value });
     saveField({ [field]: value });
+  };
+
+  // [Phase 72–RM.TM.STATUS.UNIFY] Handle call status change
+  const handleCallStatusChange = async (newStatus: string) => {
+    if (!localData) return;
+
+    const oldStatus = localData.call_status || '대기중';
+
+    const { error } = await supabase
+      .from("participants")
+      .update({ 
+        call_status: newStatus,
+        call_updated_at: new Date().toISOString(),
+        call_actor: user?.id
+      })
+      .eq("id", localData.id);
+
+    if (error) {
+      console.error("[DrawerPanel] Call status update error:", error);
+      toast.error("상태 변경에 실패했습니다");
+      return;
+    }
+
+    // Log activity
+    await supabase.from("activity_logs").insert({
+      agency_id: localData.agency_id,
+      event_id: localData.event_id,
+      type: "tm.status_update",
+      title: "TM 상태 변경",
+      description: `${localData.name}: ${oldStatus} → ${newStatus}`,
+      created_by: user?.id
+    });
+
+    setLocalData({ 
+      ...localData, 
+      call_status: newStatus,
+      call_updated_at: new Date().toISOString(),
+      call_actor: user?.id
+    });
+    
+    toast.success(`TM 상태가 '${newStatus}'(으)로 변경되었습니다`, { duration: 1200 });
+    
+    // Show rooming notification if applicable
+    if (newStatus === '불참' || newStatus === 'TM완료(불참)') {
+      toast.info("참석자 불참 처리로 객실 배정이 해제되었습니다", { duration: 2000 });
+    } else if (newStatus === '응답(참석)' || newStatus === 'TM완료(참석)') {
+      toast.info("참석자 확정으로 객실 배정이 활성화되었습니다", { duration: 2000 });
+    }
+    
+    onUpdate();
+  };
+
+  // [Phase 72–RM.TM.STATUS.UNIFY] Handle call memo save
+  const handleCallMemoSave = async (memo: string) => {
+    if (!localData) return;
+
+    const { error } = await supabase
+      .from("participants")
+      .update({ 
+        call_memo: memo
+      })
+      .eq("id", localData.id);
+
+    if (error) {
+      console.error("[DrawerPanel] Call memo save error:", error);
+      toast.error("메모 저장에 실패했습니다");
+      return;
+    }
+
+    toast.success("콜 메모가 저장되었습니다", { duration: 1200 });
+    onUpdate();
+  };
+
+  // [Phase 72–RM.TM.STATUS.UNIFY] Get call status color
+  const getCallStatusColor = (status: string) => {
+    const colorMap: Record<string, string> = {
+      '대기중': 'bg-slate-300 text-slate-700',
+      '응답(참석)': 'bg-green-500 text-white',
+      '응답(미정)': 'bg-yellow-500 text-white',
+      '불참': 'bg-red-400 text-white',
+      'TM예정': 'bg-blue-500 text-white',
+      'TM완료(참석)': 'bg-purple-600 text-white',
+      'TM완료(불참)': 'bg-slate-600 text-white'
+    };
+    return colorMap[status] || 'bg-slate-300 text-slate-700';
+  };
+
+  // [Phase 72–RM.TM.STATUS.UNIFY] Get call status icon
+  const getCallStatusIcon = (status: string) => {
+    const iconMap: Record<string, string> = {
+      '대기중': '🔵',
+      '응답(참석)': '🟢',
+      '응답(미정)': '🟡',
+      '불참': '🔴',
+      'TM예정': '🔷',
+      'TM완료(참석)': '🟣',
+      'TM완료(불참)': '⚫'
+    };
+    return iconMap[status] || '🔵';
   };
 
   if (!localData) return null;
@@ -374,6 +477,85 @@ export function DrawerPanel({ participants, onUpdate }: DrawerPanelProps) {
                   className="h-8 text-sm"
                 />
               </div>
+            </div>
+          </DrawerSection>
+
+          {/* TM Status Section */}
+          <DrawerSection title="TM 상태 / 모객 진행" icon={<Phone className="h-4 w-4" />}>
+            <div className="space-y-4">
+              {/* Current Status Display */}
+              <div className="flex items-center gap-2">
+                <Label className="text-sm font-medium">현재 상태</Label>
+                <Badge 
+                  className={cn(
+                    "text-sm font-semibold",
+                    getCallStatusColor(localData.call_status || '대기중')
+                  )}
+                >
+                  {getCallStatusIcon(localData.call_status || '대기중')} {localData.call_status || '대기중'}
+                </Badge>
+              </div>
+
+              {/* Status Change Buttons */}
+              <div>
+                <Label className="text-sm font-medium mb-2 block">상태 변경</Label>
+                <div className="grid grid-cols-2 gap-2">
+                  {[
+                    '대기중',
+                    '응답(참석)',
+                    '응답(미정)',
+                    '불참',
+                    'TM예정',
+                    'TM완료(참석)',
+                    'TM완료(불참)'
+                  ].map((status) => (
+                    <Button
+                      key={status}
+                      variant={localData.call_status === status ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => handleCallStatusChange(status)}
+                      className={cn(
+                        "justify-start text-xs h-8",
+                        localData.call_status === status && getCallStatusColor(status)
+                      )}
+                    >
+                      {getCallStatusIcon(status)} {status}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Call Memo */}
+              <div>
+                <Label htmlFor="call_memo" className="text-sm font-medium">
+                  콜 내용 메모
+                </Label>
+                <Textarea
+                  id="call_memo"
+                  value={localData.call_memo || ""}
+                  onChange={(e) => setLocalData({ ...localData, call_memo: e.target.value })}
+                  onBlur={(e) => {
+                    if (e.target.value !== (localData.call_memo || "")) {
+                      handleCallMemoSave(e.target.value);
+                    }
+                  }}
+                  placeholder="TM 통화 내용을 입력하세요..."
+                  className="mt-1 min-h-[80px]"
+                />
+              </div>
+
+              {/* Last Updated Info */}
+              {localData.call_updated_at && (
+                <div className="text-xs text-muted-foreground">
+                  최근 수정: {new Date(localData.call_updated_at).toLocaleString('ko-KR', {
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                  })}
+                </div>
+              )}
             </div>
           </DrawerSection>
 

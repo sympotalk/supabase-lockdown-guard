@@ -62,6 +62,10 @@ interface Participant {
   recruitment_status?: string;
   message_sent?: string;
   survey_completed?: string;
+  call_status?: string;
+  call_updated_at?: string;
+  call_actor?: string;
+  call_memo?: string;
   last_edited_by?: string;
   last_edited_at?: string;
   created_at: string;
@@ -128,7 +132,7 @@ export default function ParticipantsPanel({ onMutate }: ParticipantsPanelProps) 
     }
   );
 
-  // [Phase 72–RM.BADGE.SYNC.RENUM] Realtime subscription for badge and participant_no changes
+  // [Phase 72–RM.BADGE.SYNC.RENUM + RM.TM.STATUS.UNIFY] Realtime subscription
   useEffect(() => {
     if (!eventId) return;
 
@@ -147,15 +151,24 @@ export default function ParticipantsPanel({ onMutate }: ParticipantsPanelProps) 
         (payload) => {
           console.log("[Phase 72] Realtime change detected:", payload);
           
-          // Show toast for role changes from other users
+          // Show toast for changes from other users
           if (payload.eventType === 'UPDATE' && payload.new && payload.old) {
             const newRole = (payload.new as any).fixed_role;
             const oldRole = (payload.old as any).fixed_role;
             const newNo = (payload.new as any).participant_no;
             const oldNo = (payload.old as any).participant_no;
+            const newCallStatus = (payload.new as any).call_status;
+            const oldCallStatus = (payload.old as any).call_status;
             
             if (newRole !== oldRole || newNo !== oldNo) {
               toast.info("구분이 변경되어 목록이 재정렬되었습니다", {
+                duration: 1200
+              });
+            }
+            
+            // [Phase 72–RM.TM.STATUS.UNIFY] Show toast for TM status changes
+            if (newCallStatus !== oldCallStatus) {
+              toast.info("TM 상태가 변경되었습니다", {
                 duration: 1200
               });
             }

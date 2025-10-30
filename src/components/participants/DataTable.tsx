@@ -24,6 +24,7 @@ interface Participant {
   message_sent?: string;
   survey_completed?: string;
   status?: string;
+  call_status?: string;
   created_at: string;
 }
 
@@ -109,6 +110,34 @@ export function DataTable({ participants, selectedIds, onSelectChange }: DataTab
     open(id);
   };
 
+  // [Phase 72–RM.TM.STATUS.UNIFY] Get call status color
+  const getCallStatusColor = (status: string) => {
+    const colorMap: Record<string, string> = {
+      '대기중': 'bg-slate-300 text-slate-700',
+      '응답(참석)': 'bg-green-500 text-white',
+      '응답(미정)': 'bg-yellow-500 text-white',
+      '불참': 'bg-red-400 text-white',
+      'TM예정': 'bg-blue-500 text-white',
+      'TM완료(참석)': 'bg-purple-600 text-white',
+      'TM완료(불참)': 'bg-slate-600 text-white'
+    };
+    return colorMap[status] || 'bg-slate-300 text-slate-700';
+  };
+
+  // [Phase 72–RM.TM.STATUS.UNIFY] Get call status icon
+  const getCallStatusIcon = (status: string) => {
+    const iconMap: Record<string, string> = {
+      '대기중': '🔵',
+      '응답(참석)': '🟢',
+      '응답(미정)': '🟡',
+      '불참': '🔴',
+      'TM예정': '🔷',
+      'TM완료(참석)': '🟣',
+      'TM완료(불참)': '⚫'
+    };
+    return iconMap[status] || '🔵';
+  };
+
   return (
     <div className="w-full h-full overflow-auto">
       <Table className="min-w-[1200px]">
@@ -126,6 +155,7 @@ export function DataTable({ participants, selectedIds, onSelectChange }: DataTab
             <TableHead className="sticky-col-org w-32 py-3 px-4 text-xs font-semibold text-muted-foreground uppercase tracking-wide text-left">소속</TableHead>
             <TableHead className="w-28 py-3 px-4 text-xs font-semibold text-muted-foreground uppercase tracking-wide text-left">연락처</TableHead>
             <TableHead className="w-36 py-3 px-4 text-xs font-semibold text-muted-foreground uppercase tracking-wide text-left">요청사항</TableHead>
+            <TableHead className="w-28 py-3 px-4 text-xs font-semibold text-muted-foreground uppercase tracking-wide text-left">TM 상태</TableHead>
             <TableHead className="w-24 py-3 px-4 text-xs font-semibold text-muted-foreground uppercase tracking-wide text-left">숙박현황</TableHead>
             <TableHead className="w-16 py-3 px-4 text-xs font-semibold text-muted-foreground uppercase tracking-wide text-center">성인</TableHead>
             <TableHead className="w-32 py-3 px-4 text-xs font-semibold text-muted-foreground uppercase tracking-wide text-center">소아</TableHead>
@@ -189,6 +219,17 @@ export function DataTable({ participants, selectedIds, onSelectChange }: DataTab
                     </Badge>
                   ))}
                 </div>
+              </TableCell>
+              {/* [Phase 72–RM.TM.STATUS.UNIFY] TM Status Badge */}
+              <TableCell className="py-2.5 px-4">
+                <Badge 
+                  className={cn(
+                    "text-xs font-semibold whitespace-nowrap",
+                    getCallStatusColor(participant.call_status || '대기중')
+                  )}
+                >
+                  {getCallStatusIcon(participant.call_status || '대기중')} {participant.call_status || '대기중'}
+                </Badge>
               </TableCell>
               <TableCell className="py-2.5 px-4">
                 <Badge variant="secondary" className="text-xs">

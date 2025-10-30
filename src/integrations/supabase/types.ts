@@ -3340,7 +3340,11 @@ export type Database = {
         Row: {
           adult_count: number | null
           agency_id: string
+          call_actor: string | null
           call_checked: boolean | null
+          call_memo: string | null
+          call_status: string | null
+          call_updated_at: string | null
           child_age: string | null
           child_ages: string[] | null
           child_count: number | null
@@ -3383,7 +3387,11 @@ export type Database = {
         Insert: {
           adult_count?: number | null
           agency_id: string
+          call_actor?: string | null
           call_checked?: boolean | null
+          call_memo?: string | null
+          call_status?: string | null
+          call_updated_at?: string | null
           child_age?: string | null
           child_ages?: string[] | null
           child_count?: number | null
@@ -3426,7 +3434,11 @@ export type Database = {
         Update: {
           adult_count?: number | null
           agency_id?: string
+          call_actor?: string | null
           call_checked?: boolean | null
+          call_memo?: string | null
+          call_status?: string | null
+          call_updated_at?: string | null
           child_age?: string | null
           child_ages?: string[] | null
           child_count?: number | null
@@ -3501,6 +3513,20 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "v_master_operations"
             referencedColumns: ["agency_id"]
+          },
+          {
+            foreignKeyName: "participants_call_actor_fkey"
+            columns: ["call_actor"]
+            isOneToOne: false
+            referencedRelation: "master_users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "participants_call_actor_fkey"
+            columns: ["call_actor"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
           },
           {
             foreignKeyName: "participants_event_id_fkey"
