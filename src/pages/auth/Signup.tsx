@@ -159,7 +159,7 @@ export default function Signup() {
         throw new Error("회원가입에 실패했습니다");
       }
 
-      // 2. [Phase 74-A] Accept invite and link to agency
+      // 2. [Phase 74-A.2] Accept invite and link to agency
       const { data: linkData, error: linkError } = await supabase.rpc(
         "accept_invite_and_link",
         { p_token: inviteId }
@@ -168,13 +168,38 @@ export default function Signup() {
       const linkResult = linkData as any;
 
       if (linkError || linkResult?.status === "error") {
-        throw new Error(linkResult?.message || "에이전시 연결에 실패했습니다");
+        const errorCode = linkResult?.code;
+        let errorMessage = linkResult?.message || "에이전시 연결에 실패했습니다";
+
+        // Handle specific error codes
+        if (errorCode === "EMAIL_MISMATCH") {
+          errorMessage = linkResult?.message;
+          toast.error(errorMessage);
+          announce(errorMessage);
+          
+          // Show alert and stay on page
+          setTimeout(() => {
+            if (window.confirm(errorMessage + "\n\n다시 시도하시겠습니까?")) {
+              window.location.reload();
+            }
+          }, 500);
+          
+          setFormState(UIState.ERROR);
+          return;
+        }
+        
+        if (errorCode === "EXPIRED") {
+          errorMessage = "초대가 만료되었습니다. 새로운 초대를 요청해주세요.";
+        }
+        
+        throw new Error(errorMessage);
       }
 
       setFormState(UIState.SUCCESS);
       
-      // [Phase 74-A] Show onboarding toast
-      const onboardingMessage = linkResult?.already_linked 
+      // [Phase 74-A.2] Show onboarding toast with appropriate message
+      const isAlreadyLinked = linkResult?.code === "ALREADY_LINKED" || linkResult?.already_linked;
+      const onboardingMessage = isAlreadyLinked 
         ? "계정이 확인되었습니다"
         : "에이전시에 연결되었습니다";
       
