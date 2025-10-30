@@ -78,10 +78,9 @@ function debounce<T extends (...args: any[]) => any>(fn: T, delay: number): (...
 interface DrawerPanelProps {
   participants: Participant[];
   onUpdate: () => void;
-  onFieldUpdate?: (id: string, field: string, value: any) => void; // [Phase 73-L.7.31] Optimistic update callback
 }
 
-export function DrawerPanel({ participants, onUpdate, onFieldUpdate }: DrawerPanelProps) {
+export function DrawerPanel({ participants, onUpdate }: DrawerPanelProps) {
   const { selectedRowId, isOpen, close } = useParticipantsPanel();
   const { user } = useUser();
   const [localData, setLocalData] = useState<Participant | null>(null);
@@ -141,13 +140,6 @@ export function DrawerPanel({ participants, onUpdate, onFieldUpdate }: DrawerPan
     debounce(async (patch: Record<string, any>) => {
       if (!localData?.id || !user?.id) return;
       
-      // [Phase 73-L.7.31] Optimistic update to parent first
-      if (onFieldUpdate) {
-        Object.keys(patch).forEach(field => {
-          onFieldUpdate(localData.id, field, patch[field]);
-        });
-      }
-      
       const updateData = {
         ...patch,
         last_edited_by: user.id,
@@ -176,7 +168,7 @@ export function DrawerPanel({ participants, onUpdate, onFieldUpdate }: DrawerPan
         onUpdate();
       }
     }, 500),
-    [localData?.id, user?.id, onUpdate, onFieldUpdate]
+    [localData?.id, user?.id, onUpdate]
   );
 
   const handleFieldChange = (field: string, value: any) => {
