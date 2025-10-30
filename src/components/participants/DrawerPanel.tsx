@@ -80,7 +80,7 @@ function debounce<T extends (...args: any[]) => any>(fn: T, delay: number): (...
 
 interface DrawerPanelProps {
   participants: Participant[];
-  onUpdate: () => void;
+  onUpdate: (participantId?: string) => void; // [Phase 73-L.7.31-D.1] Pass ID for highlight
 }
 
 export function DrawerPanel({ participants, onUpdate }: DrawerPanelProps) {
@@ -143,8 +143,32 @@ export function DrawerPanel({ participants, onUpdate }: DrawerPanelProps) {
     debounce(async (patch: Record<string, any>) => {
       if (!localData?.id || !user?.id) return;
       
+      // [Phase 73-L.7.31-D.1] Payload validation
+      const validatedPatch: Record<string, any> = {};
+      
+      for (const [key, value] of Object.entries(patch)) {
+        if (key === 'manager_info') {
+          // Ensure manager_info is a valid JSON object
+          if (typeof value === 'object' && value !== null) {
+            validatedPatch[key] = {
+              team: value.team ?? '',
+              name: value.name ?? '',
+              phone: value.phone ?? '',
+              emp_id: value.emp_id ?? ''
+            };
+          } else {
+            validatedPatch[key] = { team: '', name: '', phone: '', emp_id: '' };
+          }
+        } else if (key === 'request_note' || key === 'sfe_company_code' || key === 'sfe_customer_code') {
+          // Ensure text fields are strings (never null/undefined)
+          validatedPatch[key] = value ?? '';
+        } else {
+          validatedPatch[key] = value ?? '';
+        }
+      }
+      
       const updateData = {
-        ...patch,
+        ...validatedPatch,
         last_edited_by: user.id,
         last_edited_at: new Date().toISOString()
       };
@@ -162,13 +186,13 @@ export function DrawerPanel({ participants, onUpdate }: DrawerPanelProps) {
         await supabase.from("participants_log").insert({
           participant_id: localData.id,
           action: "update",
-          changed_fields: patch,
+          changed_fields: validatedPatch,
           edited_by: user.id,
           edited_at: new Date().toISOString()
         });
 
-        toast.success("✅ 참가자 정보가 수정되었습니다", { duration: 2500 });
-        onUpdate();
+        toast.success("✅ 참가자 정보가 저장되었습니다", { duration: 2500 });
+        onUpdate(localData.id); // [Phase 73-L.7.31-D.1] Pass participant ID for highlight
       }
     }, 500),
     [localData?.id, user?.id, onUpdate]
@@ -227,7 +251,7 @@ export function DrawerPanel({ participants, onUpdate }: DrawerPanelProps) {
       toast.info("참석자 확정으로 객실 배정이 활성화되었습니다", { duration: 2000 });
     }
     
-    onUpdate();
+    onUpdate(localData.id); // [Phase 73-L.7.31-D.1] Pass participant ID for highlight
   };
 
   // [Phase 72–RM.TM.STATUS.UNIFY] Handle call memo save
@@ -249,7 +273,7 @@ export function DrawerPanel({ participants, onUpdate }: DrawerPanelProps) {
 
     toast.success("콜 메모가 저장되었습니다", { duration: 1200 });
     fetchTMHistory(localData.id);
-    onUpdate();
+    onUpdate(localData.id); // [Phase 73-L.7.31-D.1] Pass participant ID for highlight
   };
 
   // [Phase 72–RM.TM.HISTORY.TRACE] Restore TM status/memo from history
@@ -276,7 +300,7 @@ export function DrawerPanel({ participants, onUpdate }: DrawerPanelProps) {
         );
         
         fetchTMHistory(localData.id);
-        onUpdate();
+        onUpdate(localData.id); // [Phase 73-L.7.31-D.1] Pass participant ID for highlight
       } else {
         throw new Error(response?.message || "복원 실패");
       }
@@ -382,7 +406,7 @@ export function DrawerPanel({ participants, onUpdate }: DrawerPanelProps) {
                       newRole ? `구분이 '${newRole}'(으)로 변경되었습니다.` : "구분 선택이 해제되었습니다.",
                       { duration: 1200 }
                     );
-                    onUpdate();
+                    onUpdate(localData.id); // [Phase 73-L.7.31-D.1] Pass participant ID for highlight
                   }
                 }}
                 onCustomRoleChange={async (trimmed) => {
@@ -418,7 +442,7 @@ export function DrawerPanel({ participants, onUpdate }: DrawerPanelProps) {
                       { duration: 1200 }
                     );
                     setLocalData({ ...localData, custom_role: trimmed || undefined });
-                    onUpdate();
+                    onUpdate(localData.id); // [Phase 73-L.7.31-D.1] Pass participant ID for highlight
                   }
                 }}
               />

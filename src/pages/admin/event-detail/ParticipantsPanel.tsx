@@ -94,7 +94,7 @@ export default function ParticipantsPanel({ onMutate }: ParticipantsPanelProps) 
   const [uploadOpen, setUploadOpen] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
-  // [Phase 73-L.7.30] Track newly added participant for highlight/scroll
+  // [Phase 73-L.7.30 + 73-L.7.31-D.1] Track participant for highlight/scroll (new or updated)
   const [highlightedId, setHighlightedId] = useState<string | null>(null);
 
   // [71-I] Enforce event context
@@ -446,9 +446,15 @@ export default function ParticipantsPanel({ onMutate }: ParticipantsPanelProps) 
       {filteredParticipants && filteredParticipants.length > 0 && (
         <DrawerPanel
           participants={filteredParticipants}
-          onUpdate={() => {
+          onUpdate={(participantId?: string) => {
+            // [Phase 73-L.7.31-D.1] Refresh list and highlight updated participant
             mutate();
             onMutate?.();
+            
+            if (participantId) {
+              setHighlightedId(participantId);
+              setTimeout(() => setHighlightedId(null), 1000);
+            }
           }}
         />
       )}
