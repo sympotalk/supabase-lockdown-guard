@@ -96,7 +96,7 @@ export function DrawerPanel({ participants, onUpdate }: DrawerPanelProps) {
     }
   }, [participant]);
 
-  // [Phase 72–RM.TM.HISTORY.TRACE] Fetch TM history for selected participant
+  // [Phase 73-L.7.20] Fetch TM history - removed invalid FK embed
   const fetchTMHistory = async (participantId: string) => {
     try {
       const { data, error } = await supabase
@@ -107,8 +107,7 @@ export function DrawerPanel({ participants, onUpdate }: DrawerPanelProps) {
           before_value,
           after_value,
           created_at,
-          actor_id,
-          profiles:actor_id (email)
+          actor_id
         `)
         .eq("participant_id", participantId)
         .order("created_at", { ascending: false })
@@ -377,11 +376,11 @@ export function DrawerPanel({ participants, onUpdate }: DrawerPanelProps) {
                             console.error("[72-RM.BADGE.PANEL] Error updating fixed_role:", error);
                             toast.error("저장에 실패했습니다. 다시 시도해주세요.");
                           } else {
-                            // Log activity
+                            // [Phase 73-L.7.20] Log activity with valid type
                             await supabase.from("activity_logs").insert({
                               title: "구분 변경",
                               description: newRole ? `구분이 '${newRole}'(으)로 변경되었습니다.` : "구분 선택이 해제되었습니다.",
-                              type: "role.update_fixed",
+                              type: "update",
                               created_by: user?.id,
                               agency_id: localData.agency_id,
                               event_id: localData.event_id

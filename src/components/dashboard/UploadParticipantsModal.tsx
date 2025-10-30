@@ -178,7 +178,7 @@ export function UploadParticipantsModal({
       return;
     }
     
-    // [73-L.7.6] Final validation - ensure standard keys are present
+    // [Phase 73-L.7.20] Final validation with role_badge default
     const payload = parsedRows.map(row => ({
       name: String(row.name || '').trim(),
       phone: String(row.phone || '').trim(),
@@ -189,7 +189,8 @@ export function UploadParticipantsModal({
       address: row.address || null,
       manager_name: row.manager_name || null,
       manager_phone: row.manager_phone || null,
-      manager_email: row.manager_email || null
+      manager_email: row.manager_email || null,
+      role_badge: row.role_badge || '참석자'  // ✅ 기본값 강제
     })).filter(row => row.name && row.phone);
 
     if (payload.length === 0) {
