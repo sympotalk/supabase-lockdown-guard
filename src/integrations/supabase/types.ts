@@ -3575,6 +3575,7 @@ export type Database = {
           memo_diff: string | null
           metadata: Json | null
           participant_id: string
+          upload_session_id: string | null
         }
         Insert: {
           action: string
@@ -3585,6 +3586,7 @@ export type Database = {
           memo_diff?: string | null
           metadata?: Json | null
           participant_id: string
+          upload_session_id?: string | null
         }
         Update: {
           action?: string
@@ -3595,6 +3597,7 @@ export type Database = {
           memo_diff?: string | null
           metadata?: Json | null
           participant_id?: string
+          upload_session_id?: string | null
         }
         Relationships: [
           {

@@ -55,10 +55,12 @@ export function UploadParticipantsModal({
     }
   }, [open, activeEventId, onOpenChange, toast]);
 
-  // [71-J.2.FIX.D] AI Column Mapping Layer with manager_info & SFE codes
+  // [Phase 73-L.1] AI Column Mapping for 13-column recruitment format
   const normalizeColumns = (record: any): any => {
     const columnMap: Record<string, string> = {
+      // Customer fields
       "고객 성명": "name",
+      "고객성명": "name",
       "성명": "name",
       "이름": "name",
       "name": "name",
@@ -69,29 +71,46 @@ export function UploadParticipantsModal({
       "company": "organization",
       "organization": "organization",
       "고객 연락처": "phone",
+      "고객연락처": "phone",
       "연락처": "phone",
       "전화번호": "phone",
+      "전화": "phone",
       "phone": "phone",
       "Phone": "phone",
-      "이메일": "email",
-      "email": "email",
-      "Email": "email",
       "메모": "memo",
       "memo": "memo",
+      
+      // Manager fields
       "팀명": "team_name",
       "팀": "team_name",
       "team": "team_name",
-      "담당자 팀명": "manager_team",
-      "담당자팀": "manager_team",
       "담당자 성명": "manager_name",
+      "담당자성명": "manager_name",
       "담당자": "manager_name",
       "담당자명": "manager_name",
       "담당자 연락처": "manager_phone",
+      "담당자연락처": "manager_phone",
       "담당자전화": "manager_phone",
-      "거래처 코드": "sfe_account_code",
-      "거래처코드": "sfe_account_code",
+      "담당자 사번": "manager_emp_id",
+      "담당자사번": "manager_emp_id",
+      "사번": "manager_emp_id",
+      
+      // SFE codes
+      "SFE 거래처코드": "sfe_hospital_code",
+      "SFE거래처코드": "sfe_hospital_code",
+      "거래처코드": "sfe_hospital_code",
+      "거래처 코드": "sfe_hospital_code",
+      "SFE 고객코드": "sfe_customer_code",
+      "SFE고객코드": "sfe_customer_code",
+      "고객코드": "sfe_customer_code",
       "고객 코드": "sfe_customer_code",
-      "고객코드": "sfe_customer_code"
+      
+      // Metadata
+      "행사명": "event_name",
+      "등록 일시": "registered_at",
+      "등록일시": "registered_at",
+      "삭제유무": "is_deleted",
+      "삭제": "is_deleted"
     };
 
     const normalized: any = {};
@@ -130,45 +149,61 @@ export function UploadParticipantsModal({
           return;
         }
 
-        // [71-J.2.FIX.D] Apply AI column mapping + manager_info JSON construction
+        // [Phase 73-L.1] Apply AI column mapping for 13-column format
         const rows = json.map((row: any) => {
           const normalized = normalizeColumns(row);
           
-          // [71-J.2.FIX.D] Construct manager_info as JSON object
+          // Build manager_info JSON (always, even if partial)
           const managerInfo: any = {};
-          if (normalized.manager_team) managerInfo.team = normalized.manager_team;
+          if (normalized.team_name) managerInfo.team = normalized.team_name;
           if (normalized.manager_name) managerInfo.name = normalized.manager_name;
           if (normalized.manager_phone) managerInfo.phone = normalized.manager_phone;
+          if (normalized.manager_emp_id) managerInfo.emp_id = normalized.manager_emp_id;
           
           return {
+            // Core fields
             name: normalized.name || '',
             organization: normalized.organization || '',
             phone: normalized.phone || '',
-            email: normalized.email || '',
             memo: normalized.memo || '',
-            team_name: normalized.team_name || '',
+            
+            // Manager fields (individual + JSON)
+            team_name: normalized.team_name || null,
+            manager_name: normalized.manager_name || null,
+            manager_phone: normalized.manager_phone || null,
             manager_info: Object.keys(managerInfo).length > 0 ? managerInfo : null,
-            sfe_account_code: normalized.sfe_account_code || null,
-            sfe_customer_code: normalized.sfe_customer_code || null,
-            fixed_role: '참석자' // [Phase 72–RM.BADGE.SYNC.RENUM] Default role for Excel uploads
+            manager_emp_id: normalized.manager_emp_id || null,
+            
+            // SFE codes (handle blank/dash)
+            sfe_hospital_code: (normalized.sfe_hospital_code && normalized.sfe_hospital_code !== '-') 
+              ? normalized.sfe_hospital_code 
+              : null,
+            sfe_customer_code: (normalized.sfe_customer_code && normalized.sfe_customer_code !== '-') 
+              ? normalized.sfe_customer_code 
+              : null,
+            
+            // Metadata
+            event_name: normalized.event_name || null,
+            registered_at: normalized.registered_at || null,
+            is_deleted: normalized.is_deleted || null
           };
         }).filter(row => row.name); // Only keep rows with names
 
         if (rows.length === 0) {
-          console.warn("[71-I.QA3-FIX.R4] No valid participant rows detected.");
+          console.warn("[Phase 73-L.1] No valid participant rows detected.");
           toast({
             title: "업로드 불가",
-            description: "'고객 성명' 또는 '이름' 컬럼이 비어 있습니다.",
+            description: "'고객 성명' 컬럼이 비어 있습니다.",
             variant: "destructive"
           });
           return;
         }
         setParsedRows(rows);
-        console.info(`[71-I.QA3-FIX.R4] AI Mapped ${rows.length} participants from Excel`);
-        console.log("[71-I.QA3-FIX.R4] Sample mapped data:", rows[0]);
+        console.info(`[Phase 73-L.1] AI Mapped ${rows.length} participants from Excel`);
+        console.log("[Phase 73-L.1] Sample (first 5):", rows.slice(0, 5));
         toast({
           title: "파일 분석 완료",
-          description: `${rows.length}명의 참가자 데이터 확인됨.`
+          description: `${rows.length}명의 참가자 데이터 확인됨 (미리보기 5명).`
         });
       } catch (err) {
         console.error("[71-I.QA3] XLSX parse error →", err);
@@ -219,29 +254,30 @@ export function UploadParticipantsModal({
         console.error("[71-I.QA3-FIX.R7] RPC upload error →", error);
         throw error;
       }
-      console.log("[71-I.QA3-FIX.R7] RPC response →", data);
+      console.log("[Phase 73-L.1] RPC response →", data);
       const result = data as {
-        inserted: number;
+        total: number;
         new: number;
         updated: number;
+        skipped: number;
         event_id?: string;
         agency_id?: string;
+        session_id?: string;
         status: string;
       };
 
-      // [71-I.QA3-FIX.R7] Use event_id from response for precise cache invalidation
-      // [Phase 72–RM.BADGE.SYNC.RENUM] Trigger will auto-reorder, just refresh cache
+      // [Phase 73-L.1] Use event_id from response for precise cache invalidation
       if (result?.event_id && agencyScope) {
         const cacheKey = `participants_${agencyScope}_${result.event_id}`;
         await mutate(cacheKey);
-        console.info("[71-I.QA3-FIX.R7] SWR cache invalidated & refetched:", cacheKey);
+        console.info("[Phase 73-L.1] SWR cache invalidated & refetched:", cacheKey);
         
         toast({
           title: "업로드 완료",
-          description: `신규 ${result.new ?? 0}명, 갱신 ${result.updated ?? 0}명 반영되었습니다. (좌장/연자 우선 정렬 완료)`
+          description: `총 ${result.total ?? 0}건 처리 → 신규 ${result.new ?? 0}명 / 갱신 ${result.updated ?? 0}명 / 스킵 ${result.skipped ?? 0}건. 담당자정보·SFE코드 보정완료.`
         });
       } else {
-        console.warn("[71-I.QA3-FIX.R7] event_id missing in response, fallback to activeEventId");
+        console.warn("[Phase 73-L.1] event_id missing in response, fallback to activeEventId");
         if (agencyScope) {
           mutate(`participants_${agencyScope}_${activeEventId}`);
         }
@@ -302,14 +338,29 @@ export function UploadParticipantsModal({
           <div className="flex gap-2 p-3 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-900">
             <AlertCircle className="h-5 w-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
             <div className="text-sm text-blue-800 dark:text-blue-300">
-              <p className="font-medium mb-1">Excel 파일 형식 안내 (AI 자동 매핑)</p>
+              <p className="font-medium mb-1">[Phase 73-L.1] 모객 원본 13컬럼 인식</p>
               <ul className="list-disc list-inside space-y-0.5 text-xs">
-                <li>필수: 고객 성명 / 이름 / name</li>
-                <li>선택: 거래처명/소속, 연락처/전화번호, 이메일, 팀명, 담당자 성명/담당자, 담당자 연락처, 메모</li>
-                <li>AI가 컬럼명을 자동으로 인식합니다</li>
+                <li>필수: 행사명, 고객 성명, 고객 연락처</li>
+                <li>자동 매핑: 팀명, 담당자 성명/연락처/사번, 거래처명, SFE 거래처코드, SFE 고객코드, 메모, 등록일시, 삭제유무</li>
+                <li>성인/소아/유아 등은 비워두세요 (시스템이 기본값 적용)</li>
+                <li>중복 기준: 행사 + 연락처. 기존 데이터는 업데이트됩니다</li>
               </ul>
             </div>
           </div>
+          
+          {/* Preview of parsed rows (first 5) */}
+          {parsedRows.length > 0 && (
+            <div className="space-y-2">
+              <p className="text-xs font-medium text-muted-foreground">미리보기 (처음 5명)</p>
+              <div className="max-h-32 overflow-y-auto text-xs bg-muted/30 rounded p-2 space-y-1 font-mono">
+                {parsedRows.slice(0, 5).map((row, idx) => (
+                  <div key={idx} className="text-xs">
+                    {idx + 1}. {row.name} | {row.organization || '-'} | {row.phone || '-'} | {row.manager_name || '-'} | SFE: {row.sfe_hospital_code || '-'}/{row.sfe_customer_code || '-'}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="flex gap-3">
