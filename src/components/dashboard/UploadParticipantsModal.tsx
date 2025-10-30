@@ -197,12 +197,12 @@ export function UploadParticipantsModal({
     console.info("[Phase 73-L.3] Uploading rows:", parsedRows.length, "to event:", activeEventId, "Mode:", replaceMode ? 'replace' : 'update');
     
     try {
-      // [Phase 73-L.3] Call new RPC with explicit typing
-      const { data, error } = await supabase.rpc('ai_participant_import_from_excel', {
-        p_event_id: activeEventId,
-        p_data: parsedRows,
-        p_replace: replaceMode
-      }) as { data: any; error: any };
+      // [Phase 73-L.3.RPC.HOTFIX] Call new RPC with explicit typing
+      const { data, error } = await (supabase.rpc as any)('upsert_participants_from_excel', {
+        p_event: activeEventId,
+        p_rows: parsedRows,
+        p_mode: replaceMode ? 'replace' : 'update'
+      });
       
       if (error) {
         console.error("[Phase 73-L.3] RPC upload error →", error);
