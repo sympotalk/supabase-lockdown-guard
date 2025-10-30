@@ -1,11 +1,22 @@
 // [71-J.2-FINAL] Participant detail drawer panel
 import { useEffect, useState, useCallback } from "react";
-import { X, Save, User, Building2, Phone, Mail, Code, Bed, Award, Trash2 } from "lucide-react";
+import { X, Save, User, Building2, Phone, Mail, Code, Bed, Award, Trash2, Undo2, History, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { useParticipantsPanel } from "@/state/participantsPanel";
 import { DrawerSection } from "./DrawerSection";
 import { SmartBadges } from "./SmartBadges";
@@ -45,6 +56,16 @@ interface Participant {
   call_memo?: string;
 }
 
+interface TMHistoryLog {
+  id: string;
+  action_type: string;
+  before_value: string | null;
+  after_value: string | null;
+  created_at: string;
+  actor_id: string;
+  profiles?: { email: string };
+}
+
 function debounce<T extends (...args: any[]) => any>(fn: T, delay: number): (...args: Parameters<T>) => void {
   let timeoutId: NodeJS.Timeout;
   return (...args: Parameters<T>) => {
@@ -62,12 +83,47 @@ export function DrawerPanel({ participants, onUpdate }: DrawerPanelProps) {
   const { selectedRowId, isOpen, close } = useParticipantsPanel();
   const { user } = useUser();
   const [localData, setLocalData] = useState<Participant | null>(null);
+  const [tmHistory, setTmHistory] = useState<TMHistoryLog[]>([]);
+  const [restoreDialogOpen, setRestoreDialogOpen] = useState(false);
+  const [selectedLogId, setSelectedLogId] = useState<string | null>(null);
 
   const participant = participants.find((p) => p.id === selectedRowId) || null;
 
   useEffect(() => {
     setLocalData(participant);
+    if (participant?.id) {
+      fetchTMHistory(participant.id);
+    }
   }, [participant]);
+
+  // [Phase 72–RM.TM.HISTORY.TRACE] Fetch TM history for selected participant
+  const fetchTMHistory = async (participantId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from("tm_history_logs")
+        .select(`
+          id,
+          action_type,
+          before_value,
+          after_value,
+          created_at,
+          actor_id,
+          profiles:actor_id (email)
+        `)
+        .eq("participant_id", participantId)
+        .order("created_at", { ascending: false })
+        .limit(20);
+
+      if (error) {
+        console.error("[Phase 72] TM history fetch error:", error);
+        return;
+      }
+      
+      setTmHistory(data || []);
+    } catch (error) {
+      console.error("[Phase 72] TM history fetch error:", error);
+    }
+  };
 
   // ESC to close
   useEffect(() => {
@@ -189,7 +245,45 @@ export function DrawerPanel({ participants, onUpdate }: DrawerPanelProps) {
     }
 
     toast.success("콜 메모가 저장되었습니다", { duration: 1200 });
+    fetchTMHistory(localData.id);
     onUpdate();
+  };
+
+  // [Phase 72–RM.TM.HISTORY.TRACE] Restore TM status/memo from history
+  const handleRestoreTM = async () => {
+    if (!selectedLogId || !localData) return;
+
+    try {
+      const { data, error } = await supabase.rpc("restore_tm_status", {
+        p_log_id: selectedLogId,
+      });
+
+      if (error) throw error;
+
+      const response = data as any;
+      
+      if (response?.status === "success") {
+        const resultType = response.result?.type;
+        const restoredValue = response.result?.restored_value;
+        
+        toast.success(
+          resultType === "status"
+            ? `이전 TM 상태로 복원되었습니다 (${restoredValue})`
+            : "이전 메모로 복원되었습니다"
+        );
+        
+        fetchTMHistory(localData.id);
+        onUpdate();
+      } else {
+        throw new Error(response?.message || "복원 실패");
+      }
+    } catch (error: any) {
+      console.error("[Phase 72] TM restore error:", error);
+      toast.error(error.message || "복원 중 오류가 발생했습니다");
+    } finally {
+      setRestoreDialogOpen(false);
+      setSelectedLogId(null);
+    }
   };
 
   // [Phase 72–RM.TM.STATUS.UNIFY] Get call status color
@@ -221,6 +315,8 @@ export function DrawerPanel({ participants, onUpdate }: DrawerPanelProps) {
   };
 
   if (!localData) return null;
+
+  const isQAOrMaster = user?.role === "master" || user?.role === "admin";
 
   return (
     <>
@@ -480,83 +576,147 @@ export function DrawerPanel({ participants, onUpdate }: DrawerPanelProps) {
             </div>
           </DrawerSection>
 
-          {/* TM Status Section */}
+          {/* TM Status Section with History */}
           <DrawerSection title="TM 상태 / 모객 진행" icon={<Phone className="h-4 w-4" />}>
-            <div className="space-y-4">
-              {/* Current Status Display */}
-              <div className="flex items-center gap-2">
-                <Label className="text-sm font-medium">현재 상태</Label>
-                <Badge 
-                  className={cn(
-                    "text-sm font-semibold",
-                    getCallStatusColor(localData.call_status || '대기중')
+            <Tabs defaultValue="status" className="w-full">
+              <TabsList className="grid w-full grid-cols-2 mb-4">
+                <TabsTrigger value="status">상태 관리</TabsTrigger>
+                {isQAOrMaster && (
+                  <TabsTrigger value="history">
+                    <History className="h-3.5 w-3.5 mr-1" />
+                    이력
+                  </TabsTrigger>
+                )}
+              </TabsList>
+
+              <TabsContent value="status" className="space-y-4 mt-0">
+                {/* Current Status Display */}
+                <div className="flex items-center gap-2">
+                  <Label className="text-sm font-medium">현재 상태</Label>
+                  <Badge 
+                    className={cn(
+                      "text-sm font-semibold",
+                      getCallStatusColor(localData.call_status || '대기중')
+                    )}
+                  >
+                    {getCallStatusIcon(localData.call_status || '대기중')} {localData.call_status || '대기중'}
+                  </Badge>
+                </div>
+
+                {/* Status Change Buttons */}
+                <div>
+                  <Label className="text-sm font-medium mb-2 block">상태 변경</Label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {[
+                      '대기중',
+                      '응답(참석)',
+                      '응답(미정)',
+                      '불참',
+                      'TM예정',
+                      'TM완료(참석)',
+                      'TM완료(불참)'
+                    ].map((status) => (
+                      <Button
+                        key={status}
+                        variant={localData.call_status === status ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => handleCallStatusChange(status)}
+                        className={cn(
+                          "justify-start text-xs h-8",
+                          localData.call_status === status && getCallStatusColor(status)
+                        )}
+                      >
+                        {getCallStatusIcon(status)} {status}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Call Memo */}
+                <div>
+                  <Label htmlFor="call_memo" className="text-sm font-medium">
+                    콜 내용 메모
+                  </Label>
+                  <Textarea
+                    id="call_memo"
+                    value={localData.call_memo || ""}
+                    onChange={(e) => setLocalData({ ...localData, call_memo: e.target.value })}
+                    onBlur={(e) => {
+                      if (e.target.value !== (localData.call_memo || "")) {
+                        handleCallMemoSave(e.target.value);
+                      }
+                    }}
+                    placeholder="TM 통화 내용을 입력하세요..."
+                    className="mt-1 min-h-[80px]"
+                  />
+                </div>
+
+                {/* Last Updated Info */}
+                {localData.call_updated_at && (
+                  <div className="text-xs text-muted-foreground flex items-center gap-1">
+                    <Clock className="h-3 w-3" />
+                    최근 수정: {new Date(localData.call_updated_at).toLocaleString('ko-KR', {
+                      year: 'numeric',
+                      month: '2-digit',
+                      day: '2-digit',
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    })}
+                  </div>
+                )}
+              </TabsContent>
+
+              {isQAOrMaster && (
+                <TabsContent value="history" className="space-y-3 mt-0">
+                  {tmHistory.length === 0 ? (
+                    <div className="text-center py-8 text-muted-foreground text-sm">
+                      변경 이력이 없습니다
+                    </div>
+                  ) : (
+                    <div className="space-y-2 max-h-[400px] overflow-y-auto pr-2">
+                      {tmHistory.map((log) => (
+                        <div
+                          key={log.id}
+                          className="p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors"
+                        >
+                          <div className="flex items-start justify-between gap-2 mb-2">
+                            <div className="flex-1">
+                              <div className="text-sm font-medium">
+                                {log.action_type === "상태변경" ? "🔄 상태 변경" : "📝 메모 수정"}
+                              </div>
+                              <div className="text-xs text-muted-foreground mt-1 break-words">
+                                {log.before_value || "(없음)"} → {log.after_value || "(없음)"}
+                              </div>
+                            </div>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => {
+                                setSelectedLogId(log.id);
+                                setRestoreDialogOpen(true);
+                              }}
+                              className="shrink-0"
+                            >
+                              <Undo2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                          <div className="text-xs text-muted-foreground space-y-0.5">
+                            <div>담당자: {log.profiles?.email || "알 수 없음"}</div>
+                            <div>일시: {new Date(log.created_at).toLocaleString("ko-KR", {
+                              year: 'numeric',
+                              month: '2-digit',
+                              day: '2-digit',
+                              hour: '2-digit',
+                              minute: '2-digit'
+                            })}</div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   )}
-                >
-                  {getCallStatusIcon(localData.call_status || '대기중')} {localData.call_status || '대기중'}
-                </Badge>
-              </div>
-
-              {/* Status Change Buttons */}
-              <div>
-                <Label className="text-sm font-medium mb-2 block">상태 변경</Label>
-                <div className="grid grid-cols-2 gap-2">
-                  {[
-                    '대기중',
-                    '응답(참석)',
-                    '응답(미정)',
-                    '불참',
-                    'TM예정',
-                    'TM완료(참석)',
-                    'TM완료(불참)'
-                  ].map((status) => (
-                    <Button
-                      key={status}
-                      variant={localData.call_status === status ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => handleCallStatusChange(status)}
-                      className={cn(
-                        "justify-start text-xs h-8",
-                        localData.call_status === status && getCallStatusColor(status)
-                      )}
-                    >
-                      {getCallStatusIcon(status)} {status}
-                    </Button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Call Memo */}
-              <div>
-                <Label htmlFor="call_memo" className="text-sm font-medium">
-                  콜 내용 메모
-                </Label>
-                <Textarea
-                  id="call_memo"
-                  value={localData.call_memo || ""}
-                  onChange={(e) => setLocalData({ ...localData, call_memo: e.target.value })}
-                  onBlur={(e) => {
-                    if (e.target.value !== (localData.call_memo || "")) {
-                      handleCallMemoSave(e.target.value);
-                    }
-                  }}
-                  placeholder="TM 통화 내용을 입력하세요..."
-                  className="mt-1 min-h-[80px]"
-                />
-              </div>
-
-              {/* Last Updated Info */}
-              {localData.call_updated_at && (
-                <div className="text-xs text-muted-foreground">
-                  최근 수정: {new Date(localData.call_updated_at).toLocaleString('ko-KR', {
-                    year: 'numeric',
-                    month: '2-digit',
-                    day: '2-digit',
-                    hour: '2-digit',
-                    minute: '2-digit'
-                  })}
-                </div>
+                </TabsContent>
               )}
-            </div>
+            </Tabs>
           </DrawerSection>
 
           {/* Lodging */}
@@ -698,6 +858,23 @@ export function DrawerPanel({ participants, onUpdate }: DrawerPanelProps) {
           </DrawerSection>
         </div>
       </div>
+
+      {/* Restore Confirmation Dialog */}
+      <AlertDialog open={restoreDialogOpen} onOpenChange={setRestoreDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>이전 상태로 복원</AlertDialogTitle>
+            <AlertDialogDescription>
+              이전 TM 상태로 복원하시겠습니까? 
+              복원 시 현재 데이터가 변경되며, 숙박 배정도 자동으로 조정됩니다.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>취소</AlertDialogCancel>
+            <AlertDialogAction onClick={handleRestoreTM}>복원하기</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }

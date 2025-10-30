@@ -5559,6 +5559,82 @@ export type Database = {
         }
         Relationships: []
       }
+      tm_history_logs: {
+        Row: {
+          action_type: string
+          actor_id: string | null
+          after_value: string | null
+          before_value: string | null
+          created_at: string | null
+          event_id: string | null
+          id: string
+          participant_id: string | null
+        }
+        Insert: {
+          action_type: string
+          actor_id?: string | null
+          after_value?: string | null
+          before_value?: string | null
+          created_at?: string | null
+          event_id?: string | null
+          id?: string
+          participant_id?: string | null
+        }
+        Update: {
+          action_type?: string
+          actor_id?: string | null
+          after_value?: string | null
+          before_value?: string | null
+          created_at?: string | null
+          event_id?: string | null
+          id?: string
+          participant_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tm_history_logs_actor_id_fkey"
+            columns: ["actor_id"]
+            isOneToOne: false
+            referencedRelation: "master_users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tm_history_logs_actor_id_fkey"
+            columns: ["actor_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tm_history_logs_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "event_progress_view"
+            referencedColumns: ["event_id"]
+          },
+          {
+            foreignKeyName: "tm_history_logs_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tm_history_logs_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "v_event_room_summary"
+            referencedColumns: ["event_id"]
+          },
+          {
+            foreignKeyName: "tm_history_logs_participant_id_fkey"
+            columns: ["participant_id"]
+            isOneToOne: false
+            referencedRelation: "participants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       training_guides: {
         Row: {
           category: string
@@ -6943,6 +7019,7 @@ export type Database = {
         Args: { p_event: string }
         Returns: undefined
       }
+      restore_tm_status: { Args: { p_log_id: string }; Returns: Json }
       rpc_activate_account: { Args: { token: string }; Returns: Json }
       rpc_create_agency: {
         Args: {
