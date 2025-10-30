@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
 import { Trash2, Phone, Building2, User, Mail, Code } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
@@ -42,6 +43,8 @@ interface Participant {
   survey_completed?: string;
   last_edited_by?: string;
   last_edited_at?: string;
+  editor_email?: string;
+  editor_display_name?: string;
 }
 
 // [LOCKED][QA2] Debounce utility
@@ -177,7 +180,15 @@ export function ParticipantRightPanel({
       {/* Header */}
       <div className="p-4 border-b bg-white shadow-sm">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold">{localData.name}</h2>
+          <div className="flex items-center gap-2">
+            <h2 className="text-lg font-semibold">{localData.name}</h2>
+            {localData.last_edited_by && localData.last_edited_at && (
+              <Badge variant="outline" className="text-xs font-normal">
+                <User className="h-3 w-3 mr-1" />
+                {localData.editor_display_name || localData.editor_email || '수정됨'}
+              </Badge>
+            )}
+          </div>
           {onDelete && (
             <Button
               size="sm"

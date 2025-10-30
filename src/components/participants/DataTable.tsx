@@ -28,6 +28,10 @@ interface Participant {
   status?: string;
   call_status?: string;
   created_at: string;
+  last_edited_by?: string;
+  last_edited_at?: string;
+  editor_email?: string;
+  editor_display_name?: string;
 }
 
 interface DataTableProps {

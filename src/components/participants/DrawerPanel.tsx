@@ -56,6 +56,10 @@ interface Participant {
   call_updated_at?: string;
   call_actor?: string;
   call_memo?: string;
+  last_edited_by?: string;
+  last_edited_at?: string;
+  editor_email?: string;
+  editor_display_name?: string;
 }
 
 interface TMHistoryLog {
@@ -355,7 +359,15 @@ export function DrawerPanel({ participants, onUpdate }: DrawerPanelProps) {
       <div className={cn("drawer-panel", isOpen && "open")}>
         <div className="drawer-header px-4 py-3 bg-white">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-primary">{localData.name}</h2>
+            <div className="flex items-center gap-2">
+              <h2 className="text-lg font-semibold text-primary">{localData.name}</h2>
+              {localData.last_edited_by && localData.last_edited_at && (
+                <Badge variant="outline" className="text-xs font-normal">
+                  <User className="h-3 w-3 mr-1" />
+                  {localData.editor_display_name || localData.editor_email || '수정됨'}
+                </Badge>
+              )}
+            </div>
             <div className="flex items-center gap-2">
               <Button size="sm" variant="outline" onClick={close}>
                 <X className="h-4 w-4" />

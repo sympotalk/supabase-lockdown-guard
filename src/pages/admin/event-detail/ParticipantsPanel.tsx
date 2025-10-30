@@ -118,15 +118,24 @@ export default function ParticipantsPanel({ onMutate }: ParticipantsPanelProps) 
       
       const { data, error } = await supabase
         .from("participants")
-        .select("*")
+        .select(`
+          *,
+          editor:profiles!last_edited_by(email, display_name)
+        `)
         .eq("agency_id", agencyScope)
         .eq("event_id", eventId)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
       
-      // [Phase 73-L.7.26] Apply normalization before returning
-      const normalized = normalizeParticipants(data || []);
+      // [Phase 73-L.7.31-J] Flatten editor info and apply normalization
+      const participantsWithEditor = (data || []).map(p => ({
+        ...p,
+        editor_email: p.editor?.email,
+        editor_display_name: p.editor?.display_name
+      }));
+      
+      const normalized = normalizeParticipants(participantsWithEditor);
       console.log("[71-I.QA3-FIX.R7] Loaded participants:", normalized.length);
       return normalized;
     },
