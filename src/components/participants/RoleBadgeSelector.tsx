@@ -1,4 +1,4 @@
-// [Phase 73-L.7.25] RoleBadgeSelector 기본값 + 추가 뱃지 반영
+// [Phase 73-L.7.26] RoleBadge Immediate Default Fix (Eliminate "선택" state)
 import React, { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -20,15 +20,18 @@ export const RoleBadgeSelector = ({
   onFixedRoleChange,
   onCustomRoleChange 
 }: RoleBadgeSelectorProps) => {
-  const [selected, setSelected] = useState<string | null>(fixedRole || "참석자"); // ✅ 기본값 고정
+  // ✅ fixedRole이 없을 때도 '참석자'로 초기 세팅
+  const [selected, setSelected] = useState<string>(
+    fixedRole && fixedRole.trim() !== "" && fixedRole !== "선택" ? fixedRole : "참석자"
+  );
   const [customBadge, setCustomBadge] = useState<string>(customRole || "");
 
-  // ✅ 초기값 반영
+  // ✅ 데이터 로드 후 값 변경 시에도 다시 폴백 보정
   useEffect(() => {
-    if (!fixedRole || fixedRole === "선택" || fixedRole === "") {
+    if (!fixedRole || fixedRole === "선택" || fixedRole.trim() === "") {
       setSelected("참석자");
       onFixedRoleChange?.("참석자");
-    } else {
+    } else if (fixedRole !== selected) {
       setSelected(fixedRole);
     }
   }, [fixedRole]);
@@ -39,9 +42,8 @@ export const RoleBadgeSelector = ({
 
   // ✅ 고정 뱃지 클릭
   const handleSelect = (badge: string) => {
-    const newRole = selected === badge ? null : badge;
-    setSelected(newRole);
-    onFixedRoleChange?.(newRole);
+    setSelected(badge);
+    onFixedRoleChange?.(badge);
   };
 
   // ✅ 추가 뱃지 입력 (직접입력)
