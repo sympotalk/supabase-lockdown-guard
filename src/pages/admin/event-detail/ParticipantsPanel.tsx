@@ -172,14 +172,45 @@ export default function ParticipantsPanel({ onMutate }: ParticipantsPanelProps) 
     };
   }, [eventId, mutate]);
 
-  const handleExport = (mode: ExportMode = 'work') => {
+  // [Phase 72–RM.EXPORT.SORT.UNIFY] Export with automatic sorting
+  const handleExport = async (mode: ExportMode = 'work') => {
     if (!participants || participants.length === 0) {
       toast.error("내보낼 데이터가 없습니다");
       return;
     }
-    const modeLabel = mode === 'work' ? '업무용' : '보관용';
-    exportParticipantsToExcel(participants, `participants_${eventId}_${mode}.xlsx`, mode);
-    toast.success(`${participants.length}명의 데이터를 ${modeLabel} 템플릿으로 내보냈습니다`);
+    
+    try {
+      // Show loading toast
+      toast.info("참가자 데이터를 정렬 중입니다...", { duration: 1000 });
+      
+      // Reorder participant numbers before export
+      const { error: reorderError } = await supabase.rpc('reorder_participant_numbers', { 
+        p_event: eventId 
+      });
+      
+      if (reorderError) {
+        console.error("[Phase 72] Reorder RPC error:", reorderError);
+        toast.error("정렬 중 오류가 발생했습니다");
+        return;
+      }
+      
+      // Wait a moment for DB to sync
+      await new Promise(resolve => setTimeout(resolve, 300));
+      
+      // Refresh data to get updated participant_no
+      await mutate();
+      
+      // Export with sorted data
+      const modeLabel = mode === 'work' ? '업무용' : '보관용';
+      exportParticipantsToExcel(participants, `participants_${eventId}_${mode}.xlsx`, mode);
+      
+      toast.success(`${participants.length}명의 데이터를 ${modeLabel} 템플릿으로 내보냈습니다 (좌장·연자 우선 순서)`, {
+        duration: 2000
+      });
+    } catch (error) {
+      console.error("[Phase 72] Export error:", error);
+      toast.error("엑셀 내보내기 중 오류가 발생했습니다");
+    }
   };
 
   // [LOCKED][QA2] Bulk actions
