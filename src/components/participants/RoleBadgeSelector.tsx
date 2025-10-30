@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { normalizeRoleBadge, getRoleBadgeColor } from "@/lib/participantUtils";
 
 const fixedBadges = ["좌장", "연자", "참석자"];
 
@@ -20,19 +21,16 @@ export const RoleBadgeSelector = ({
   onFixedRoleChange,
   onCustomRoleChange 
 }: RoleBadgeSelectorProps) => {
-  // ✅ fixedRole이 없을 때도 '참석자'로 초기 세팅
-  const [selected, setSelected] = useState<string>(
-    fixedRole && fixedRole.trim() !== "" && fixedRole !== "선택" ? fixedRole : "참석자"
-  );
+  // ✅ Immediately normalize on mount - no flicker
+  const [selected, setSelected] = useState<string>(() => normalizeRoleBadge(fixedRole));
   const [customBadge, setCustomBadge] = useState<string>(customRole || "");
+  const [isCustomBadgeSaving, setIsCustomBadgeSaving] = useState(false);
 
-  // ✅ 데이터 로드 후 값 변경 시에도 다시 폴백 보정
+  // ✅ Update when prop changes, but always normalize
   useEffect(() => {
-    if (!fixedRole || fixedRole === "선택" || fixedRole.trim() === "") {
-      setSelected("참석자");
-      onFixedRoleChange?.("참석자");
-    } else if (fixedRole !== selected) {
-      setSelected(fixedRole);
+    const normalized = normalizeRoleBadge(fixedRole);
+    if (normalized !== selected) {
+      setSelected(normalized);
     }
   }, [fixedRole]);
 
@@ -40,21 +38,34 @@ export const RoleBadgeSelector = ({
     setCustomBadge(customRole || "");
   }, [customRole]);
 
-  // ✅ 고정 뱃지 클릭
+  // ✅ Fixed badge click handler
   const handleSelect = (badge: string) => {
     setSelected(badge);
     onFixedRoleChange?.(badge);
   };
 
-  // ✅ 추가 뱃지 입력 (직접입력)
+  // ✅ Custom badge change handler with optimistic UI
   const handleCustomBadgeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newBadge = e.target.value.slice(0, 12); // 최대 12자 제한
     setCustomBadge(newBadge);
   };
 
-  const handleCustomBadgeBlur = () => {
+  // ✅ Custom badge blur handler - save to DB
+  const handleCustomBadgeBlur = async () => {
     const trimmed = customBadge.trim();
-    onCustomRoleChange?.(trimmed); // ✅ 상위 반영
+    
+    // Skip if no change
+    if (trimmed === customRole?.trim()) return;
+    
+    // Optimistic UI update
+    setIsCustomBadgeSaving(true);
+    
+    try {
+      // Call parent handler
+      await onCustomRoleChange?.(trimmed);
+    } finally {
+      setIsCustomBadgeSaving(false);
+    }
   };
 
   return (
@@ -69,10 +80,7 @@ export const RoleBadgeSelector = ({
               variant={selected === role ? "default" : "outline"}
               className={cn(
                 "cursor-pointer px-3 py-1.5 rounded-full text-xs font-medium transition-all",
-                selected === role && role === '좌장' && "bg-[#6E59F6] text-white hover:bg-[#6E59F6]/90",
-                selected === role && role === '연자' && "bg-[#3B82F6] text-white hover:bg-[#3B82F6]/90",
-                selected === role && role === '참석자' && "bg-[#9CA3AF] text-white hover:bg-[#9CA3AF]/90",
-                selected !== role && "hover:bg-muted"
+                selected === role ? getRoleBadgeColor(role) : "hover:bg-muted"
               )}
               onClick={() => handleSelect(role)}
             >
@@ -96,7 +104,11 @@ export const RoleBadgeSelector = ({
             }
           }}
           maxLength={12}
-          className="h-8 text-sm"
+          disabled={isCustomBadgeSaving}
+          className={cn(
+            "h-8 text-sm",
+            isCustomBadgeSaving && "opacity-50 cursor-wait"
+          )}
         />
         <p className="text-xs text-muted-foreground">
           좌장/연자/참석자는 상호배타(1개), 추가 뱃지는 1개만 입력 가능합니다.

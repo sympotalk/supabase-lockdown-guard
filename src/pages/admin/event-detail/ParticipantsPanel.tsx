@@ -31,6 +31,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useParticipantsPanel } from "@/state/participantsPanel";
 import { cn } from "@/lib/utils";
+import { normalizeParticipants } from "@/lib/participantUtils";
 import useSWR from "swr";
 import "@/styles/participants.css";
 
@@ -120,9 +121,10 @@ export default function ParticipantsPanel({ onMutate }: ParticipantsPanelProps) 
 
       if (error) throw error;
       
-      // [71-I.QA3-FIX.R7] Direct mapping to DB schema
-      console.log("[71-I.QA3-FIX.R7] Loaded participants:", (data || []).length);
-      return data as Participant[];
+      // [Phase 73-L.7.26] Apply normalization before returning
+      const normalized = normalizeParticipants(data || []);
+      console.log("[71-I.QA3-FIX.R7] Loaded participants:", normalized.length);
+      return normalized;
     },
     { 
       revalidateOnFocus: false, 

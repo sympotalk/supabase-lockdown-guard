@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useParticipantsPanel } from "@/state/participantsPanel";
 import { cn } from "@/lib/utils";
+import { normalizeRoleBadge, getRoleBadgeColor } from "@/lib/participantUtils";
 import { useState, useEffect } from "react";
 
 interface Participant {
@@ -41,22 +42,11 @@ function parseBadges(memo: string | undefined): Array<{ label: string }> {
   return items.slice(0, 2).map((label) => ({ label }));
 }
 
-// [72-RM.BADGE.PANEL] Display-only role badge cell - click to open panel
+// [Phase 73-L.7.26] Display-only role badge cell - click to open panel
 function RoleBadgeCell({ participant, onClick }: { participant: Participant; onClick: () => void }) {
-  const { fixed_role, custom_role } = participant;
-
-  const getRoleBadgeColor = (role: string) => {
-    switch(role) {
-      case '좌장':
-        return 'bg-[#6E59F6] text-white border-transparent';
-      case '연자':
-        return 'bg-[#3B82F6] text-white border-transparent';
-      case '참석자':
-        return 'bg-[#9CA3AF] text-white border-transparent';
-      default:
-        return 'bg-muted text-muted-foreground';
-    }
-  };
+  // [Phase 73-L.7.26] Normalize fixed_role to prevent "선택" from showing
+  const fixed_role = normalizeRoleBadge(participant.fixed_role);
+  const { custom_role } = participant;
 
   return (
     <div 
@@ -66,22 +56,16 @@ function RoleBadgeCell({ participant, onClick }: { participant: Participant; onC
         onClick();
       }}
     >
-      {/* Fixed role badge */}
-      {fixed_role ? (
-        <Badge 
-          variant="outline" 
-          className={cn(
-            "text-xs px-2.5 py-0.5 rounded-full",
-            getRoleBadgeColor(fixed_role)
-          )}
-        >
-          {fixed_role}
-        </Badge>
-      ) : (
-        <Badge variant="outline" className="text-xs px-2.5 py-0.5 rounded-full bg-muted text-muted-foreground">
-          선택
-        </Badge>
-      )}
+      {/* Fixed role badge - always shows normalized value */}
+      <Badge 
+        variant="outline" 
+        className={cn(
+          "text-xs px-2.5 py-0.5 rounded-full",
+          getRoleBadgeColor(fixed_role)
+        )}
+      >
+        {fixed_role}
+      </Badge>
 
       {/* Custom role badge */}
       {custom_role && (
