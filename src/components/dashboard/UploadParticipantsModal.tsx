@@ -59,7 +59,7 @@ export function UploadParticipantsModal({
   // [Phase 73-L.3] Enhanced column mapping for 13-column format
   const normalizeColumns = (record: any): any => {
     const columnMap: Record<string, string> = {
-      // Customer fields
+      // Customer fields (Korean)
       "고객 성명": "고객 성명",
       "고객성명": "고객 성명",
       "성명": "고객 성명",
@@ -72,6 +72,12 @@ export function UploadParticipantsModal({
       "연락처": "고객 연락처",
       "전화번호": "고객 연락처",
       "메모": "메모",
+      
+      // Customer fields (English aliases)
+      "customer_name": "고객 성명",
+      "customer_phone": "고객 연락처",
+      "client_name": "고객 성명",
+      "client_phone": "고객 연락처",
       
       // Manager fields
       "팀명": "팀명",
