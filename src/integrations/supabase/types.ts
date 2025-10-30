@@ -419,19 +419,31 @@ export type Database = {
         Row: {
           agency_id: string
           created_at: string | null
+          display_name: string | null
+          phone: string | null
+          position: string | null
           role: string
+          updated_at: string | null
           user_id: string
         }
         Insert: {
           agency_id: string
           created_at?: string | null
+          display_name?: string | null
+          phone?: string | null
+          position?: string | null
           role: string
+          updated_at?: string | null
           user_id: string
         }
         Update: {
           agency_id?: string
           created_at?: string | null
+          display_name?: string | null
+          phone?: string | null
+          position?: string | null
           role?: string
+          updated_at?: string | null
           user_id?: string
         }
         Relationships: [

@@ -12,6 +12,13 @@ import { useUser } from "@/context/UserContext";
 export default function Profile() {
   const { user, loading: userLoading } = useUser();
   const [loading, setLoading] = useState(false);
+  const [hasChanges, setHasChanges] = useState(false);
+  const [initialData, setInitialData] = useState({
+    display_name: "",
+    email: "",
+    phone: "",
+    position: "",
+  });
   const [formData, setFormData] = useState({
     display_name: "",
     email: "",
@@ -23,17 +30,40 @@ export default function Profile() {
     if (user) {
       // Load from auth.users metadata
       const metadata = (user as any).user_metadata || {};
-      setFormData({
+      const data = {
         display_name: metadata.display_name || metadata.full_name || "",
         email: (user as any).email || "",
         phone: metadata.phone || "",
         position: metadata.position || "",
-      });
+      };
+      setFormData(data);
+      setInitialData(data);
     }
   }, [user]);
 
+  useEffect(() => {
+    // Check if form has changes
+    const changed = 
+      formData.display_name !== initialData.display_name ||
+      formData.phone !== initialData.phone ||
+      formData.position !== initialData.position;
+    setHasChanges(changed);
+  }, [formData, initialData]);
+
   const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Validation
+    if (!formData.display_name?.trim()) {
+      toast.error("이름을 입력해주세요");
+      return;
+    }
+
+    if (!formData.phone?.trim()) {
+      toast.error("연락처를 입력해주세요");
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -51,7 +81,12 @@ export default function Profile() {
         throw new Error(result?.message || "프로필 저장에 실패했습니다");
       }
 
-      toast.success("프로필이 저장되었습니다");
+      toast.success(result?.message || "프로필이 저장되었습니다");
+      
+      // Update initial data to reset change tracking
+      setInitialData(formData);
+      setHasChanges(false);
+
     } catch (error: any) {
       console.error("[Profile] Save error:", error);
       toast.error(error.message || "저장에 실패했습니다. 다시 시도해주세요.");
@@ -87,7 +122,9 @@ export default function Profile() {
           <CardContent>
             <form onSubmit={handleSaveProfile} className="space-y-6">
               <div className="space-y-2">
-                <Label htmlFor="display_name">이름</Label>
+                <Label htmlFor="display_name">
+                  이름 <span className="text-destructive">*</span>
+                </Label>
                 <div className="relative">
                   <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                   <Input
@@ -98,6 +135,7 @@ export default function Profile() {
                     }
                     className="pl-9"
                     placeholder="홍길동"
+                    required
                   />
                 </div>
               </div>
@@ -120,7 +158,9 @@ export default function Profile() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="phone">연락처</Label>
+                <Label htmlFor="phone">
+                  연락처 <span className="text-destructive">*</span>
+                </Label>
                 <div className="relative">
                   <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                   <Input
@@ -131,6 +171,7 @@ export default function Profile() {
                     }
                     className="pl-9"
                     placeholder="010-1234-5678"
+                    required
                   />
                 </div>
               </div>
@@ -151,10 +192,20 @@ export default function Profile() {
                 </div>
               </div>
 
-              <Button type="submit" disabled={loading} className="w-full">
+              <Button 
+                type="submit" 
+                disabled={loading || !hasChanges} 
+                className="w-full"
+              >
                 <Save className="h-4 w-4 mr-2" />
                 {loading ? "저장 중..." : "저장"}
               </Button>
+
+              {!hasChanges && (
+                <p className="text-xs text-muted-foreground text-center">
+                  변경사항이 없습니다
+                </p>
+              )}
             </form>
           </CardContent>
         </Card>
