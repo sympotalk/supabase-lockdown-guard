@@ -27,6 +27,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import "@/styles/participants.css";
 
+// [Phase 73-L.7.31-D] Complete participant interface with all DB fields
 interface Participant {
   id: string;
   name: string;
@@ -34,12 +35,14 @@ interface Participant {
   phone?: string;
   email?: string;
   memo?: string;
+  request_note?: string; // [Phase 73-L.7.31-D] Missing field
   team_name?: string;
   manager_name?: string;
   manager_phone?: string;
   manager_info?: any;
   sfe_agency_code?: string;
   sfe_customer_code?: string;
+  sfe_company_code?: string; // [Phase 73-L.7.31-D] Missing field
   fixed_role?: string;
   custom_role?: string;
   participant_no?: number;
@@ -450,19 +453,33 @@ export function DrawerPanel({ participants, onUpdate }: DrawerPanelProps) {
             </div>
           </DrawerSection>
 
+          {/* [Phase 73-L.7.31-D] Request Note Section */}
+          <DrawerSection title="요청사항" icon={<Mail className="h-4 w-4" />}>
+            <div className="space-y-2">
+              <Label className="text-xs">참가자 요청사항</Label>
+              <Textarea
+                value={localData?.request_note || ""}
+                onChange={(e) => setLocalData({ ...localData, request_note: e.target.value })}
+                onBlur={(e) => handleFieldChange("request_note", e.target.value)}
+                placeholder="특이사항이나 요청사항을 입력하세요..."
+                className="min-h-[80px] resize-none text-sm"
+              />
+            </div>
+          </DrawerSection>
+
           {/* Manager Info */}
           <DrawerSection title="담당자 정보" icon={<Building2 className="h-4 w-4" />}>
             <div className="space-y-2">
               <div className="space-y-1">
                 <Label className="text-xs">팀명</Label>
                 <Input
-                  value={localData?.manager_info?.team_name || localData?.team_name || ""}
+                  value={localData?.manager_info?.team || localData?.team_name || ""}
                   onChange={(e) => {
-                    const newInfo = { ...(localData.manager_info || {}), team_name: e.target.value };
+                    const newInfo = { ...(localData.manager_info || {}), team: e.target.value };
                     setLocalData({ ...localData, manager_info: newInfo });
                   }}
                   onBlur={(e) => {
-                    const newInfo = { ...(localData?.manager_info || {}), team_name: e.target.value };
+                    const newInfo = { ...(localData?.manager_info || {}), team: e.target.value };
                     handleFieldChange("manager_info", newInfo);
                   }}
                   placeholder="예: 영업1팀"
@@ -472,13 +489,13 @@ export function DrawerPanel({ participants, onUpdate }: DrawerPanelProps) {
               <div className="space-y-1">
                 <Label className="text-xs">담당자 성명</Label>
                 <Input
-                  value={localData?.manager_info?.manager_name || localData?.manager_name || ""}
+                  value={localData?.manager_info?.name || localData?.manager_name || ""}
                   onChange={(e) => {
-                    const newInfo = { ...(localData.manager_info || {}), manager_name: e.target.value };
+                    const newInfo = { ...(localData.manager_info || {}), name: e.target.value };
                     setLocalData({ ...localData, manager_info: newInfo });
                   }}
                   onBlur={(e) => {
-                    const newInfo = { ...(localData?.manager_info || {}), manager_name: e.target.value };
+                    const newInfo = { ...(localData?.manager_info || {}), name: e.target.value };
                     handleFieldChange("manager_info", newInfo);
                   }}
                   placeholder="예: 홍길동"
@@ -498,6 +515,22 @@ export function DrawerPanel({ participants, onUpdate }: DrawerPanelProps) {
                     handleFieldChange("manager_info", newInfo);
                   }}
                   placeholder="예: 010-1234-5678"
+                  className="h-8 text-sm"
+                />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs">담당자 사번</Label>
+                <Input
+                  value={localData?.manager_info?.emp_id || ""}
+                  onChange={(e) => {
+                    const newInfo = { ...(localData.manager_info || {}), emp_id: e.target.value };
+                    setLocalData({ ...localData, manager_info: newInfo });
+                  }}
+                  onBlur={(e) => {
+                    const newInfo = { ...(localData?.manager_info || {}), emp_id: e.target.value };
+                    handleFieldChange("manager_info", newInfo);
+                  }}
+                  placeholder="예: EMP001"
                   className="h-8 text-sm"
                 />
               </div>
@@ -763,6 +796,16 @@ export function DrawerPanel({ participants, onUpdate }: DrawerPanelProps) {
           <DrawerSection title="SFE 코드" icon={<Code className="h-4 w-4" />} defaultOpen={false}>
             <div className="space-y-2">
               <div className="space-y-1">
+                <Label className="text-xs">Company Code (거래처코드)</Label>
+                <Input
+                  value={localData?.sfe_company_code || ""}
+                  onChange={(e) => setLocalData({ ...localData, sfe_company_code: e.target.value })}
+                  onBlur={(e) => handleFieldChange("sfe_company_code", e.target.value)}
+                  placeholder="예: CO001"
+                  className="h-8 text-sm font-mono"
+                />
+              </div>
+              <div className="space-y-1">
                 <Label className="text-xs">Agency Code</Label>
                 <Input
                   value={localData?.sfe_agency_code || ""}
@@ -773,7 +816,7 @@ export function DrawerPanel({ participants, onUpdate }: DrawerPanelProps) {
                 />
               </div>
               <div className="space-y-1">
-                <Label className="text-xs">Customer Code</Label>
+                <Label className="text-xs">Customer Code (고객코드)</Label>
                 <Input
                   value={localData?.sfe_customer_code || ""}
                   onChange={(e) => setLocalData({ ...localData, sfe_customer_code: e.target.value })}
