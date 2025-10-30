@@ -7,7 +7,7 @@ interface Participant {
   organization?: string;
   phone?: string;
   email?: string;
-  memo?: string;
+  request_note?: string;
   team_name?: string;
   manager_name?: string;
   manager_phone?: string;
@@ -101,7 +101,7 @@ export function exportParticipantsToExcel(
       "객실타입": r.room_type || "",
       "숙박현황": r.stay_status || r.lodging_status || "",
       "성인/소아": guestComposition,
-      "요청사항": r.memo || "",
+      "요청사항": r.request_note || "",
       "상태": r.status || r.attendance_status || "",
       "등록일": createdDate,
     };

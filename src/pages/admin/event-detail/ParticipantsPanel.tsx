@@ -43,12 +43,12 @@ interface Participant {
   organization?: string;
   phone?: string;
   email?: string;
-  memo?: string;
+  request_note?: string;
   team_name?: string;
   manager_name?: string;
   manager_phone?: string;
   manager_info?: any;
-  sfe_agency_code?: string;
+  sfe_company_code?: string;
   sfe_customer_code?: string;
   status?: string;
   classification?: string;
