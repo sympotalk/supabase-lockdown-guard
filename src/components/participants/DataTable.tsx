@@ -5,7 +5,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { useParticipantsPanel } from "@/state/participantsPanel";
 import { cn } from "@/lib/utils";
 import { normalizeRoleBadge, getRoleBadgeColor } from "@/lib/participantUtils";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 interface Participant {
   id: string;
@@ -34,6 +34,7 @@ interface DataTableProps {
   participants: Participant[];
   selectedIds: string[];
   onSelectChange: (ids: string[]) => void;
+  highlightedId?: string | null; // [Phase 73-L.7.30] ID of newly added participant
 }
 
 function parseBadges(memo: string | undefined): Array<{ label: string }> {
@@ -80,9 +81,11 @@ function RoleBadgeCell({ participant, onClick }: { participant: Participant; onC
   );
 }
 
-export function DataTable({ participants, selectedIds, onSelectChange }: DataTableProps) {
+export function DataTable({ participants, selectedIds, onSelectChange, highlightedId }: DataTableProps) {
   const { open } = useParticipantsPanel();
   const [displayData, setDisplayData] = useState<Participant[]>([]);
+  // [Phase 73-L.7.30] Ref to track highlighted row for scroll
+  const highlightedRowRef = useRef<HTMLTableRowElement>(null);
 
   // [Phase 73-L.7.15] Role priority sort + Korean name sort + auto numbering
   useEffect(() => {
@@ -136,6 +139,21 @@ export function DataTable({ participants, selectedIds, onSelectChange }: DataTab
   const handleRowClick = (id: string) => {
     open(id);
   };
+
+  // [Phase 73-L.7.30] Auto-scroll and highlight newly added participant
+  useEffect(() => {
+    if (highlightedId && highlightedRowRef.current) {
+      // Small delay to ensure DOM is rendered
+      const timer = setTimeout(() => {
+        highlightedRowRef.current?.scrollIntoView({
+          behavior: 'smooth',
+          block: 'center',
+        });
+      }, 300);
+
+      return () => clearTimeout(timer);
+    }
+  }, [highlightedId]);
 
   // [Phase 72–RM.TM.STATUS.UNIFY] Get call status color
   const getCallStatusColor = (status: string) => {
@@ -195,12 +213,20 @@ export function DataTable({ participants, selectedIds, onSelectChange }: DataTab
           </TableRow>
         </TableHeader>
         <TableBody className="bg-card transition-colors duration-150">
-          {displayData.map((participant, index) => (
-            <TableRow
-              key={participant.id}
-              className="participant-row transition-all duration-150 cursor-pointer last:rounded-b-2xl border-b border-border hover:bg-accent"
-              onClick={() => handleRowClick(participant.id)}
-            >
+          {displayData.map((participant, index) => {
+            // [Phase 73-L.7.30] Check if this is the highlighted row
+            const isHighlighted = highlightedId === participant.id;
+            
+            return (
+              <TableRow
+                key={participant.id}
+                ref={isHighlighted ? highlightedRowRef : null}
+                className={cn(
+                  "participant-row transition-all duration-500 cursor-pointer last:rounded-b-2xl border-b border-border hover:bg-accent",
+                  isHighlighted && "bg-primary/10 animate-pulse"
+                )}
+                onClick={() => handleRowClick(participant.id)}
+              >
               <TableCell className="py-2.5 px-4" onClick={(e) => e.stopPropagation()}>
                 <Checkbox
                   checked={selectedIds.includes(participant.id)}
@@ -323,7 +349,8 @@ export function DataTable({ participants, selectedIds, onSelectChange }: DataTab
                 }).replace(/\. /g, '.').replace(/\.$/, '')}
               </TableCell>
             </TableRow>
-          ))}
+            );
+          })}
         </TableBody>
       </Table>
     </div>

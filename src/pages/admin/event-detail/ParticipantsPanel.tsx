@@ -94,6 +94,8 @@ export default function ParticipantsPanel({ onMutate }: ParticipantsPanelProps) 
   const [uploadOpen, setUploadOpen] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  // [Phase 73-L.7.30] Track newly added participant for highlight/scroll
+  const [highlightedId, setHighlightedId] = useState<string | null>(null);
 
   // [71-I] Enforce event context
   if (!eventId || !agencyScope) {
@@ -190,6 +192,25 @@ export default function ParticipantsPanel({ onMutate }: ParticipantsPanelProps) 
   }, [eventId, mutate]);
 
   // [Phase 72–RM.EXPORT.SORT.UNIFY] Export with automatic sorting
+  // [Phase 73-L.7.30] Handle new participant added
+  const handleParticipantAdded = (newId?: string) => {
+    console.log("[Phase 73-L.7.30] New participant added:", newId);
+    
+    // Refresh list immediately
+    mutate();
+    onMutate?.();
+    
+    // Set highlighted ID for scroll and highlight
+    if (newId) {
+      setHighlightedId(newId);
+      
+      // Clear highlight after 2 seconds
+      setTimeout(() => {
+        setHighlightedId(null);
+      }, 2000);
+    }
+  };
+
   const handleExport = async (mode: ExportMode = 'work') => {
     if (!participants || participants.length === 0) {
       toast.error("내보낼 데이터가 없습니다");
@@ -399,6 +420,7 @@ export default function ParticipantsPanel({ onMutate }: ParticipantsPanelProps) 
                   participants={filteredParticipants}
                   selectedIds={selectedIds}
                   onSelectChange={setSelectedIds}
+                  highlightedId={highlightedId}
                 />
               )}
             </CardContent>
@@ -416,10 +438,7 @@ export default function ParticipantsPanel({ onMutate }: ParticipantsPanelProps) 
         <CreateParticipantModal
           open={createOpen}
           onOpenChange={setCreateOpen}
-          onSuccess={() => {
-            mutate();
-            onMutate?.();
-          }}
+          onSuccess={handleParticipantAdded}
         />
       </div>
 

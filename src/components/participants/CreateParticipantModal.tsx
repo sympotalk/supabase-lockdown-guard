@@ -23,7 +23,7 @@ import { cn } from "@/lib/utils";
 interface CreateParticipantModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSuccess?: () => void;
+  onSuccess?: (newParticipantId?: string) => void;
 }
 
 const roleBadgeOptions = ["참석자", "좌장", "연자", "패널", "스폰서"];
@@ -82,46 +82,51 @@ export function CreateParticipantModal({
           }
         : null;
 
-      const { error } = await supabase.from("participants").insert({
-        event_id: eventId,
-        agency_id: agencyScope,
-        role_badge: formData.role_badge,
-        fixed_role: formData.role_badge,
-        participant_name: formData.participant_name.trim(),
-        company_name: formData.company_name.trim(),
-        phone: formData.phone.trim() || null,
-        request_note: formData.request_note.trim() || null,
-        sfe_company_code: formData.sfe_company_code.trim() || null,
-        sfe_customer_code: formData.sfe_customer_code.trim() || null,
-        manager_info: managerInfo,
-        created_at: new Date().toISOString(),
-        delete_flag: false,
-      } as any);
+      // [Phase 73-L.7.30] Insert and capture new participant ID
+      const { data: newParticipant, error } = await supabase
+        .from("participants")
+        .insert({
+          event_id: eventId,
+          agency_id: agencyScope,
+          role_badge: formData.role_badge,
+          fixed_role: formData.role_badge,
+          participant_name: formData.participant_name.trim(),
+          company_name: formData.company_name.trim(),
+          phone: formData.phone.trim() || null,
+          request_note: formData.request_note.trim() || null,
+          sfe_company_code: formData.sfe_company_code.trim() || null,
+          sfe_customer_code: formData.sfe_customer_code.trim() || null,
+          manager_info: managerInfo,
+          created_at: new Date().toISOString(),
+          delete_flag: false,
+        } as any)
+        .select("id")
+        .single();
 
       if (error) throw error;
 
-      // [Phase 73-L.7.29] Success feedback with 0.6s delay before close
+      // [Phase 73-L.7.30] Success feedback and pass new ID
+      const newId = newParticipant?.id;
       toast.success("✅ 새 참가자가 추가되었습니다", { duration: 2500 });
       
-      // Delay modal close for smooth UX
-      setTimeout(() => {
-        // Reset form
-        setFormData({
-          role_badge: "참석자",
-          participant_name: "",
-          company_name: "",
-          phone: "",
-          request_note: "",
-          sfe_company_code: "",
-          sfe_customer_code: "",
-          manager_team: "",
-          manager_name: "",
-          manager_phone: "",
-          manager_emp_id: "",
-        });
-        onOpenChange(false);
-        onSuccess?.();
-      }, 600);
+      // Reset form immediately for next use
+      setFormData({
+        role_badge: "참석자",
+        participant_name: "",
+        company_name: "",
+        phone: "",
+        request_note: "",
+        sfe_company_code: "",
+        sfe_customer_code: "",
+        manager_team: "",
+        manager_name: "",
+        manager_phone: "",
+        manager_emp_id: "",
+      });
+      
+      // Close modal and trigger success callback with new ID
+      onOpenChange(false);
+      onSuccess?.(newId);
     } catch (error: any) {
       console.error("[CreateParticipant] Error:", error);
       
