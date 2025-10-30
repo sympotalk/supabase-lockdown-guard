@@ -144,7 +144,9 @@ export default function Signup() {
           emailRedirectTo: `${window.location.origin}/`,
           data: {
             full_name: formData.name,
+            display_name: formData.name,
             phone: formData.phone,
+            position: formData.position,
           },
         },
       });
@@ -157,30 +159,31 @@ export default function Signup() {
         throw new Error("회원가입에 실패했습니다");
       }
 
-      // 2. Activate account using RPC (creates profile and links to agency)
-      const { data: activateData, error: activateError } = await supabase.rpc(
-        "rpc_activate_account",
-        { token: inviteId }
+      // 2. [Phase 74-A] Accept invite and link to agency
+      const { data: linkData, error: linkError } = await supabase.rpc(
+        "accept_invite_and_link",
+        { p_token: inviteId }
       );
 
-      const activateResult = activateData as any;
+      const linkResult = linkData as any;
 
-      if (activateError || activateResult?.status === "error") {
-        throw new Error(activateResult?.message || "계정 활성화에 실패했습니다");
+      if (linkError || linkResult?.status === "error") {
+        throw new Error(linkResult?.message || "에이전시 연결에 실패했습니다");
       }
 
       setFormState(UIState.SUCCESS);
-      toast.success(PD_MESSAGES.success.signupComplete);
-      announce(PD_MESSAGES.success.signupComplete);
+      
+      // [Phase 74-A] Show onboarding toast
+      const onboardingMessage = linkResult?.already_linked 
+        ? "계정이 확인되었습니다"
+        : "에이전시에 연결되었습니다";
+      
+      toast.success(onboardingMessage);
+      announce(onboardingMessage);
 
-      // Navigate based on role
+      // Navigate to admin dashboard (all agency users)
       setTimeout(() => {
-        const role = activateResult?.role || "staff";
-        if (role === "master") {
-          navigate("/admin/dashboard");
-        } else {
-          navigate("/agency/profile");
-        }
+        navigate("/admin/dashboard");
       }, 1200);
     } catch (error: any) {
       console.error("가입 오류:", error);

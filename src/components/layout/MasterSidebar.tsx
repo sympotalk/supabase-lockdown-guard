@@ -5,6 +5,7 @@ import {
   ScrollText,
   Users,
   FileText,
+  Link2,
 } from "lucide-react";
 import {
   Sidebar as ShadcnSidebar,
@@ -33,6 +34,11 @@ const masterMenuItems = [
     title: "계정 관리",
     icon: Users,
     url: "/master/account",
+  },
+  {
+    title: "Orphan 복구",
+    icon: Link2,
+    url: "/master/orphan-linker",
   },
   {
     title: "QA 리포트",

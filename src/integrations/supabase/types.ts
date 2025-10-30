@@ -6783,6 +6783,7 @@ export type Database = {
       }
     }
     Functions: {
+      accept_invite_and_link: { Args: { p_token: string }; Returns: Json }
       ai_participant_import_from_excel: {
         Args: { p_data: Json; p_event_id: string; p_replace?: boolean }
         Returns: Json
@@ -7022,6 +7023,16 @@ export type Database = {
         }[]
       }
       get_latest_declaration: { Args: never; Returns: Json }
+      get_orphan_users: {
+        Args: never
+        Returns: {
+          created_at: string
+          display_name: string
+          email: string
+          last_sign_in_at: string
+          user_id: string
+        }[]
+      }
       get_qa_checklist_summary: {
         Args: never
         Returns: {
@@ -7182,6 +7193,10 @@ export type Database = {
         Returns: Json
       }
       is_master: { Args: { uid: string }; Returns: boolean }
+      link_orphan_user: {
+        Args: { p_agency_id: string; p_role?: string; p_user_id: string }
+        Returns: Json
+      }
       log_policy_test: {
         Args: {
           _action: string
@@ -7218,6 +7233,15 @@ export type Database = {
       ops_execute: {
         Args: { _payload?: Json; _playbook_key: string; _trigger: string }
         Returns: string
+      }
+      profile_update_and_sync: {
+        Args: {
+          p_avatar_url?: string
+          p_display_name?: string
+          p_phone?: string
+          p_position?: string
+        }
+        Returns: Json
       }
       refresh_cache: {
         Args: { _key: string; _payload: Json }

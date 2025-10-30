@@ -15,6 +15,7 @@ import Dashboard from "./pages/admin/Dashboard";
 import MasterDashboard from "./pages/master/Dashboard";
 import MasterAgencies from "./pages/master/Agencies";
 import MasterAccountManager from "./pages/master/MasterAccountManager";
+import MasterOrphanLinker from "./pages/master/OrphanLinker";
 import MasterLogs from "./pages/master/Logs";
 import MasterAlertHistory from "./pages/master/AlertHistory";
 import MasterQAReports from "./pages/master/QAReports";
@@ -64,6 +65,7 @@ const App = () => (
               <Route path="dashboard" element={<MasterDashboard />} />
               <Route path="agencies" element={<MasterAgencies />} />
               <Route path="account" element={<MasterAccountManager />} />
+              <Route path="orphan-linker" element={<MasterOrphanLinker />} />
               <Route path="logs" element={<MasterLogs />} />
               <Route path="alert-history" element={<MasterAlertHistory />} />
               <Route path="qa-reports" element={<MasterQAReports />} />
