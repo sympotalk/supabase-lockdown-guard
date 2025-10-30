@@ -7075,6 +7075,7 @@ export type Database = {
         Returns: undefined
       }
       restore_tm_status: { Args: { p_log_id: string }; Returns: Json }
+      rooming_auto_assign: { Args: { p_event_id: string }; Returns: Json }
       rpc_activate_account: { Args: { token: string }; Returns: Json }
       rpc_create_agency: {
         Args: {
@@ -7198,7 +7199,7 @@ export type Database = {
         | "staff"
         | "viewer"
         | "guest"
-      rooming_status: "대기" | "배정" | "확정" | "취소"
+      rooming_status: "대기" | "배정" | "확정" | "취소" | "배정완료"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -7328,7 +7329,7 @@ export const Constants = {
     Enums: {
       ai_agent_role: ["insight", "analysis", "advisor", "visual"],
       app_role: ["master", "agency_owner", "admin", "staff", "viewer", "guest"],
-      rooming_status: ["대기", "배정", "확정", "취소"],
+      rooming_status: ["대기", "배정", "확정", "취소", "배정완료"],
     },
   },
 } as const
