@@ -56,7 +56,7 @@ export function UploadParticipantsModal({
     }
   }, [open, activeEventId, onOpenChange, toast]);
 
-  // [Phase 73-L.2] AI Column Mapping for 13-column format (simplified)
+  // [Phase 73-L.3] Enhanced column mapping for 13-column format
   const normalizeColumns = (record: any): any => {
     const columnMap: Record<string, string> = {
       // Customer fields
@@ -95,6 +95,8 @@ export function UploadParticipantsModal({
       
       // Optional metadata
       "행사명": "행사명",
+      "등록 일시": "등록 일시",
+      "등록일시": "등록 일시",
       "삭제유무": "삭제유무"
     };
 
@@ -168,10 +170,10 @@ export function UploadParticipantsModal({
     reader.readAsArrayBuffer(uploadedFile);
   };
 
-  // [Phase 73-L.2] Upload with Replace mode support
+  // [Phase 73-L.3] Upload with Replace mode using new RPC
   const handleUpload = async () => {
     if (!agencyScope || !activeEventId) {
-      console.warn("[Phase 73-L.2] Missing scope →", {
+      console.warn("[Phase 73-L.3] Missing scope →", {
         agencyScope,
         eventId: activeEventId
       });
@@ -192,36 +194,35 @@ export function UploadParticipantsModal({
     }
     
     setUploading(true);
-    console.info("[Phase 73-L.2] Uploading rows:", parsedRows.length, "to event:", activeEventId, "Replace mode:", replaceMode);
+    console.info("[Phase 73-L.3] Uploading rows:", parsedRows.length, "to event:", activeEventId, "Mode:", replaceMode ? 'replace' : 'update');
     
     try {
+      // [Phase 73-L.3] Call new RPC with explicit typing
       const { data, error } = await supabase.rpc('ai_participant_import_from_excel', {
         p_event_id: activeEventId,
         p_data: parsedRows,
         p_replace: replaceMode
-      });
+      }) as { data: any; error: any };
       
       if (error) {
-        console.error("[Phase 73-L.2] RPC upload error →", error);
+        console.error("[Phase 73-L.3] RPC upload error →", error);
         throw error;
       }
       
-      console.log("[Phase 73-L.2] RPC response →", data);
-      const result = data as {
-        success: boolean;
-        total: number;
-        deleted: number;
-        mode: string;
-        event_id?: string;
-        agency_id?: string;
-        session_id?: string;
+      console.log("[Phase 73-L.3] RPC response →", data);
+      const result = {
+        success: data?.success ?? true,
+        inserted: data?.total ?? data?.inserted ?? 0,
+        updated: data?.updated ?? 0,
+        skipped: data?.skipped ?? 0,
+        skipped_rows: data?.skipped_rows ?? []
       };
 
       // Invalidate cache
       if (agencyScope) {
         const cacheKey = `participants_${agencyScope}_${activeEventId}`;
         await mutate(cacheKey);
-        console.info("[Phase 73-L.2] Cache invalidated:", cacheKey);
+        console.info("[Phase 73-L.3] Cache invalidated:", cacheKey);
       }
       
       mutate('event_progress_view');
@@ -230,12 +231,22 @@ export function UploadParticipantsModal({
       if (replaceMode) {
         toast({
           title: "전체 교체 완료",
-          description: `기존 참가자 ${result.deleted ?? 0}명을 삭제하고 새로 ${result.total ?? 0}명을 업로드했습니다.`
+          description: `기존 참가자를 삭제하고 ${result.inserted ?? 0}명을 새로 업로드했습니다.`
         });
       } else {
         toast({
           title: "업로드 완료",
-          description: `총 ${result.total ?? 0}명 처리 완료. 담당자정보·SFE코드 자동 매핑됨.`
+          description: `${result.inserted ?? 0}명 추가, ${result.updated ?? 0}명 업데이트. 담당자정보·SFE코드 자동 매핑됨.`
+        });
+      }
+
+      // Show skipped rows if any
+      if (result.skipped > 0) {
+        console.warn("[Phase 73-L.3] Skipped rows:", result.skipped_rows);
+        toast({
+          title: "일부 행 스킵됨",
+          description: `${result.skipped}개 행을 처리하지 못했습니다. 콘솔을 확인하세요.`,
+          variant: "destructive"
         });
       }
       
@@ -245,7 +256,7 @@ export function UploadParticipantsModal({
       setReplaceMode(false);
       onOpenChange(false);
     } catch (error: any) {
-      console.error("[Phase 73-L.2] Upload failed →", error);
+      console.error("[Phase 73-L.3] Upload failed →", error);
       toast({
         title: "업로드 실패",
         description: error.message ?? "알 수 없는 오류입니다.",
@@ -317,24 +328,29 @@ export function UploadParticipantsModal({
           <div className="flex gap-2 p-3 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-900">
             <AlertCircle className="h-5 w-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
             <div className="text-sm text-blue-800 dark:text-blue-300">
-              <p className="font-medium mb-1">[Phase 73-L.2] 모객 원본 13컬럼 자동 인식</p>
+              <p className="font-medium mb-1">[Phase 73-L.3] 모객 원본 13컬럼 자동 인식</p>
               <ul className="list-disc list-inside space-y-0.5 text-xs">
                 <li>필수: 고객 성명, 고객 연락처</li>
                 <li>자동 매핑: 팀명, 담당자 성명/연락처/사번, 거래처명, SFE 거래처코드, SFE 고객코드, 메모</li>
-                <li>행사명/삭제유무 컬럼은 선택적으로 포함 가능 (없어도 무방)</li>
-                <li>중복 기준: 행사 + 연락처</li>
+                <li>행사명/등록일시/삭제유무 컬럼은 선택적 (없어도 무방)</li>
+                <li>중복 기준: 행사 + 성명 + 연락처</li>
+                <li>담당자/SFE 정보는 manager_info JSON에 저장</li>
               </ul>
             </div>
           </div>
           
-          {/* Preview of parsed rows (first 3) */}
+          {/* Preview of parsed rows (first 5) */}
           {parsedRows.length > 0 && (
             <div className="space-y-2">
-              <p className="text-xs font-medium text-muted-foreground">미리보기 (처음 3명)</p>
-              <div className="max-h-32 overflow-y-auto text-xs bg-muted/30 rounded p-2 space-y-1 font-mono">
-                {parsedRows.slice(0, 3).map((row, idx) => (
+              <p className="text-xs font-medium text-muted-foreground">미리보기 (처음 5명)</p>
+              <div className="max-h-40 overflow-y-auto text-xs bg-muted/30 rounded p-2 space-y-1 font-mono">
+                {parsedRows.slice(0, 5).map((row, idx) => (
                   <div key={idx} className="text-xs">
-                    {idx + 1}. {row['고객 성명']} | {row['거래처명'] || '-'} | {row['고객 연락처'] || '-'} | {row['담당자 성명'] || '-'} | SFE: {row['SFE 거래처코드'] || '-'}/{row['SFE 고객코드'] || '-'}
+                    {idx + 1}. {row['고객 성명']} | {row['거래처명'] || '-'} | {row['고객 연락처'] || '-'}
+                    <br />
+                    <span className="text-muted-foreground ml-4">
+                      담당: {row['담당자 성명'] || '-'} | SFE: {row['SFE 거래처코드'] || '-'}/{row['SFE 고객코드'] || '-'}
+                    </span>
                   </div>
                 ))}
               </div>
