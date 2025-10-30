@@ -7,10 +7,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Spinner } from "@/components/pd/Spinner";
-import { ArrowLeft, Building2, Mail, Calendar, Shield, UserPlus, Copy } from "lucide-react";
+import { ArrowLeft, Building2, Calendar, Shield, Link as LinkIcon, Copy } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
-import { InviteModal } from "@/components/accounts/InviteModal";
 import { format } from "date-fns";
+import { MasterLayout } from "@/components/layout/MasterLayout";
 
 interface Agency {
   id: string;
@@ -37,7 +37,7 @@ export default function AgencyView() {
   const [agency, setAgency] = useState<Agency | null>(null);
   const [invites, setInvites] = useState<InviteRecord[]>([]);
   const [loading, setLoading] = useState(true);
-  const [inviteModalOpen, setInviteModalOpen] = useState(false);
+  const [creatingInvite, setCreatingInvite] = useState(false);
 
   useEffect(() => {
     loadAgency();
@@ -97,6 +97,40 @@ export default function AgencyView() {
     }
   };
 
+  const handleCreateInvite = async () => {
+    if (!agency?.id) return;
+
+    setCreatingInvite(true);
+    try {
+      const { data, error } = await supabase.rpc('create_agency_invite', {
+        p_agency_id: agency.id,
+        p_email: null,
+        p_role: 'staff'
+      });
+
+      if (error) throw error;
+
+      const inviteUrl = `${window.location.origin}/invite?token=${data}`;
+      await navigator.clipboard.writeText(inviteUrl);
+      
+      toast({
+        title: "초대 링크가 생성되어 복사되었습니다",
+        description: "링크를 공유하여 사용자를 초대하세요.",
+      });
+
+      loadInvites();
+    } catch (error: any) {
+      console.error("[AgencyView] Error creating invite:", error);
+      toast({
+        title: "초대 생성 중 오류가 발생했습니다",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setCreatingInvite(false);
+    }
+  };
+
   const copyInviteLink = (token: string) => {
     const inviteUrl = `${window.location.origin}/invite?token=${token}`;
     navigator.clipboard.writeText(inviteUrl);
@@ -122,7 +156,7 @@ export default function AgencyView() {
   }
 
   return (
-    <div className="min-h-screen w-full bg-background p-8">
+    <MasterLayout>
       <div className="mx-auto max-w-5xl space-y-8">
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -145,9 +179,13 @@ export default function AgencyView() {
             <Badge variant={agency.is_active ? "default" : "secondary"} className="text-sm">
               {agency.is_active ? "활성" : "비활성"}
             </Badge>
-            <Button onClick={() => setInviteModalOpen(true)} className="gap-2">
-              <UserPlus className="h-4 w-4" />
-              사용자 초대
+            <Button 
+              onClick={handleCreateInvite} 
+              disabled={creatingInvite}
+              className="gap-2"
+            >
+              <LinkIcon className="h-4 w-4" />
+              {creatingInvite ? "생성 중..." : "초대 링크 생성"}
             </Button>
           </div>
         </div>
@@ -167,13 +205,6 @@ export default function AgencyView() {
               <div>
                 <p className="text-sm font-medium text-muted-foreground">에이전시명</p>
                 <p className="text-base font-semibold text-foreground mt-1">{agency.name}</p>
-              </div>
-              <div>
-                <p className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                  <Mail className="h-4 w-4" />
-                  대표 이메일
-                </p>
-                <p className="text-base text-foreground mt-1">{agency.contact_email || "-"}</p>
               </div>
             </CardContent>
           </Card>
@@ -317,20 +348,6 @@ export default function AgencyView() {
           </CardContent>
         </Card>
       </div>
-
-      <InviteModal
-        open={inviteModalOpen}
-        onOpenChange={setInviteModalOpen}
-        agencyId={agency.id}
-        isMaster={false}
-        onSuccess={() => {
-          loadInvites();
-          toast({
-            title: "초대 완료",
-            description: "초대 링크가 생성되었습니다.",
-          });
-        }}
-      />
-    </div>
+    </MasterLayout>
   );
 }

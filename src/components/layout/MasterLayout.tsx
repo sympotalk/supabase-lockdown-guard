@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, ReactNode } from "react";
 import { useNavigate, useLocation, Outlet } from "react-router-dom";
 import { useUser } from "@/context/UserContext";
 import { Spinner } from "@/components/pd/Spinner";
@@ -7,7 +7,11 @@ import { MasterSidebar } from "./MasterSidebar";
 import { CacheStatus } from "@/components/common/CacheStatus";
 import { SidebarProvider } from "@/components/ui/sidebar";
 
-export function MasterLayout() {
+interface MasterLayoutProps {
+  children?: ReactNode;
+}
+
+export function MasterLayout({ children }: MasterLayoutProps) {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, role, loading, setAgencyScope } = useUser();
@@ -48,7 +52,7 @@ export function MasterLayout() {
         <div className="flex-1 flex flex-col">
           <MasterHeader />
           <main className="flex-1 p-8 pt-24">
-            <Outlet />
+            {children || <Outlet />}
           </main>
         </div>
       </div>
