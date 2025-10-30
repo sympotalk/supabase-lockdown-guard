@@ -267,15 +267,15 @@ export default function ParticipantsPanel({ onMutate }: ParticipantsPanelProps) 
         p.organization?.toLowerCase().includes(searchQuery.toLowerCase())
     )
     .sort((a, b) => {
-      // Role priority: 좌장(0) > 연자(1) > 참석자(2) > others(3)
-      const roleOrder: Record<string, number> = { "좌장": 0, "연자": 1, "참석자": 2 };
-      const rankA = a.fixed_role ? (roleOrder[a.fixed_role] ?? 3) : 3;
-      const rankB = b.fixed_role ? (roleOrder[b.fixed_role] ?? 3) : 3;
+      // [Phase 73-L.7.15] Role priority: 좌장(1) > 연자(2) > 패널(3) > 참석자(4) > others(5)
+      const roleOrder: Record<string, number> = { "좌장": 1, "연자": 2, "패널": 3, "참석자": 4 };
+      const rankA = a.fixed_role ? (roleOrder[a.fixed_role] ?? 5) : 5;
+      const rankB = b.fixed_role ? (roleOrder[b.fixed_role] ?? 5) : 5;
       
       if (rankA !== rankB) return rankA - rankB;
       
-      // If same role, sort alphabetically by name
-      return (a.name || "").localeCompare(b.name || "", "ko");
+      // If same role, sort alphabetically by name (Korean)
+      return (a.name || "").localeCompare(b.name || "", "ko-KR");
     });
 
   if (isLoading) {

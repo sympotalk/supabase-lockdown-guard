@@ -100,16 +100,45 @@ export function DataTable({ participants, selectedIds, onSelectChange }: DataTab
   const { open } = useParticipantsPanel();
   const [displayData, setDisplayData] = useState<Participant[]>([]);
 
-  // [Phase 73-L.7.15] Dynamic index re-sync: sort by name (Korean) and recalculate index
+  // [Phase 73-L.7.15] Role priority sort + Korean name sort + auto numbering
   useEffect(() => {
-    if (participants?.length > 0) {
-      const sorted = [...participants].sort((a, b) =>
-        a.name.localeCompare(b.name, 'ko-KR')
-      );
-      setDisplayData(sorted);
-    } else {
+    if (!participants || participants.length === 0) {
       setDisplayData([]);
+      return;
     }
+
+    // Role priority dictionary
+    const rolePriority: Record<string, number> = {
+      '좌장': 1,
+      '연자': 2,
+      '패널': 3,
+      '참석자': 4,
+    };
+
+    const getPriority = (row: Participant) => {
+      // fixed_role 우선, 없으면 폴백 5 (맨 뒤)
+      const role = row.fixed_role ?? '참석자';
+      return rolePriority[role] ?? 5;
+    };
+
+    const safeName = (name?: string) => (name ?? '').toString().trim();
+
+    // 1) 역할 우선 → 2) 이름 가나다순 → 3) 전화번호 보조
+    const sorted = [...participants].sort((a, b) => {
+      const pa = getPriority(a);
+      const pb = getPriority(b);
+      if (pa !== pb) return pa - pb;
+
+      const na = safeName(a.name);
+      const nb = safeName(b.name);
+      const nameDiff = na.localeCompare(nb, 'ko-KR');
+      if (nameDiff !== 0) return nameDiff;
+
+      // 이름 같을 때 휴대폰 보조 정렬(안정성)
+      return (a.phone ?? '').localeCompare(b.phone ?? '', 'ko-KR');
+    });
+
+    setDisplayData(sorted);
   }, [participants]);
 
   const toggleSelectAll = () => {
