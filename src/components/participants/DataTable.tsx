@@ -13,7 +13,7 @@ interface Participant {
   organization?: string;
   phone?: string;
   email?: string;
-  memo?: string;
+  request_note?: string;
   classification?: string;
   fixed_role?: string;
   custom_role?: string;
@@ -37,11 +37,6 @@ interface DataTableProps {
   highlightedId?: string | null; // [Phase 73-L.7.30] ID of newly added participant
 }
 
-function parseBadges(memo: string | undefined): Array<{ label: string }> {
-  if (!memo) return [];
-  const items = memo.split(" / ").map((s) => s.trim()).filter(Boolean);
-  return items.slice(0, 2).map((label) => ({ label }));
-}
 
 // [Phase 73-L.7.26] Display-only role badge cell - click to open panel
 function RoleBadgeCell({ participant, onClick }: { participant: Participant; onClick: () => void }) {
@@ -264,14 +259,11 @@ export function DataTable({ participants, selectedIds, onSelectChange, highlight
               <TableCell className="py-2.5 px-4 truncate max-w-[160px] whitespace-nowrap overflow-hidden text-ellipsis text-center text-sm text-card-foreground">
                 {participant.phone || "-"}
               </TableCell>
-              <TableCell className="py-2.5 px-4">
-                <div className="flex gap-1 flex-wrap">
-                  {parseBadges(participant.memo).map((badge, idx) => (
-                    <Badge key={idx} variant="outline" className="text-xs">
-                      {badge.label}
-                    </Badge>
-                  ))}
-                </div>
+              <TableCell 
+                className="py-2.5 px-4 text-sm text-muted-foreground truncate max-w-[200px]" 
+                title={participant.request_note || ""}
+              >
+                {participant.request_note || "-"}
               </TableCell>
               {/* [Phase 72–RM.TM.STATUS.UNIFY] TM Status Badge */}
               <TableCell className="py-2.5 px-4">
