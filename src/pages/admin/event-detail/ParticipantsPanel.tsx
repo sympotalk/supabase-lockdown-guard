@@ -25,6 +25,7 @@ import { Badge } from "@/components/ui/badge";
 import { DataTable } from "@/components/participants/DataTable";
 import { DrawerPanel } from "@/components/participants/DrawerPanel";
 import { UploadParticipantsModal } from "@/components/dashboard/UploadParticipantsModal";
+import { CreateParticipantModal } from "@/components/participants/CreateParticipantModal";
 import { exportParticipantsToExcel, type ExportMode } from "@/utils/exportParticipants";
 import { LoadingSkeleton } from "@/components/pd/LoadingSkeleton";
 import { supabase } from "@/integrations/supabase/client";
@@ -91,6 +92,7 @@ export default function ParticipantsPanel({ onMutate }: ParticipantsPanelProps) 
   const { isOpen } = useParticipantsPanel();
   const [searchQuery, setSearchQuery] = useState("");
   const [uploadOpen, setUploadOpen] = useState(false);
+  const [createOpen, setCreateOpen] = useState(false);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
   // [71-I] Enforce event context
@@ -364,11 +366,20 @@ export default function ParticipantsPanel({ onMutate }: ParticipantsPanelProps) 
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-          <Button variant="outline" size="sm" onClick={() => setUploadOpen(true)}>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => setUploadOpen(true)}
+            disabled={uploadOpen}
+          >
             <Upload className="h-4 w-4 mr-2" />
             업로드
           </Button>
-          <Button size="sm">
+          <Button 
+            size="sm"
+            onClick={() => setCreateOpen(true)}
+            disabled={uploadOpen || createOpen}
+          >
             <Plus className="h-4 w-4 mr-2" />
             추가
           </Button>
@@ -399,6 +410,16 @@ export default function ParticipantsPanel({ onMutate }: ParticipantsPanelProps) 
           open={uploadOpen}
           onOpenChange={setUploadOpen}
           events={[{ id: eventId, name: "Current Event" }]}
+        />
+        
+        {/* Create Participant Modal */}
+        <CreateParticipantModal
+          open={createOpen}
+          onOpenChange={setCreateOpen}
+          onSuccess={() => {
+            mutate();
+            onMutate?.();
+          }}
         />
       </div>
 
