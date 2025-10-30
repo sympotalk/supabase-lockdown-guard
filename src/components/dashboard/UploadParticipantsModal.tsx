@@ -200,34 +200,36 @@ export function UploadParticipantsModal({
     }
     
     setUploading(true);
-    console.info("[Phase 73-L.3] RPC call → ai_participant_import_from_excel", { mode: replaceMode ? 'replace' : 'update' });
+    console.info("[Phase 73-L.6.G] RPC call → ai_participant_import_from_excel", { mode: replaceMode ? 'replace' : 'update' });
     
     try {
-      const { data, error } = await supabase.rpc('ai_participant_import_from_excel', {
+      const { error } = await supabase.rpc('ai_participant_import_from_excel', {
         p_event_id: activeEventId,
         p_data: parsedRows,
         p_replace: replaceMode
       });
       
       if (error) {
-        console.error("[Phase 73-L.3] RPC upload error →", error);
+        console.error("[Phase 73-L.6.G] RPC upload error →", error);
+        
+        // Specific error handling
+        if (error.message?.includes('AGENCY_CONTEXT_NOT_FOUND')) {
+          toast({
+            title: "권한 오류",
+            description: "사용자 계정이 에이전시에 연결되어 있지 않습니다. 관리자에게 문의하세요.",
+            variant: "destructive"
+          });
+        }
         throw error;
       }
       
-      console.log("[Phase 73-L.3] RPC response →", data);
-      const result = {
-        success: (data as any)?.success ?? true,
-        inserted: (data as any)?.total ?? (data as any)?.inserted ?? 0,
-        updated: (data as any)?.updated ?? 0,
-        skipped: (data as any)?.skipped ?? 0,
-        skipped_rows: (data as any)?.skipped_rows ?? []
-      };
+      console.log("[Phase 73-L.6.G] RPC success - uploaded", parsedRows.length, "participants");
 
       // Invalidate cache
       if (agencyScope) {
         const cacheKey = `participants_${agencyScope}_${activeEventId}`;
         await mutate(cacheKey);
-        console.info("[Phase 73-L.3] Cache invalidated:", cacheKey);
+        console.info("[Phase 73-L.6.G] Cache invalidated:", cacheKey);
       }
       
       mutate('event_progress_view');
@@ -236,22 +238,12 @@ export function UploadParticipantsModal({
       if (replaceMode) {
         toast({
           title: "전체 교체 완료",
-          description: `기존 참가자를 삭제하고 ${result.inserted ?? 0}명을 새로 업로드했습니다.`
+          description: `기존 참가자를 삭제하고 ${parsedRows.length}명을 새로 업로드했습니다.`
         });
       } else {
         toast({
           title: "업로드 완료",
-          description: `${result.inserted ?? 0}명 추가, ${result.updated ?? 0}명 업데이트. 담당자정보·SFE코드 자동 매핑됨.`
-        });
-      }
-
-      // Show skipped rows if any
-      if (result.skipped > 0) {
-        console.warn("[Phase 73-L.3] Skipped rows:", result.skipped_rows);
-        toast({
-          title: "일부 행 스킵됨",
-          description: `${result.skipped}개 행을 처리하지 못했습니다. 콘솔을 확인하세요.`,
-          variant: "destructive"
+          description: `${parsedRows.length}명 업로드 완료. 담당자정보·SFE코드 자동 매핑됨.`
         });
       }
       
@@ -261,7 +253,7 @@ export function UploadParticipantsModal({
       setReplaceMode(false);
       onOpenChange(false);
     } catch (error: any) {
-      console.error("[Phase 73-L.3] Upload failed →", error);
+      console.error("[Phase 73-L.6.G] Upload failed →", error);
       toast({
         title: "업로드 실패",
         description: error.message ?? "알 수 없는 오류입니다.",
