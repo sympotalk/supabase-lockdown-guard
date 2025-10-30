@@ -7213,6 +7213,21 @@ export type Database = {
         Args: { p_agency_id: string; p_role?: string; p_user_id: string }
         Returns: Json
       }
+      link_user_to_agency: {
+        Args: { p_agency_id: string; p_role?: string; p_user_id: string }
+        Returns: Json
+      }
+      list_orphan_users: {
+        Args: { p_search?: string }
+        Returns: {
+          created_at: string
+          display_name: string
+          email: string
+          phone: string
+          status: string
+          user_id: string
+        }[]
+      }
       log_policy_test: {
         Args: {
           _action: string
