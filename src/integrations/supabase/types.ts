@@ -6798,6 +6798,10 @@ export type Database = {
         }
         Returns: Json
       }
+      create_agency_invite: {
+        Args: { p_agency_id: string; p_email: string; p_role?: string }
+        Returns: Json
+      }
       create_event_with_hotel:
         | {
             Args: {
@@ -7371,6 +7375,7 @@ export type Database = {
             Returns: boolean
           }
       upsert_hotels_v1: { Args: { payload: Json }; Returns: number }
+      validate_invite_token: { Args: { p_token: string }; Returns: Json }
     }
     Enums: {
       ai_agent_role: "insight" | "analysis" | "advisor" | "visual"
