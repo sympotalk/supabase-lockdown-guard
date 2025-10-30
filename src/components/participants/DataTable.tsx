@@ -6,6 +6,10 @@ import { useParticipantsPanel } from "@/state/participantsPanel";
 import { cn } from "@/lib/utils";
 import { normalizeRoleBadge, getRoleBadgeColor } from "@/lib/participantUtils";
 import { useState, useEffect, useRef } from "react";
+import { useUser } from "@/context/UserContext";
+import { EditableCell } from "./EditableCell";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 interface Participant {
   id: string;
@@ -35,6 +39,8 @@ interface DataTableProps {
   selectedIds: string[];
   onSelectChange: (ids: string[]) => void;
   highlightedId?: string | null; // [Phase 73-L.7.30] ID of newly added participant
+  editedCells?: Set<string>; // [Phase 73-L.7.31] Set of edited cells for highlight
+  onFieldUpdate?: (id: string, field: string, value: any) => void; // [Phase 73-L.7.31] Field update handler
 }
 
 function parseBadges(memo: string | undefined): Array<{ label: string }> {
@@ -81,11 +87,12 @@ function RoleBadgeCell({ participant, onClick }: { participant: Participant; onC
   );
 }
 
-export function DataTable({ participants, selectedIds, onSelectChange, highlightedId }: DataTableProps) {
+export function DataTable({ participants, selectedIds, onSelectChange, highlightedId, editedCells, onFieldUpdate }: DataTableProps) {
   const { open } = useParticipantsPanel();
   const [displayData, setDisplayData] = useState<Participant[]>([]);
   // [Phase 73-L.7.30] Ref to track highlighted row for scroll
   const highlightedRowRef = useRef<HTMLTableRowElement>(null);
+  const { user } = useUser();
 
   // [Phase 73-L.7.15] Role priority sort + Korean name sort + auto numbering
   useEffect(() => {
@@ -154,6 +161,46 @@ export function DataTable({ participants, selectedIds, onSelectChange, highlight
       return () => clearTimeout(timer);
     }
   }, [highlightedId]);
+
+  // [Phase 73-L.7.31] Handle field save with optimistic update
+  const handleFieldSave = async (participantId: string, field: string, value: string) => {
+    if (!user?.id) {
+      toast.error("❌ 권한이 없습니다", { duration: 2500 });
+      return;
+    }
+
+    console.log("[Phase 73-L.7.31] Saving field:", { participantId, field, value });
+
+    // Optimistic update via parent
+    onFieldUpdate?.(participantId, field, value);
+
+    // Save to database
+    const { error } = await supabase
+      .from("participants")
+      .update({ 
+        [field]: value,
+        last_edited_by: user.id,
+        last_edited_at: new Date().toISOString()
+      })
+      .eq("id", participantId);
+
+    if (error) {
+      console.error("[DataTable] Field save error:", error);
+      toast.error("❌ 저장 중 오류가 발생했습니다", { duration: 2500 });
+      throw error;
+    }
+
+    // Log the change
+    await supabase.from("participants_log").insert({
+      participant_id: participantId,
+      action: "update",
+      changed_fields: { [field]: value },
+      edited_by: user.id,
+      edited_at: new Date().toISOString()
+    });
+
+    toast.success("✅ 참가자 정보가 수정되었습니다", { duration: 2500 });
+  };
 
   // [Phase 72–RM.TM.STATUS.UNIFY] Get call status color
   const getCallStatusColor = (status: string) => {
@@ -255,23 +302,64 @@ export function DataTable({ participants, selectedIds, onSelectChange, highlight
                   }}
                 />
               </TableCell>
-              <TableCell className="sticky-col-name py-2.5 px-4 font-semibold text-sm text-card-foreground whitespace-nowrap truncate">
-                {participant.name}
+              <TableCell 
+                className="sticky-col-name py-2.5 px-4" 
+                onClick={(e) => e.stopPropagation()}
+              >
+                <EditableCell
+                  value={participant.name}
+                  onSave={(newValue) => handleFieldSave(participant.id, "name", newValue)}
+                  placeholder="성명 입력"
+                  required
+                  cellClassName={cn(
+                    "font-semibold text-sm whitespace-nowrap",
+                    editedCells?.has(`${participant.id}-name`) && "bg-primary/10"
+                  )}
+                />
               </TableCell>
-              <TableCell className="sticky-col-org py-2.5 px-4 text-sm text-card-foreground truncate max-w-[160px]" title={participant.organization || "-"}>
-                {participant.organization || "-"}
+              <TableCell 
+                className="sticky-col-org py-2.5 px-4" 
+                onClick={(e) => e.stopPropagation()}
+              >
+                <EditableCell
+                  value={participant.organization || ""}
+                  onSave={(newValue) => handleFieldSave(participant.id, "organization", newValue)}
+                  placeholder="소속 입력"
+                  cellClassName={cn(
+                    "text-sm truncate max-w-[160px]",
+                    editedCells?.has(`${participant.id}-organization`) && "bg-primary/10"
+                  )}
+                />
               </TableCell>
-              <TableCell className="py-2.5 px-4 truncate max-w-[160px] whitespace-nowrap overflow-hidden text-ellipsis text-center text-sm text-card-foreground">
-                {participant.phone || "-"}
+              <TableCell 
+                className="py-2.5 px-4" 
+                onClick={(e) => e.stopPropagation()}
+              >
+                <EditableCell
+                  value={participant.phone || ""}
+                  onSave={(newValue) => handleFieldSave(participant.id, "phone", newValue)}
+                  placeholder="연락처 입력"
+                  cellClassName={cn(
+                    "text-sm text-center truncate max-w-[160px]",
+                    editedCells?.has(`${participant.id}-phone`) && "bg-primary/10"
+                  )}
+                />
               </TableCell>
-              <TableCell className="py-2.5 px-4">
-                <div className="flex gap-1 flex-wrap">
-                  {parseBadges(participant.memo).map((badge, idx) => (
-                    <Badge key={idx} variant="outline" className="text-xs">
-                      {badge.label}
-                    </Badge>
-                  ))}
-                </div>
+              <TableCell 
+                className="py-2.5 px-4"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <EditableCell
+                  value={participant.memo || ""}
+                  onSave={(newValue) => handleFieldSave(participant.id, "memo", newValue)}
+                  type="textarea"
+                  placeholder="요청사항 입력"
+                  maxLength={200}
+                  cellClassName={cn(
+                    "text-sm",
+                    editedCells?.has(`${participant.id}-memo`) && "bg-primary/10"
+                  )}
+                />
               </TableCell>
               {/* [Phase 72–RM.TM.STATUS.UNIFY] TM Status Badge */}
               <TableCell className="py-2.5 px-4">

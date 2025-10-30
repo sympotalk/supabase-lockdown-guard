@@ -96,6 +96,8 @@ export default function ParticipantsPanel({ onMutate }: ParticipantsPanelProps) 
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   // [Phase 73-L.7.30] Track newly added participant for highlight/scroll
   const [highlightedId, setHighlightedId] = useState<string | null>(null);
+  // [Phase 73-L.7.31] Track edited cells for highlight
+  const [editedCells, setEditedCells] = useState<Set<string>>(new Set());
 
   // [71-I] Enforce event context
   if (!eventId || !agencyScope) {
@@ -209,6 +211,34 @@ export default function ParticipantsPanel({ onMutate }: ParticipantsPanelProps) 
         setHighlightedId(null);
       }, 2000);
     }
+  };
+
+  // [Phase 73-L.7.31] Optimistic field update handler
+  const handleFieldUpdate = (id: string, field: string, value: any) => {
+    console.log("[Phase 73-L.7.31] Optimistic field update:", { id, field, value });
+    
+    // Update local participants state optimistically
+    mutate(
+      (current) => {
+        if (!current) return current;
+        return current.map((p) =>
+          p.id === id ? { ...p, [field]: value } : p
+        );
+      },
+      false // Don't revalidate immediately
+    );
+
+    // Mark cell as edited for highlight
+    setEditedCells((prev) => new Set(prev).add(`${id}-${field}`));
+    
+    // Clear highlight after 1 second
+    setTimeout(() => {
+      setEditedCells((prev) => {
+        const newSet = new Set(prev);
+        newSet.delete(`${id}-${field}`);
+        return newSet;
+      });
+    }, 1000);
   };
 
   const handleExport = async (mode: ExportMode = 'work') => {
@@ -421,6 +451,8 @@ export default function ParticipantsPanel({ onMutate }: ParticipantsPanelProps) 
                   selectedIds={selectedIds}
                   onSelectChange={setSelectedIds}
                   highlightedId={highlightedId}
+                  editedCells={editedCells}
+                  onFieldUpdate={handleFieldUpdate}
                 />
               )}
             </CardContent>
@@ -450,6 +482,7 @@ export default function ParticipantsPanel({ onMutate }: ParticipantsPanelProps) 
             mutate();
             onMutate?.();
           }}
+          onFieldUpdate={handleFieldUpdate}
         />
       )}
     </div>

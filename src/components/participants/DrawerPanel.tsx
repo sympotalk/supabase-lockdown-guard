@@ -78,9 +78,10 @@ function debounce<T extends (...args: any[]) => any>(fn: T, delay: number): (...
 interface DrawerPanelProps {
   participants: Participant[];
   onUpdate: () => void;
+  onFieldUpdate?: (id: string, field: string, value: any) => void; // [Phase 73-L.7.31] Optimistic update callback
 }
 
-export function DrawerPanel({ participants, onUpdate }: DrawerPanelProps) {
+export function DrawerPanel({ participants, onUpdate, onFieldUpdate }: DrawerPanelProps) {
   const { selectedRowId, isOpen, close } = useParticipantsPanel();
   const { user } = useUser();
   const [localData, setLocalData] = useState<Participant | null>(null);
@@ -140,6 +141,13 @@ export function DrawerPanel({ participants, onUpdate }: DrawerPanelProps) {
     debounce(async (patch: Record<string, any>) => {
       if (!localData?.id || !user?.id) return;
       
+      // [Phase 73-L.7.31] Optimistic update to parent first
+      if (onFieldUpdate) {
+        Object.keys(patch).forEach(field => {
+          onFieldUpdate(localData.id, field, patch[field]);
+        });
+      }
+      
       const updateData = {
         ...patch,
         last_edited_by: user.id,
@@ -153,7 +161,7 @@ export function DrawerPanel({ participants, onUpdate }: DrawerPanelProps) {
 
       if (error) {
         console.error("[DrawerPanel] Save error:", error);
-        toast.error("저장 중 오류가 발생했습니다.");
+        toast.error("❌ 저장 중 오류가 발생했습니다", { duration: 2500 });
         onUpdate();
       } else {
         await supabase.from("participants_log").insert({
@@ -164,11 +172,11 @@ export function DrawerPanel({ participants, onUpdate }: DrawerPanelProps) {
           edited_at: new Date().toISOString()
         });
 
-        toast.success("저장되었습니다");
+        toast.success("✅ 참가자 정보가 수정되었습니다", { duration: 2500 });
         onUpdate();
       }
     }, 500),
-    [localData?.id, user?.id, onUpdate]
+    [localData?.id, user?.id, onUpdate, onFieldUpdate]
   );
 
   const handleFieldChange = (field: string, value: any) => {
