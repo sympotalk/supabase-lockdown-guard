@@ -305,7 +305,7 @@ export default function RoomingTab() {
           check_in: item.check_in,
           check_out: item.check_out,
           stay_days: item.stay_days,
-          status: item.status || '배정대기',
+          status: item.status || '대기',
           manual_assigned: item.manual_assigned || false,
           assigned_at: item.assigned_at,
           adults: 0,
@@ -490,7 +490,7 @@ export default function RoomingTab() {
   };
 
   const getStatusBadge = (manualAssigned: boolean, roomType: string, roomStatus?: string) => {
-    if (roomType === "배정대기" || roomType === "미지정") {
+    if (roomType === "대기" || roomType === "미지정") {
       return <Badge variant="secondary">대기중</Badge>;
     }
     if (roomStatus === 'AI가중배정') {

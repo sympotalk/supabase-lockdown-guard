@@ -215,7 +215,7 @@ export default function RoomingVisualTab({ eventId }: RoomingVisualTabProps) {
                              p.room_status === '동반배정' || p.room_status === '동반자자동배정' ? '동반배정' :
                              p.manual_assigned ? '수동배정' :
                              p.room_status === '자동배정' ? 'AI 자동배정' :
-                             p.room_status || '배정대기'}
+                             p.room_status || '대기'}
                           </div>
                         </div>
                       </TooltipTrigger>

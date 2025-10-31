@@ -3903,10 +3903,12 @@ export type Database = {
       participants_log: {
         Row: {
           action: string
+          agency_id: string | null
           changed_fields: Json | null
           created_at: string | null
           edited_at: string | null
           edited_by: string | null
+          event_id: string | null
           id: string
           memo_diff: string | null
           metadata: Json | null
@@ -3915,10 +3917,12 @@ export type Database = {
         }
         Insert: {
           action: string
+          agency_id?: string | null
           changed_fields?: Json | null
           created_at?: string | null
           edited_at?: string | null
           edited_by?: string | null
+          event_id?: string | null
           id?: string
           memo_diff?: string | null
           metadata?: Json | null
@@ -3927,10 +3931,12 @@ export type Database = {
         }
         Update: {
           action?: string
+          agency_id?: string | null
           changed_fields?: Json | null
           created_at?: string | null
           edited_at?: string | null
           edited_by?: string | null
+          event_id?: string | null
           id?: string
           memo_diff?: string | null
           metadata?: Json | null
@@ -3938,6 +3944,41 @@ export type Database = {
           upload_session_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "participants_log_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agencies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "participants_log_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agency_performance_summary"
+            referencedColumns: ["agency_id"]
+          },
+          {
+            foreignKeyName: "participants_log_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agency_summary"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "participants_log_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "master_agency_overview"
+            referencedColumns: ["agency_id"]
+          },
+          {
+            foreignKeyName: "participants_log_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "v_master_operations"
+            referencedColumns: ["agency_id"]
+          },
           {
             foreignKeyName: "participants_log_edited_by_fkey"
             columns: ["edited_by"]
@@ -3951,6 +3992,27 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "v_staff_performance"
             referencedColumns: ["staff_id"]
+          },
+          {
+            foreignKeyName: "participants_log_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "event_progress_view"
+            referencedColumns: ["event_id"]
+          },
+          {
+            foreignKeyName: "participants_log_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "participants_log_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "v_event_room_summary"
+            referencedColumns: ["event_id"]
           },
           {
             foreignKeyName: "participants_log_participant_id_fkey"
@@ -8335,6 +8397,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      init_rooming_for_event: { Args: { p_event: string }; Returns: number }
       initialize_rooming_for_event: {
         Args: { p_event_id: string }
         Returns: Json
