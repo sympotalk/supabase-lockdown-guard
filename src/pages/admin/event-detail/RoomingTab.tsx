@@ -24,6 +24,7 @@ export default function RoomingTab() {
   const { eventId } = useParams();
   const [selectedParticipant, setSelectedParticipant] = useState<any>(null);
   const [isRunningAI, setIsRunningAI] = useState(false);
+  const [isRunningWeighted, setIsRunningWeighted] = useState(false);
   const [stats, setStats] = useState<any>(null);
 
   // [Phase 76-H.Fix] Load room types with proper join and sorting
@@ -284,9 +285,48 @@ export default function RoomingTab() {
     }
   };
 
-  const getStatusBadge = (manualAssigned: boolean, roomType: string) => {
+  // [Phase 77-G] AI 재배정 (요청사항 반영)
+  const handleRunAIMatchingWeighted = async () => {
+    if (!eventId) return;
+    
+    setIsRunningWeighted(true);
+    try {
+      const { data, error } = await supabase.rpc('ai_auto_assign_rooms_v2', {
+        p_event_id: eventId,
+        p_dry_run: false
+      });
+
+      if (error) throw error;
+
+      console.log('[Phase 77-G] AI 가중 배정 결과:', data);
+
+      const result = data as any;
+
+      if (result?.assigned > 0) {
+        toast.success('AI 요청사항 반영 재배정 완료', {
+          description: `${result.assigned}명의 참가자가 요청사항 기반으로 재배정되었습니다.`
+        });
+        mutate();
+        loadRoomingStats();
+      } else {
+        toast.info('재배정 가능한 참가자가 없습니다');
+      }
+    } catch (error: any) {
+      console.error('[Phase 77-G] AI 가중 배정 실패:', error);
+      toast.error('AI 재배정 실패', {
+        description: error.message
+      });
+    } finally {
+      setIsRunningWeighted(false);
+    }
+  };
+
+  const getStatusBadge = (manualAssigned: boolean, roomType: string, roomStatus?: string) => {
     if (roomType === "배정대기" || roomType === "미지정") {
       return <Badge variant="secondary">대기중</Badge>;
+    }
+    if (roomStatus === 'AI가중배정') {
+      return <Badge variant="default" className="bg-indigo-500">AI가중배정</Badge>;
     }
     if (manualAssigned) {
       return <Badge variant="default" className="bg-purple-500">수동배정</Badge>;
@@ -347,25 +387,48 @@ export default function RoomingTab() {
           )}
         </div>
 
-        {/* AI Auto-Match Button */}
-        <div className="flex items-center justify-between p-4 bg-gradient-to-r from-primary/10 to-primary/5 rounded-lg border">
-          <div>
-            <h3 className="font-semibold flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-primary" />
-              AI 자동 룸핑 매칭
-            </h3>
-            <p className="text-sm text-muted-foreground mt-1">
-              인원 구성, 소아 연령, 역할을 기반으로 최적의 객실을 자동 배정합니다
-            </p>
+        {/* AI Auto-Match Buttons */}
+        <div className="space-y-3">
+          <div className="flex items-center justify-between p-4 bg-gradient-to-r from-primary/10 to-primary/5 rounded-lg border">
+            <div>
+              <h3 className="font-semibold flex items-center gap-2">
+                <Sparkles className="w-5 h-5 text-primary" />
+                AI 자동 룸핑 매칭
+              </h3>
+              <p className="text-sm text-muted-foreground mt-1">
+                인원 구성, 소아 연령, 역할을 기반으로 최적의 객실을 자동 배정합니다
+              </p>
+            </div>
+            <Button 
+              onClick={handleRunAIMatching} 
+              disabled={isRunningAI || !roomingList || roomingList.length === 0}
+              className="gap-2"
+            >
+              <Sparkles className="w-4 h-4" />
+              {isRunningAI ? '배정 중...' : 'AI 자동 배정 실행'}
+            </Button>
           </div>
-          <Button 
-            onClick={handleRunAIMatching} 
-            disabled={isRunningAI || !roomingList || roomingList.length === 0}
-            className="gap-2"
-          >
-            <Sparkles className="w-4 h-4" />
-            {isRunningAI ? '배정 중...' : 'AI 자동 배정 실행'}
-          </Button>
+
+          {/* [Phase 77-G] AI 재배정 (요청사항 반영) */}
+          <div className="flex items-center justify-between p-4 bg-gradient-to-r from-indigo-500/10 to-sky-500/10 rounded-lg border border-indigo-200">
+            <div>
+              <h3 className="font-semibold flex items-center gap-2">
+                <Sparkles className="w-5 h-5 text-indigo-600" />
+                AI 재배정 (요청사항 반영)
+              </h3>
+              <p className="text-sm text-muted-foreground mt-1">
+                장비·뷰·층·흡연 등 요청사항을 가중치로 반영하여 정확도를 향상시킵니다
+              </p>
+            </div>
+            <Button 
+              onClick={handleRunAIMatchingWeighted} 
+              disabled={isRunningWeighted || !roomingList || roomingList.length === 0}
+              className="gap-2 bg-gradient-to-r from-indigo-500 to-sky-500 hover:from-indigo-600 hover:to-sky-600 text-white"
+            >
+              <Sparkles className="w-4 h-4" />
+              {isRunningWeighted ? '재배정 중...' : 'AI 재배정 실행'}
+            </Button>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
@@ -480,7 +543,7 @@ export default function RoomingTab() {
                           }
                         </TableCell>
                         <TableCell className="text-right">
-                          {getStatusBadge(r.manual_assigned, r.room_type || r.status)}
+                          {getStatusBadge(r.manual_assigned, r.room_type || r.status, r.room_status)}
                         </TableCell>
                       </TableRow>
                     ))}

@@ -89,7 +89,8 @@ export default function RoomingVisualTab({ eventId }: RoomingVisualTabProps) {
   };
 
   const getRoomStatusColor = (status: string, manualAssigned: boolean) => {
-    if (status === '동반배정') return 'border-blue-300 bg-blue-50';
+    if (status === '동반배정' || status === '동반자자동배정') return 'border-blue-300 bg-blue-50';
+    if (status === 'AI가중배정') return 'border-indigo-300 bg-indigo-50';
     if (manualAssigned) return 'border-green-300 bg-green-50';
     if (status === '자동배정') return 'border-purple-200 bg-purple-50';
     return 'border-gray-200 bg-white';
@@ -210,7 +211,8 @@ export default function RoomingVisualTab({ eventId }: RoomingVisualTabProps) {
 
                           {/* 배정 상태 */}
                           <div className="mt-1 text-xs text-muted-foreground">
-                            {p.room_status === '동반배정' ? '동반배정' :
+                            {p.room_status === 'AI가중배정' ? 'AI 요청사항 반영 배정' :
+                             p.room_status === '동반배정' || p.room_status === '동반자자동배정' ? '동반배정' :
                              p.manual_assigned ? '수동배정' :
                              p.room_status === '자동배정' ? 'AI 자동배정' :
                              p.room_status || '배정대기'}
@@ -221,6 +223,11 @@ export default function RoomingVisualTab({ eventId }: RoomingVisualTabProps) {
                         <div className="space-y-1">
                           <p className="font-semibold">{p.participant_name}</p>
                           {p.role && <p className="text-xs">역할: {p.role}</p>}
+                          {p.room_status === 'AI가중배정' && (
+                            <p className="text-xs text-indigo-600">
+                              요청사항 기반 자동 배정
+                            </p>
+                          )}
                           {p.companions && Array.isArray(p.companions) && p.companions.length > 0 && (
                             <p className="text-xs text-blue-600">
                               동반자 {p.companions.length}명과 같은 객실

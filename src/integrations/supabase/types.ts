@@ -7347,6 +7347,10 @@ export type Database = {
         Args: { p_dry_run?: boolean; p_event_id: string }
         Returns: Json
       }
+      ai_auto_assign_rooms_v2: {
+        Args: { p_dry_run?: boolean; p_event_id: string }
+        Returns: Json
+      }
       ai_detect_companions_from_memo: {
         Args: { p_event_id: string }
         Returns: Json
