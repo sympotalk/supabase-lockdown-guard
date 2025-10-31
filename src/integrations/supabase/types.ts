@@ -7721,7 +7721,6 @@ export type Database = {
       }
       v_rooming_visual_map: {
         Row: {
-          ai_weighted_rooms: number | null
           assigned_rooms: number | null
           canceled_rooms: number | null
           confirmed_rooms: number | null

@@ -20,7 +20,6 @@ interface RoomingStats {
   canceled_rooms: number;
   confirmed_rooms: number;
   manual_assigned_rooms: number;
-  ai_weighted_rooms: number;
 }
 
 export default function RoomingVisualMapCards({ eventId }: RoomingVisualMapCardsProps) {
