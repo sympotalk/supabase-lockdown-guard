@@ -14,39 +14,56 @@ import ManualAssignPanel from "@/components/rooming/ManualAssignPanel";
 export default function RoomingTab() {
   const { eventId } = useParams();
   const [selectedParticipant, setSelectedParticipant] = useState<any>(null);
-  const [roomTypes, setRoomTypes] = useState<Array<{ name: string; credit: number }>>([]);
 
-  // Load room types from event_rooms
-  useEffect(() => {
-    const loadRoomTypes = async () => {
-      if (!eventId) return;
+  // [Phase 76-Pre.C] Load room types with real names from event_room_refs
+  const { data: roomTypesData, mutate: mutateRoomTypes } = useSWR(
+    eventId ? `room_types_real_${eventId}` : null,
+    async () => {
+      if (!eventId) return [];
       
       const { data, error } = await supabase
         .from("event_room_refs" as any)
-        .select("room_type_id, room_credit")
+        .select("id, room_type_name, room_credit, status")
         .eq("event_id", eventId)
         .eq("is_active", true);
 
-      if (!error && data) {
-        // Get unique room types with their credits
-        const uniqueRooms = data.reduce((acc: any[], curr: any) => {
-          const existing = acc.find(r => r.id === curr.room_type_id);
-          if (!existing && curr.room_type_id) {
-            acc.push({ id: curr.room_type_id, credit: curr.room_credit || 0 });
-          }
-          return acc;
-        }, []);
-
-        // For now, use placeholder names - in production, join with room_types table
-        setRoomTypes(uniqueRooms.map((r: any, idx: number) => ({ 
-          name: `Room Type ${idx + 1}`, 
-          credit: r.credit 
-        })));
+      if (error) {
+        console.error('[Phase 76-Pre.C] Room types query error:', error);
+        return [];
       }
-    };
 
-    loadRoomTypes();
-  }, [eventId]);
+      // Map to expected format with real names
+      return (data || [])
+        .filter((r: any) => r.status === '선택됨')
+        .map((r: any) => ({
+          id: r.id,
+          name: r.room_type_name || '미지정',
+          credit: r.room_credit || 0
+        }));
+    },
+    { revalidateOnFocus: false }
+  );
+
+  // [Phase 76-Pre.C] Realtime subscription for room types
+  useEffect(() => {
+    if (!eventId) return;
+
+    const roomTypesChannel = supabase
+      .channel(`event_room_refs_${eventId}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "event_room_refs", filter: `event_id=eq.${eventId}` },
+        (payload) => {
+          console.log("[Phase 76-Pre.C] Room types updated:", payload);
+          mutateRoomTypes();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(roomTypesChannel);
+    };
+  }, [eventId, mutateRoomTypes]);
 
   // [Phase 76-Pre.A] Fetch ALL participants with left-join to rooming_participants
   const { data: roomingList, error, isLoading, mutate } = useSWR(
@@ -328,7 +345,7 @@ export default function RoomingTab() {
                 eventId={eventId!}
                 participantId={selectedParticipant.participant_id}
                 participantName={selectedParticipant.name || "참가자"}
-                roomTypes={roomTypes}
+                roomTypes={roomTypesData || []}
                 currentAssignment={{
                   room_type: selectedParticipant.room_type,
                   room_credit: selectedParticipant.room_credit,
@@ -349,7 +366,7 @@ export default function RoomingTab() {
       </TabsContent>
 
       <TabsContent value="rules">
-        <RulesPanel eventId={eventId!} roomTypes={roomTypes.map(r => r.name)} />
+        <RulesPanel eventId={eventId!} roomTypes={(roomTypesData || []).map(r => r.name)} />
       </TabsContent>
     </Tabs>
   );

@@ -38,23 +38,22 @@ export function SmartBadges({ currentMemo, onMemoChange, eventId }: SmartBadgesP
   const [customInput, setCustomInput] = useState("");
   const [categories, setCategories] = useState<Category[]>(BASE_CATEGORIES);
 
-  // [Phase 76-Pre.A] Load room types from event_room_refs
+  // [Phase 76-Pre.C] Load room types with real names from event_room_refs
   const { data: roomTypes } = useSWR(
-    eventId ? `room_types_${eventId}` : null,
+    eventId ? `room_types_smart_${eventId}` : null,
     async () => {
       const { data, error } = await supabase
         .from("event_room_refs" as any)
-        .select("room_type_id, room_credit")
+        .select("id, room_type_name, room_credit, status")
         .eq("event_id", eventId!)
         .eq("is_active", true);
       if (error) throw error;
       
-      // Get unique room type names (simplified for now)
-      const uniqueTypes = Array.from(new Set(
-        (data || []).map((r: any) => `객실타입 ${r.room_type_id?.slice(0, 8) || '기본'}`)
-      ));
-      
-      return uniqueTypes;
+      // Get unique room type names with real text
+      return (data || [])
+        .filter((r: any) => r.status === '선택됨')
+        .map((r: any) => r.room_type_name || '미지정')
+        .filter(Boolean);
     },
     { revalidateOnFocus: false }
   );

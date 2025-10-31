@@ -13,7 +13,7 @@ interface ManualAssignPanelProps {
   eventId: string;
   participantId: string;
   participantName: string;
-  roomTypes: Array<{ name: string; credit: number }>;
+  roomTypes: Array<{ id: string; name: string; credit: number }>;
   currentAssignment?: {
     room_type: string;
     room_credit: number;
