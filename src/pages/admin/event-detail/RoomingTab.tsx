@@ -18,6 +18,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import RulesPanel from "@/components/rooming/RulesPanel";
 import ManualAssignPanel from "@/components/rooming/ManualAssignPanel";
 import RoomingReportTab from "@/components/rooming/RoomingReportTab";
+import RoomingVisualTab from "@/components/rooming/RoomingVisualTab";
 
 export default function RoomingTab() {
   const { eventId } = useParams();
@@ -297,6 +298,7 @@ export default function RoomingTab() {
     <Tabs defaultValue="participants" className="space-y-4">
       <TabsList>
         <TabsTrigger value="participants">참가자 배정 현황</TabsTrigger>
+        <TabsTrigger value="visual">시각화 보기</TabsTrigger>
         <TabsTrigger value="rules">룰셋 관리</TabsTrigger>
         <TabsTrigger value="report">AI 리포트</TabsTrigger>
       </TabsList>
@@ -519,6 +521,10 @@ export default function RoomingTab() {
 
       <TabsContent value="rules">
         <RulesPanel eventId={eventId!} roomTypes={(roomTypesData || []).map(r => r.name)} />
+      </TabsContent>
+
+      <TabsContent value="visual">
+        <RoomingVisualTab eventId={eventId!} />
       </TabsContent>
 
       <TabsContent value="report">

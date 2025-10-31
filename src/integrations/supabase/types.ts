@@ -1583,6 +1583,13 @@ export type Database = {
             referencedRelation: "v_event_room_summary"
             referencedColumns: ["type_id"]
           },
+          {
+            foreignKeyName: "event_room_refs_room_type_id_fkey"
+            columns: ["room_type_id"]
+            isOneToOne: false
+            referencedRelation: "v_rooming_visual_map"
+            referencedColumns: ["room_type_id"]
+          },
         ]
       }
       event_rooms: {
@@ -7143,6 +7150,13 @@ export type Database = {
             referencedRelation: "v_event_room_summary"
             referencedColumns: ["type_id"]
           },
+          {
+            foreignKeyName: "event_room_refs_room_type_id_fkey"
+            columns: ["room_type_id"]
+            isOneToOne: false
+            referencedRelation: "v_rooming_visual_map"
+            referencedColumns: ["room_type_id"]
+          },
         ]
       }
       v_master_operations: {
@@ -7185,6 +7199,42 @@ export type Database = {
             isOneToOne: true
             referencedRelation: "user_profiles"
             referencedColumns: ["id"]
+          },
+        ]
+      }
+      v_rooming_visual_map: {
+        Row: {
+          assigned_count: number | null
+          event_id: string | null
+          event_room_ref_id: string | null
+          participants: Json | null
+          remaining_count: number | null
+          room_credit: number | null
+          room_type_id: string | null
+          room_type_name: string | null
+          stock: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rooming_participants_event_fk"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "event_progress_view"
+            referencedColumns: ["event_id"]
+          },
+          {
+            foreignKeyName: "rooming_participants_event_fk"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rooming_participants_event_fk"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "v_event_room_summary"
+            referencedColumns: ["event_id"]
           },
         ]
       }
