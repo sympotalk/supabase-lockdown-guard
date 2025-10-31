@@ -19,8 +19,9 @@ import RulesPanel from "@/components/rooming/RulesPanel";
 import ManualAssignPanel from "@/components/rooming/ManualAssignPanel";
 import RoomingReportTab from "@/components/rooming/RoomingReportTab";
 import RoomingVisualTab from "@/components/rooming/RoomingVisualTab";
-import StockStatusCards from "@/components/rooming/StockStatusCards";
 import RoomingVisualMapCards from "@/components/rooming/RoomingVisualMapCards";
+import RoomingSummaryCards from "@/components/rooming/RoomingSummaryCards";
+import RoomingActionZone from "@/components/rooming/RoomingActionZone";
 import RebalancePreviewModal from "@/components/rooming/RebalancePreviewModal";
 import AIFeedbackAnalytics from "@/components/rooming/AIFeedbackAnalytics";
 import UserBiasProfile from "@/components/rooming/UserBiasProfile";
@@ -30,11 +31,9 @@ export default function RoomingTab() {
   const [selectedParticipant, setSelectedParticipant] = useState<any>(null);
   const [isRunningAI, setIsRunningAI] = useState(false);
   const [isRunningWeighted, setIsRunningWeighted] = useState(false);
-  const [stats, setStats] = useState<any>(null);
   const [currentUserId, setCurrentUserId] = useState<string>('');
   
   // [Phase 77-H] Stock guard & rebalance states
-  const [stockStatus, setStockStatus] = useState<any>(null);
   const [stockAlerts, setStockAlerts] = useState<any[]>([]);
   const [isCheckingStock, setIsCheckingStock] = useState(false);
   const [rebalancePreview, setRebalancePreview] = useState<any>(null);
@@ -75,39 +74,6 @@ export default function RoomingTab() {
     { revalidateOnFocus: false }
   );
 
-  // [Phase 77-A.1] Load rooming statistics
-  const loadRoomingStats = async () => {
-    if (!eventId) return;
-    try {
-      const { data, error } = await supabase.rpc('ai_rooming_stats', { p_event_id: eventId });
-      if (error) throw error;
-      setStats(data);
-    } catch (err) {
-      console.error('[Phase 77-A.1] 통계 로드 실패:', err);
-    }
-  };
-
-  // [Phase 77-H] Load stock status
-  const loadStockStatus = async () => {
-    if (!eventId) return;
-    try {
-      const { data, error } = await supabase
-        .from('v_room_stock_status' as any)
-        .select('*')
-        .eq('event_id', eventId);
-      
-      if (error) throw error;
-
-      const shortage = data?.filter((r: any) => r.remaining < 0).length || 0;
-      const surplus = data?.filter((r: any) => r.remaining > 0).length || 0;
-      const normal = data?.filter((r: any) => r.remaining === 0).length || 0;
-
-      setStockStatus({ shortage, surplus, normal });
-    } catch (err) {
-      console.error('[Phase 77-H] 재고 현황 로드 실패:', err);
-    }
-  };
-
   // [Phase 77-H] Run stock guard
   const handleStockGuard = async () => {
     if (!eventId) return;
@@ -132,8 +98,6 @@ export default function RoomingTab() {
           description: '모든 객실 재고가 정상입니다.'
         });
       }
-
-      loadStockStatus();
     } catch (error: any) {
       console.error('[Phase 77-H] 재고 점검 실패:', error);
       toast.error('재고 점검 실패', {
@@ -220,8 +184,6 @@ export default function RoomingTab() {
       setShowRebalanceModal(false);
       setRebalancePreview(null);
       mutate();
-      loadRoomingStats();
-      loadStockStatus();
       setStockAlerts([]);
     } catch (error: any) {
       console.error('[Phase 77-H] 리밸런스 적용 실패:', error);
@@ -235,8 +197,6 @@ export default function RoomingTab() {
 
   useEffect(() => {
     if (!eventId) return;
-    loadRoomingStats();
-    loadStockStatus();
     
     // Get current user ID
     supabase.auth.getUser().then(({ data }) => {
@@ -358,7 +318,6 @@ export default function RoomingTab() {
         (payload) => {
           console.log("[Phase 72] Participant role/number updated, refreshing rooming:", payload);
           mutate();
-          loadRoomingStats(); // Refresh stats on participant update
         }
       )
       .subscribe();
@@ -438,7 +397,6 @@ export default function RoomingTab() {
           description: `${result.assigned}명의 참가자가 자동 배정되었습니다.`
         });
         mutate(); // 데이터 갱신
-        loadRoomingStats(); // 통계 갱신
       } else {
         toast.info('배정 가능한 참가자가 없습니다', {
           description: '모든 참가자가 이미 수동 배정되었거나 조건을 충족하지 못했습니다.'
@@ -476,7 +434,6 @@ export default function RoomingTab() {
           description: `${result.assigned}명의 참가자가 요청사항 기반으로 재배정되었습니다.`
         });
         mutate();
-        loadRoomingStats();
       } else {
         toast.info('재배정 가능한 참가자가 없습니다');
       }
@@ -514,21 +471,32 @@ export default function RoomingTab() {
       </TabsList>
 
       <TabsContent value="participants" className="space-y-4">
-        {/* [Phase 77-H] Stock Status Cards */}
-        <StockStatusCards stockStatus={stockStatus} />
+        {/* [Phase 77-STATS-UI.REBUILD] ① 객실 요약 현황 (Summary Cards) */}
+        {eventId && <RoomingSummaryCards eventId={eventId} />}
         
-        {/* [Phase 77-STATS-CARD] Rooming Visual Map Cards */}
+        {/* [Phase 77-STATS-UI.REBUILD] ② 객실타입별 상세 현황 (Type Breakdown) */}
         {eventId && <RoomingVisualMapCards eventId={eventId} />}
+
+        {/* [Phase 77-STATS-UI.REBUILD] ③ AI 실행 & 재고 관리 (Action Zone) */}
+        <RoomingActionZone
+          onStockCheck={handleStockGuard}
+          onAIAutoAssign={handleRunAIMatching}
+          onAIRebalance={handleRunAIMatchingWeighted}
+          isCheckingStock={isCheckingStock}
+          isRunningAI={isRunningAI}
+          isRunningRebalance={isRunningWeighted}
+          disabled={!roomingList || roomingList.length === 0}
+        />
 
         {/* [Phase 77-H] Stock Alert Bar */}
         {stockAlerts.length > 0 && (
-          <Alert className="bg-red-50 border-red-200 mb-4">
+          <Alert className="bg-destructive/10 border-destructive/30 mb-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="font-semibold text-red-800">
+                <p className="font-semibold text-destructive">
                   ⚠️ 일부 객실타입 재고 부족. 리밸런스가 필요합니다.
                 </p>
-                <div className="text-sm text-red-700 mt-1">
+                <div className="text-sm text-destructive/80 mt-1">
                   {stockAlerts.map((alert: any, idx: number) => (
                     <span key={idx} className="mr-3">
                       {alert.room_type_name}: {alert.shortage}개 부족
@@ -549,122 +517,6 @@ export default function RoomingTab() {
             </div>
           </Alert>
         )}
-
-        {/* [Phase 77-B] Floating Summary Bar - 고정형 통계 카드 */}
-        <div className="sticky top-[64px] z-40 bg-background border-b pb-3 mb-4">
-          {stats && (
-            <div className="space-y-3">
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-                <Card className="p-3 shadow-sm rounded-xl bg-blue-50">
-                  <div className="text-xs text-gray-600 mb-0.5">배정 완료</div>
-                  <div className="text-xl font-bold text-blue-600">{stats.assigned}</div>
-                </Card>
-                <Card className="p-3 shadow-sm rounded-xl bg-orange-50">
-                  <div className="text-xs text-gray-600 mb-0.5">배정 대기</div>
-                  <div className="text-xl font-bold text-orange-600">{stats.pending}</div>
-                </Card>
-                <Card className="p-3 shadow-sm rounded-xl bg-gray-50">
-                  <div className="text-xs text-gray-600 mb-0.5">총 객실</div>
-                  <div className="text-xl font-bold text-gray-700">{stats.totalRooms}</div>
-                </Card>
-                <Card className="p-3 shadow-sm rounded-xl">
-                  <div className="text-xs text-gray-600 mb-0.5">남은 객실</div>
-                  <div className={cn(
-                    "text-xl font-bold",
-                    stats.remaining < 0 ? "text-red-500" : "text-green-600"
-                  )}>
-                    {stats.remaining}
-                  </div>
-                </Card>
-              </div>
-              
-              {/* [Phase 77-B] 부족 객실 고정 경고 영역 */}
-              {stats.shortage && stats.shortage.length > 0 && (
-                <div className="p-2 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm">
-                  <span className="font-semibold">⚠️ 객실 부족:</span>
-                  {stats.shortage.map((s: any, idx: number) => (
-                    <span key={idx} className="ml-2">
-                      {s.room_type} ({s.shortage}개)
-                    </span>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-
-        {/* [Phase 77-H] Stock Guard & Rebalance Controls */}
-        <div className="flex items-center justify-between p-4 bg-gradient-to-r from-purple-500/10 to-pink-500/10 rounded-lg border border-purple-200">
-          <div>
-            <h3 className="font-semibold flex items-center gap-2">
-              객실 재고 현황
-            </h3>
-            <p className="text-sm text-muted-foreground mt-1">
-              재고 부족을 자동 감지하고 AI가 안전하게 재배정합니다
-            </p>
-          </div>
-          <div className="flex gap-2">
-            <Button 
-              onClick={handleStockGuard}
-              disabled={isCheckingStock}
-              variant="outline"
-              className="gap-2"
-            >
-              {isCheckingStock ? '점검 중...' : '재고 점검'}
-            </Button>
-            <Button 
-              onClick={handleRebalancePreview}
-              disabled={isLoadingPreview || stockAlerts.length === 0}
-              className="gap-2 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white"
-            >
-              {isLoadingPreview ? '분석 중...' : '리밸런스'}
-            </Button>
-          </div>
-        </div>
-
-        {/* AI Auto-Match Buttons */}
-        <div className="space-y-3">
-          <div className="flex items-center justify-between p-4 bg-gradient-to-r from-primary/10 to-primary/5 rounded-lg border">
-            <div>
-              <h3 className="font-semibold flex items-center gap-2">
-                <Sparkles className="w-5 h-5 text-primary" />
-                AI 자동 룸핑 매칭
-              </h3>
-              <p className="text-sm text-muted-foreground mt-1">
-                인원 구성, 소아 연령, 역할을 기반으로 최적의 객실을 자동 배정합니다
-              </p>
-            </div>
-            <Button 
-              onClick={handleRunAIMatching} 
-              disabled={isRunningAI || !roomingList || roomingList.length === 0}
-              className="gap-2"
-            >
-              <Sparkles className="w-4 h-4" />
-              {isRunningAI ? '배정 중...' : 'AI 자동 배정 실행'}
-            </Button>
-          </div>
-
-          {/* [Phase 77-G] AI 재배정 (요청사항 반영) */}
-          <div className="flex items-center justify-between p-4 bg-gradient-to-r from-indigo-500/10 to-sky-500/10 rounded-lg border border-indigo-200">
-            <div>
-              <h3 className="font-semibold flex items-center gap-2">
-                <Sparkles className="w-5 h-5 text-indigo-600" />
-                AI 재배정 (요청사항 반영)
-              </h3>
-              <p className="text-sm text-muted-foreground mt-1">
-                장비·뷰·층·흡연 등 요청사항을 가중치로 반영하여 정확도를 향상시킵니다
-              </p>
-            </div>
-            <Button 
-              onClick={handleRunAIMatchingWeighted} 
-              disabled={isRunningWeighted || !roomingList || roomingList.length === 0}
-              className="gap-2 bg-gradient-to-r from-indigo-500 to-sky-500 hover:from-indigo-600 hover:to-sky-600 text-white"
-            >
-              <Sparkles className="w-4 h-4" />
-              {isRunningWeighted ? '재배정 중...' : 'AI 재배정 실행'}
-            </Button>
-          </div>
-        </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           {/* Participants List */}
@@ -804,7 +656,6 @@ export default function RoomingTab() {
                 }}
                 onUpdate={() => {
                   mutate();
-                  loadRoomingStats();
                   setSelectedParticipant(null);
                 }}
               />
