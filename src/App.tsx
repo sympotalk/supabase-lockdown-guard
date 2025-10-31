@@ -36,6 +36,7 @@ import Account from "./pages/admin/Account";
 import AdminSettings from "./pages/admin/Settings";
 import AgencyAccount from "./pages/agency/Account";
 import AgencyProfile from "./pages/agency/Profile";
+import AgencyTeam from "./pages/agency/Team";
 import AgencySettings from "./pages/agency/Settings";
 import AgencyNotifications from "./pages/agency/Notifications";
 import AgencySecurity from "./pages/agency/Security";
@@ -115,7 +116,7 @@ const App = () => (
               }
             />
 
-            {/* Agency user-specific routes */}
+            {/* [74-B.2] Agency user-specific routes */}
             <Route
               path="/agency/*"
               element={
@@ -123,6 +124,7 @@ const App = () => (
                   <Routes>
                     <Route path="account" element={<AgencyAccount />} />
                     <Route path="profile" element={<AgencyProfile />} />
+                    <Route path="team" element={<AgencyTeam />} />
                     <Route path="settings" element={<AgencySettings />} />
                     <Route path="notifications" element={<AgencyNotifications />} />
                     <Route path="security" element={<AgencySecurity />} />

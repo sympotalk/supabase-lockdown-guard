@@ -10,9 +10,9 @@ const menuItems = [
     url: "/agency/profile",
   },
   {
-    title: "계정 설정",
+    title: "팀원 관리",
     icon: Settings,
-    url: "/agency/settings",
+    url: "/agency/team",
   },
   {
     title: "보안 관리",
