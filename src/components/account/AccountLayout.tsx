@@ -2,7 +2,7 @@ import { ReactNode } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Header } from "@/components/layout/Header";
 import { Sidebar } from "@/components/layout/Sidebar";
-import { AnimatedAccountSidebar } from "./AnimatedAccountSidebar";
+import { AccountSidebar } from "./AccountSidebar";
 
 interface AccountLayoutProps {
   children: ReactNode;
@@ -14,7 +14,7 @@ export function AccountLayout({ children }: AccountLayoutProps) {
       <Header />
       <div className="flex w-full pt-16">
         <Sidebar />
-        <AnimatedAccountSidebar />
+        <AccountSidebar />
         <AnimatePresence mode="wait">
           <motion.main
             initial={{ opacity: 0, x: 15 }}
