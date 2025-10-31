@@ -3668,6 +3668,7 @@ export type Database = {
           child_count: number | null
           classification: string | null
           companion: string | null
+          companion_info: Json | null
           companion_memo: string | null
           composition: Json | null
           created_at: string
@@ -3685,11 +3686,13 @@ export type Database = {
           last_modified_by: string | null
           lodging_status: string | null
           manager_info: Json | null
+          memo: string | null
           message_sent: string | null
           name: string
           organization: string | null
           participant_no: number | null
           phone: string | null
+          position: string | null
           recruitment_status: string | null
           request_note: string | null
           role_badge: string
@@ -3716,6 +3719,7 @@ export type Database = {
           child_count?: number | null
           classification?: string | null
           companion?: string | null
+          companion_info?: Json | null
           companion_memo?: string | null
           composition?: Json | null
           created_at?: string
@@ -3733,11 +3737,13 @@ export type Database = {
           last_modified_by?: string | null
           lodging_status?: string | null
           manager_info?: Json | null
+          memo?: string | null
           message_sent?: string | null
           name: string
           organization?: string | null
           participant_no?: number | null
           phone?: string | null
+          position?: string | null
           recruitment_status?: string | null
           request_note?: string | null
           role_badge?: string
@@ -3764,6 +3770,7 @@ export type Database = {
           child_count?: number | null
           classification?: string | null
           companion?: string | null
+          companion_info?: Json | null
           companion_memo?: string | null
           composition?: Json | null
           created_at?: string
@@ -3781,11 +3788,13 @@ export type Database = {
           last_modified_by?: string | null
           lodging_status?: string | null
           manager_info?: Json | null
+          memo?: string | null
           message_sent?: string | null
           name?: string
           organization?: string | null
           participant_no?: number | null
           phone?: string | null
+          position?: string | null
           recruitment_status?: string | null
           request_note?: string | null
           role_badge?: string
