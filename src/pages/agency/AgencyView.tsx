@@ -44,6 +44,41 @@ export default function AgencyView() {
     loadInvites();
   }, [id]);
 
+  // [74-A.8] Realtime subscription for invite updates
+  useEffect(() => {
+    if (!id) return;
+
+    const channel = supabase
+      .channel(`agency_invites_${id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'account_provisioning',
+          filter: `agency_id=eq.${id}`,
+        },
+        () => {
+          console.log('[AgencyView] Invite update detected, refreshing...');
+          loadInvites();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [id]);
+
+  // [74-A.8] Periodic refresh every 5 minutes
+  useEffect(() => {
+    const interval = setInterval(() => {
+      loadInvites();
+    }, 5 * 60 * 1000);
+
+    return () => clearInterval(interval);
+  }, []);
+
   // [3.14-MA.RESTORE.R2] Update document title with agency name
   useEffect(() => {
     if (agency?.name) {
@@ -118,7 +153,8 @@ export default function AgencyView() {
         description: "링크를 공유하여 사용자를 초대하세요.",
       });
 
-      loadInvites();
+      // [74-A.8] Auto-refresh after creation
+      setTimeout(() => loadInvites(), 500);
     } catch (error: any) {
       console.error("[AgencyView] Error creating invite:", error);
       toast({
@@ -128,6 +164,40 @@ export default function AgencyView() {
       });
     } finally {
       setCreatingInvite(false);
+    }
+  };
+
+  // [74-A.8] Get invite status with expiry check
+  const getInviteStatus = (invite: InviteRecord): "active" | "used" | "expired" => {
+    if (invite.is_used) return "used";
+    if (new Date(invite.expires_at) < new Date()) return "expired";
+    return "active";
+  };
+
+  // [74-A.8] Get status badge styling
+  const getStatusBadgeProps = (status: "active" | "used" | "expired") => {
+    switch (status) {
+      case "active":
+        return {
+          variant: "default" as const,
+          className: "bg-blue-50 text-blue-700 border-blue-200",
+          label: "대기",
+          icon: "🕓"
+        };
+      case "expired":
+        return {
+          variant: "destructive" as const,
+          className: "bg-red-50 text-red-700 border-red-200",
+          label: "만료",
+          icon: "⏰"
+        };
+      case "used":
+        return {
+          variant: "secondary" as const,
+          className: "bg-gray-50 text-gray-700 border-gray-200",
+          label: "사용됨",
+          icon: "✅"
+        };
     }
   };
 
@@ -300,16 +370,18 @@ export default function AgencyView() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {invites.map((invite) => {
-                      const isExpired = new Date(invite.expires_at) < new Date();
-                      const status = invite.is_used
-                        ? "used"
-                        : isExpired
-                        ? "expired"
-                        : "active";
+                    {invites.map((invite, index) => {
+                      const status = getInviteStatus(invite);
+                      const badgeProps = getStatusBadgeProps(status);
+                      const isRecent = index === 0 && new Date().getTime() - new Date(invite.created_at).getTime() < 5000;
 
                       return (
-                        <TableRow key={invite.id} className="hover:bg-muted/50">
+                        <TableRow 
+                          key={invite.id} 
+                          className={`hover:bg-muted/50 transition-all duration-300 ${
+                            isRecent ? 'animate-in fade-in-0 slide-in-from-top-2 bg-blue-50/50' : ''
+                          }`}
+                        >
                           <TableCell className="font-medium">{invite.email}</TableCell>
                           <TableCell className="text-muted-foreground">
                             {format(new Date(invite.created_at), "yyyy-MM-dd HH:mm")}
@@ -318,22 +390,18 @@ export default function AgencyView() {
                             {format(new Date(invite.expires_at), "yyyy-MM-dd HH:mm")}
                           </TableCell>
                           <TableCell>
-                            {status === "active" && (
-                              <Badge variant="default">대기</Badge>
-                            )}
-                            {status === "used" && (
-                              <Badge variant="secondary">사용됨</Badge>
-                            )}
-                            {status === "expired" && (
-                              <Badge variant="destructive">만료</Badge>
-                            )}
+                            <Badge variant={badgeProps.variant} className={badgeProps.className}>
+                              <span className="mr-1">{badgeProps.icon}</span>
+                              {badgeProps.label}
+                            </Badge>
                           </TableCell>
                           <TableCell className="text-right">
                             <Button
                               variant="ghost"
                               size="sm"
                               onClick={() => copyInviteLink(invite.invite_token)}
-                              disabled={invite.is_used || isExpired}
+                              disabled={status !== "active"}
+                              title={status === "active" ? "링크 복사" : "비활성 초대"}
                             >
                               <Copy className="h-4 w-4" />
                             </Button>
