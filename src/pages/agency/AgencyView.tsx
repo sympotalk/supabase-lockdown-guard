@@ -384,7 +384,9 @@ export default function AgencyView() {
                             isRecent ? 'animate-in fade-in-0 slide-in-from-top-2 bg-blue-50/50' : ''
                           }`}
                         >
-                          <TableCell className="font-medium">{invite.email}</TableCell>
+                          <TableCell className="font-medium">
+                            {invite.email || <span className="text-muted-foreground italic">일반 초대 링크</span>}
+                          </TableCell>
                           <TableCell className="text-muted-foreground">
                             {format(new Date(invite.created_at), "yyyy-MM-dd HH:mm")}
                           </TableCell>

@@ -19,7 +19,7 @@ export type Database = {
           agency_id: string | null
           created_at: string
           created_by: string | null
-          email: string
+          email: string | null
           expires_at: string
           id: string
           invite_token: string
@@ -34,7 +34,7 @@ export type Database = {
           agency_id?: string | null
           created_at?: string
           created_by?: string | null
-          email: string
+          email?: string | null
           expires_at?: string
           id?: string
           invite_token?: string
@@ -49,7 +49,7 @@ export type Database = {
           agency_id?: string | null
           created_at?: string
           created_by?: string | null
-          email?: string
+          email?: string | null
           expires_at?: string
           id?: string
           invite_token?: string

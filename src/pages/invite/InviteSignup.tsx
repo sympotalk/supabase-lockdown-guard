@@ -24,6 +24,7 @@ interface InviteData {
 }
 
 interface SignupFormData {
+  email?: string;
   display_name: string;
   password: string;
   password_confirm: string;
@@ -116,8 +117,14 @@ export default function InviteSignup() {
 
     try {
       // Step 1: Sign up user
+      const signupEmail = inviteData.email || formData.email;
+      if (!signupEmail) {
+        toast.error("이메일을 입력해주세요.");
+        return;
+      }
+
       const { data: authData, error: signUpError } = await supabase.auth.signUp({
-        email: inviteData.email,
+        email: signupEmail,
         password: formData.password,
         options: {
           data: {
@@ -271,20 +278,45 @@ export default function InviteSignup() {
                     </p>
                   </div>
 
-                  {/* Email (Read-only) */}
-                  <div className="space-y-2">
-                    <Label htmlFor="email">
-                      이메일 <span className="text-destructive">*</span>
-                    </Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      value={inviteData.email}
-                      readOnly
-                      disabled
-                      className="bg-muted"
-                    />
-                  </div>
+                  {/* Email (Optional if not provided) */}
+                  {inviteData.email ? (
+                    <div className="space-y-2">
+                      <Label htmlFor="email">
+                        이메일 <span className="text-destructive">*</span>
+                      </Label>
+                      <Input
+                        id="email"
+                        type="email"
+                        value={inviteData.email}
+                        readOnly
+                        disabled
+                        className="bg-muted"
+                      />
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      <Label htmlFor="email">
+                        이메일 <span className="text-destructive">*</span>
+                      </Label>
+                      <Input
+                        id="email"
+                        type="email"
+                        placeholder="이메일을 입력하세요"
+                        {...register("email", { 
+                          required: "이메일을 입력해주세요",
+                          pattern: {
+                            value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                            message: "올바른 이메일 형식이 아닙니다"
+                          }
+                        })}
+                        aria-invalid={!!errors.email}
+                        className={errors.email ? "border-destructive" : ""}
+                      />
+                      {errors.email && (
+                        <p className="text-xs text-destructive">{errors.email.message}</p>
+                      )}
+                    </div>
+                  )}
 
                   {/* Display Name */}
                   <div className="space-y-2">
