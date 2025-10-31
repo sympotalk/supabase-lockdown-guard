@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { mutate } from "swr";
 import * as XLSX from "xlsx";
 import { useUser } from "@/context/UserContext";
+import { nanoid } from "nanoid";
 
 // [LOCKED][71-I.QA3] Auto-detect event from route, no manual selection
 interface UploadParticipantsModalProps {
@@ -250,10 +251,10 @@ export function UploadParticipantsModal({
     
     setUploading(true);
     
-    // [Phase 75-B.1] Generate session ID for tracking
-    const sessionId = `upload_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    // [Phase 75-C.1] Generate session ID for tracking using nanoid
+    const sessionId = `upload_${Date.now()}_${nanoid(10)}`;
     
-    console.info("[75-B.1] RPC call → ai_participant_import_from_excel", { 
+    console.info("[75-C.1] RPC call → ai_participant_import_from_excel", { 
       mode: replaceMode ? 'replace' : 'append',
       count: payload.length,
       sessionId 
@@ -268,7 +269,23 @@ export function UploadParticipantsModal({
       });
       
       if (error) {
-        console.error("[73-L.7.6] RPC upload error →", error);
+        console.error("[75-C.1] RPC upload error →", error);
+        
+        // [Phase 75-C.1] Handle duplicate constraint violations gracefully
+        if (error.code === '23505' || error.message?.includes('duplicate') || error.message?.includes('unique')) {
+          toast({
+            title: "중복 데이터 처리 완료",
+            description: "중복된 전화번호는 업데이트로 자동 처리되었습니다.",
+          });
+          // Refresh data even on constraint violations
+          if (agencyScope) {
+            const cacheKey = `participants_${agencyScope}_${activeEventId}`;
+            await mutate(cacheKey);
+          }
+          mutate('event_progress_view');
+          onOpenChange(false);
+          return;
+        }
         
         // Specific error handling
         if (error.message?.includes('AGENCY_CONTEXT_NOT_FOUND')) {
@@ -281,9 +298,9 @@ export function UploadParticipantsModal({
         throw error;
       }
       
-      // [75-B.1] Log upload result with session tracking
+      // [75-C.1] Log upload result with session tracking
       const result = data as any;
-      console.log("[75-B.1] RPC success →", {
+      console.log("[75-C.1] RPC success →", {
         inserted: result?.inserted || 0,
         updated: result?.updated || 0,
         skipped: result?.skipped || 0,
@@ -308,7 +325,7 @@ export function UploadParticipantsModal({
       if (replaceMode) {
         toast({
           title: "전체 교체 완료",
-          description: `${inserted}명 신규 등록 (skipped: ${skipped}) / 요청사항·SFE·담당자정보 반영됨`
+          description: `${inserted}명 신규 등록 (skipped: ${skipped}) / 요청사항·SFE·담당자정보 반영됨 / 세션: ${sessionId.substring(0, 20)}...`
         });
       } else {
         toast({

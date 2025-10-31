@@ -26,6 +26,7 @@ import { DataTable } from "@/components/participants/DataTable";
 import { DrawerPanel } from "@/components/participants/DrawerPanel";
 import { UploadParticipantsModal } from "@/components/dashboard/UploadParticipantsModal";
 import { CreateParticipantModal } from "@/components/participants/CreateParticipantModal";
+import { ParticipantsLogViewer } from "@/components/participants/ParticipantsLogViewer";
 import { exportParticipantsToExcel, type ExportMode } from "@/utils/exportParticipants";
 import { LoadingSkeleton } from "@/components/pd/LoadingSkeleton";
 import { supabase } from "@/integrations/supabase/client";
@@ -415,6 +416,13 @@ export default function ParticipantsPanel({ onMutate }: ParticipantsPanelProps) 
           </Button>
         </div>
       </div>
+
+      {/* [Phase 75-C.1] Recent Changes Log Viewer */}
+      {eventId && (
+        <div className="px-2">
+          <ParticipantsLogViewer eventId={eventId} limit={3} />
+        </div>
+      )}
 
         {/* Main Content: Table */}
         <div className="flex-1 overflow-hidden px-2 py-4">

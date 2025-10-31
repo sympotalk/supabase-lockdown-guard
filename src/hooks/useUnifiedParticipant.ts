@@ -159,6 +159,19 @@ export function useUnifiedParticipant(eventId: string | null | undefined, agency
           load();
         }
       )
+      .on(
+        "postgres_changes",
+        { 
+          event: "*", 
+          schema: "public", 
+          table: "participants_log",
+          ...(eventId && { filter: `event_id=eq.${eventId}` })
+        },
+        (payload) => {
+          console.log("[75-C.1.Realtime] Participants_log changed →", payload.eventType);
+          // No need to reload full data, just log for tracking
+        }
+      )
       .subscribe((status) => {
         console.log("[useUnifiedParticipant] Subscription status:", status);
       });
