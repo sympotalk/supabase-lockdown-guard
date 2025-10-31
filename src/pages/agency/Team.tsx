@@ -281,59 +281,22 @@ export default function AgencyTeam() {
   return (
     <AccountLayout>
       <div className="space-y-8 p-8">
-        <div>
-          <h1 className="text-[28px] font-bold">팀원 초대</h1>
-          <p className="text-[14px] text-muted-foreground mt-1">
-            에이전시 팀원을 초대하고 역할을 관리합니다
-          </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-[28px] font-bold">팀원 초대</h1>
+            <p className="text-[14px] text-muted-foreground mt-1">
+              에이전시 팀원을 초대하고 역할을 관리합니다
+            </p>
+          </div>
+          <Button 
+            onClick={generateInviteLink}
+            disabled={submitting || !agencyId}
+            className="px-5"
+          >
+            <UserPlus className="h-4 w-4 mr-2" />
+            {submitting ? "생성 중..." : "초대 링크 생성"}
+          </Button>
         </div>
-
-        {/* Invite Form */}
-        <Card className="shadow-md rounded-2xl">
-          <CardHeader>
-            <CardTitle className="text-lg flex items-center gap-2">
-              <UserPlus className="h-5 w-5" />
-              새 팀원 초대
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="invite-role">권한</Label>
-                <Select value="staff" disabled>
-                  <SelectTrigger id="invite-role">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="staff">Staff</SelectItem>
-                  </SelectContent>
-                </Select>
-                <p className="text-xs text-muted-foreground">
-                  모든 초대는 Staff 권한으로 발송됩니다
-                </p>
-              </div>
-
-              <Button 
-                onClick={generateInviteLink}
-                disabled={submitting || !agencyId}
-                className="w-full"
-              >
-                <UserPlus className="h-4 w-4 mr-2" />
-                {submitting ? "생성 중..." : "초대 링크 생성"}
-              </Button>
-
-              <p className="text-xs text-muted-foreground text-center">
-                생성된 링크를 복사하여 팀원에게 전달하세요.
-              </p>
-
-              {!agencyId && (
-                <p className="text-xs text-muted-foreground text-center">
-                  에이전시 정보를 불러오는 중입니다...
-                </p>
-              )}
-            </div>
-          </CardContent>
-        </Card>
 
         {/* Current Team Members */}
         <Card className="shadow-md rounded-2xl">
