@@ -139,28 +139,23 @@ export default function InviteSignup() {
       if (signUpError) throw signUpError;
       if (!authData.user) throw new Error("회원가입에 실패했습니다.");
 
-      // Step 2: Mark invite as used and link to agency
-      const { error: linkError } = await supabase
-        .from("account_provisioning")
-        .update({
-          is_used: true,
-          used_at: new Date().toISOString(),
-        })
-        .eq("invite_token", token);
+      // [74-B.0-FIX.9] Step 2: Use RPC to link user to agency and set role
+      const { data: linkResult, error: linkError } = await supabase.rpc(
+        'accept_invite_and_link',
+        { p_token: token }
+      );
 
-      if (linkError) throw linkError;
+      if (linkError) {
+        console.error("[InviteSignup] Link error:", linkError);
+        throw linkError;
+      }
 
-      // Step 3: Create agency_members record
-      const { error: memberError } = await supabase.from("agency_members").insert({
-        user_id: authData.user.id,
-        agency_id: inviteData.agency_id,
-        role: inviteData.role,
-        display_name: formData.display_name,
-        phone: formData.phone || null,
-        position: formData.position || null,
-      });
+      const result = linkResult as any;
+      if (result?.status !== 'success') {
+        throw new Error(result?.message || '에이전시 연결 실패');
+      }
 
-      if (memberError) throw memberError;
+      console.log("[InviteSignup] Successfully linked to agency:", result);
 
       toast.success("가입이 완료되었습니다. 에이전시에 연결되었습니다.");
 
