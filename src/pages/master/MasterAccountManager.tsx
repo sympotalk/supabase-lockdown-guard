@@ -17,7 +17,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { UserPlus, Shield, Trash2, RefreshCw } from "lucide-react";
+import { UserPlus, Shield, Trash2, RefreshCw, CheckCircle2 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { useUser } from "@/context/UserContext";
@@ -50,6 +50,7 @@ export default function MasterAccountManager() {
   const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null);
   const [editRole, setEditRole] = useState<string>("");
   const [agencies, setAgencies] = useState<Array<{ id: string; name: string }>>([]);
+  const [confirming, setConfirming] = useState(false);
   
   const canCreate = role === 'master';
 
@@ -175,6 +176,37 @@ export default function MasterAccountManager() {
     }
   };
 
+  const handleConfirmAllUsers = async () => {
+    setConfirming(true);
+    
+    try {
+      const { data, error } = await supabase.rpc("confirm_all_unconfirmed_users");
+
+      if (error) throw error;
+
+      const result = data as any;
+      
+      if (result.status === "success") {
+        toast({
+          title: "✅ 이메일 확인 완료",
+          description: `${result.confirmed_count}명의 사용자가 확인되었습니다.`,
+        });
+        loadProfiles();
+      } else {
+        throw new Error(result.message || "확인 처리 실패");
+      }
+    } catch (error: any) {
+      console.error("[MasterAccount] Failed to confirm users:", error);
+      toast({
+        title: "❌ 이메일 확인 실패",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setConfirming(false);
+    }
+  };
+
 
   return (
     <div className="space-y-6">
@@ -188,10 +220,21 @@ export default function MasterAccountManager() {
         </div>
         <div className="flex gap-2">
           {canCreate && (
-            <Button onClick={() => setCreateDialogOpen(true)} size="sm">
-              <UserPlus className="h-4 w-4 mr-2" />
-              새 계정 생성
-            </Button>
+            <>
+              <Button 
+                onClick={handleConfirmAllUsers} 
+                variant="default"
+                size="sm"
+                disabled={confirming}
+              >
+                <CheckCircle2 className="h-4 w-4 mr-2" />
+                {confirming ? "확인 중..." : "미확인 사용자 일괄 확인"}
+              </Button>
+              <Button onClick={() => setCreateDialogOpen(true)} size="sm">
+                <UserPlus className="h-4 w-4 mr-2" />
+                새 계정 생성
+              </Button>
+            </>
           )}
           <Button onClick={loadProfiles} variant="outline" size="sm">
             <RefreshCw className="h-4 w-4 mr-2" />
