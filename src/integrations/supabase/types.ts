@@ -3511,6 +3511,8 @@ export type Database = {
       }
       participant_requests: {
         Row: {
+          category: Database["public"]["Enums"]["request_category"] | null
+          confidence: number | null
           created_at: string | null
           event_id: string
           id: string
@@ -3522,6 +3524,8 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          category?: Database["public"]["Enums"]["request_category"] | null
+          confidence?: number | null
           created_at?: string | null
           event_id: string
           id?: string
@@ -3533,6 +3537,8 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          category?: Database["public"]["Enums"]["request_category"] | null
+          confidence?: number | null
           created_at?: string | null
           event_id?: string
           id?: string
@@ -7345,6 +7351,10 @@ export type Database = {
         Args: { p_event_id: string }
         Returns: Json
       }
+      ai_extract_requests_from_memo: {
+        Args: { p_event_id: string }
+        Returns: Json
+      }
       ai_participant_import_from_excel:
         | {
             Args: { p_data: Json; p_event_id: string; p_replace?: boolean }
@@ -7379,6 +7389,10 @@ export type Database = {
       ai_update_request_fulfillment: {
         Args: { p_event_id: string }
         Returns: Json
+      }
+      apply_extracted_requests: {
+        Args: { p_event_id: string; p_items: Json }
+        Returns: undefined
       }
       assign_master_role: { Args: { user_email: string }; Returns: Json }
       auto_confirm_invited_user: { Args: { p_user_id: string }; Returns: Json }
@@ -8012,6 +8026,13 @@ export type Database = {
         | "staff"
         | "viewer"
         | "guest"
+      request_category:
+        | "equipment"
+        | "preference"
+        | "view"
+        | "floor"
+        | "smoking"
+        | "note"
       rooming_status: "대기" | "배정" | "확정" | "취소" | "배정완료"
     }
     CompositeTypes: {
@@ -8142,6 +8163,14 @@ export const Constants = {
     Enums: {
       ai_agent_role: ["insight", "analysis", "advisor", "visual"],
       app_role: ["master", "agency_owner", "admin", "staff", "viewer", "guest"],
+      request_category: [
+        "equipment",
+        "preference",
+        "view",
+        "floor",
+        "smoking",
+        "note",
+      ],
       rooming_status: ["대기", "배정", "확정", "취소", "배정완료"],
     },
   },

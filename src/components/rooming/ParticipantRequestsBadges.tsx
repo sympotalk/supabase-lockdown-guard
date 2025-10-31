@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Baby, Bed, Shield, Wind, Eye, ArrowUp } from "lucide-react";
+import { Baby, Bed, Shield, Wind, Eye, ArrowUp, ArrowDown, Cigarette, CigaretteOff, Building2, Waves } from "lucide-react";
 
 interface ParticipantRequestsBadgesProps {
   participantId: string;
@@ -47,9 +47,16 @@ export default function ParticipantRequestsBadges({
   const getIcon = (requestValue: string) => {
     const value = requestValue.toLowerCase();
     if (value.includes('아기') || value.includes('infant')) return <Baby className="w-3 h-3" />;
-    if (value.includes('베드') || value.includes('bed')) return <Bed className="w-3 h-3" />;
+    if (value.includes('엑스트라') || value.includes('extra')) return <Bed className="w-3 h-3" />;
     if (value.includes('가드') || value.includes('guard')) return <Shield className="w-3 h-3" />;
-    if (value.includes('가습') || value.includes('공기')) return <Wind className="w-3 h-3" />;
+    if (value.includes('가습') || value.includes('humidifier')) return <Wind className="w-3 h-3" />;
+    if (value.includes('공기') || value.includes('purifier')) return <Wind className="w-3 h-3" />;
+    if (value.includes('오션') || value.includes('바다') || value.includes('sea')) return <Waves className="w-3 h-3" />;
+    if (value.includes('시티') || value.includes('city')) return <Building2 className="w-3 h-3" />;
+    if (value.includes('고층') || value.includes('high')) return <ArrowUp className="w-3 h-3" />;
+    if (value.includes('저층') || value.includes('low')) return <ArrowDown className="w-3 h-3" />;
+    if (value.includes('금연') || value.includes('non')) return <CigaretteOff className="w-3 h-3" />;
+    if (value.includes('흡연') || value.includes('smoking')) return <Cigarette className="w-3 h-3" />;
     if (value.includes('뷰') || value.includes('view')) return <Eye className="w-3 h-3" />;
     return null;
   };

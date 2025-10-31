@@ -344,6 +344,40 @@ export function UploadParticipantsModal({
         console.log("[Phase 77-E] Starting companion detection after upload");
         await detectCompanions(activeEventId);
       }
+
+      // [Phase 77-F] AI 메모 기반 요청사항 자동 추출
+      if (activeEventId) {
+        try {
+          console.log("[Phase 77-F] Starting request extraction from memo/request_note");
+          const { data: extracted, error: extractError } = await supabase.rpc(
+            'ai_extract_requests_from_memo',
+            { p_event_id: activeEventId }
+          );
+
+          if (extractError) {
+            console.error('[Phase 77-F] 요청사항 추출 실패:', extractError);
+          } else if (extracted && Array.isArray(extracted) && extracted.length > 0) {
+            console.log(`[Phase 77-F] Extracted ${extracted.length} requests`);
+            const { error: applyError } = await supabase.rpc(
+              'apply_extracted_requests',
+              { p_event_id: activeEventId, p_items: extracted }
+            );
+
+            if (applyError) {
+              console.error('[Phase 77-F] 요청사항 저장 실패:', applyError);
+            } else {
+              const eqCnt = extracted.filter((x: any) => x.category === 'equipment').length;
+              const prefCnt = extracted.length - eqCnt;
+              toast({
+                title: '요청사항 자동 반영',
+                description: `장비 ${eqCnt}건, 기타 ${prefCnt}건을 반영했습니다.`
+              });
+            }
+          }
+        } catch (err) {
+          console.error('[Phase 77-F] 요청사항 처리 중 오류:', err);
+        }
+      }
       
       // Reset state
       setFile(null);
