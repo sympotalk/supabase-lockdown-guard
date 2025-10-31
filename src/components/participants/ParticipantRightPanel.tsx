@@ -45,6 +45,8 @@ interface Participant {
   last_edited_at?: string;
   editor_email?: string;
   editor_display_name?: string;
+  event_id?: string; // [Phase 76-Pre.A]
+  agency_id?: string; // [Phase 76-Pre.A]
 }
 
 // [LOCKED][QA2] Debounce utility
@@ -259,6 +261,7 @@ export function ParticipantRightPanel({
           <SmartBadges
             currentMemo={localData?.request_note || ""}
             onMemoChange={(newMemo) => handleFieldChange("request_note", newMemo)}
+            eventId={participant?.event_id}
           />
 
           {/* Lodging Status */}

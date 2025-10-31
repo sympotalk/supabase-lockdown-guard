@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { useUser } from "@/context/UserContext";
 import { supabase } from "@/integrations/supabase/client";
 import useSWR from "swr";
+import { cn } from "@/lib/utils";
 
 interface Category {
   key: string;
@@ -18,7 +19,7 @@ interface Category {
 }
 
 const BASE_CATEGORIES: Category[] = [
-  { key: "room", icon: "🏷️", label: "객실등급", items: ["프리미엄", "디럭스", "스탠다드"] },
+  { key: "room", icon: "🏷️", label: "객실등급", items: [] }, // [Phase 76-Pre.A] Will be populated from event_room_refs
   { key: "bedding", icon: "💤", label: "침구", items: ["엑스트라베드", "소파베드", "침대가드"] },
   { key: "infant", icon: "🍼", label: "유아용품", items: ["아기침대", "아기욕조", "유모차"] },
   { key: "appliance", icon: "🌿", label: "가전", items: ["공기청정기", "가습기"] },
@@ -29,12 +30,34 @@ const BASE_CATEGORIES: Category[] = [
 interface SmartBadgesProps {
   currentMemo: string;
   onMemoChange: (newMemo: string) => void;
+  eventId?: string; // [Phase 76-Pre.A] For fetching event room types
 }
 
-export function SmartBadges({ currentMemo, onMemoChange }: SmartBadgesProps) {
+export function SmartBadges({ currentMemo, onMemoChange, eventId }: SmartBadgesProps) {
   const { agencyScope } = useUser();
   const [customInput, setCustomInput] = useState("");
   const [categories, setCategories] = useState<Category[]>(BASE_CATEGORIES);
+
+  // [Phase 76-Pre.A] Load room types from event_room_refs
+  const { data: roomTypes } = useSWR(
+    eventId ? `room_types_${eventId}` : null,
+    async () => {
+      const { data, error } = await supabase
+        .from("event_room_refs" as any)
+        .select("room_type_id, room_credit")
+        .eq("event_id", eventId!)
+        .eq("is_active", true);
+      if (error) throw error;
+      
+      // Get unique room type names (simplified for now)
+      const uniqueTypes = Array.from(new Set(
+        (data || []).map((r: any) => `객실타입 ${r.room_type_id?.slice(0, 8) || '기본'}`)
+      ));
+      
+      return uniqueTypes;
+    },
+    { revalidateOnFocus: false }
+  );
 
   // [LOCKED][QA2] Load agency-specific custom badges
   const { data: customBadges } = useSWR(
@@ -51,36 +74,44 @@ export function SmartBadges({ currentMemo, onMemoChange }: SmartBadgesProps) {
     { revalidateOnFocus: false }
   );
 
-  // Merge custom badges into categories
+  // [Phase 76-Pre.A] Merge room types and custom badges into categories
   useEffect(() => {
-    if (!customBadges || customBadges.length === 0) {
-      setCategories(BASE_CATEGORIES);
-      return;
-    }
-
     const merged = [...BASE_CATEGORIES];
-    const customCategory: Category = {
-      key: "custom",
-      icon: "💎",
-      label: "커스텀",
-      items: [],
-    };
+    
+    // Update room category with event room types
+    const roomCategory = merged.find(c => c.key === "room");
+    if (roomCategory && roomTypes && roomTypes.length > 0) {
+      roomCategory.items = roomTypes;
+    } else if (roomCategory) {
+      // Fallback if no room types defined
+      roomCategory.items = ["프리미엄", "디럭스", "스탠다드"];
+    }
+    
+    // Add custom badges
+    if (customBadges && customBadges.length > 0) {
+      const customCategory: Category = {
+        key: "custom",
+        icon: "💎",
+        label: "커스텀",
+        items: [],
+      };
 
-    customBadges.forEach((badge: any) => {
-      const existingCat = merged.find((c) => c.key === badge.category);
-      if (existingCat && !existingCat.items.includes(badge.label)) {
-        existingCat.items.push(badge.label);
-      } else if (!existingCat && badge.category === "custom") {
-        customCategory.items.push(badge.label);
+      customBadges.forEach((badge: any) => {
+        const existingCat = merged.find((c) => c.key === badge.category);
+        if (existingCat && !existingCat.items.includes(badge.label)) {
+          existingCat.items.push(badge.label);
+        } else if (!existingCat && badge.category === "custom") {
+          customCategory.items.push(badge.label);
+        }
+      });
+
+      if (customCategory.items.length > 0) {
+        merged.push(customCategory);
       }
-    });
-
-    if (customCategory.items.length > 0) {
-      merged.push(customCategory);
     }
 
     setCategories(merged);
-  }, [customBadges]);
+  }, [customBadges, roomTypes]);
 
   const appendMemo = (label: string) => {
     const memoItems = currentMemo ? currentMemo.split(" / ").filter(Boolean) : [];
@@ -147,7 +178,10 @@ export function SmartBadges({ currentMemo, onMemoChange }: SmartBadgesProps) {
                     size="sm"
                     variant={currentItems.includes(item) ? "default" : "outline"}
                     onClick={() => appendMemo(item)}
-                    className="h-7 text-xs"
+                    className={cn(
+                      "h-7 text-xs",
+                      cat.key === "room" && "bg-[#337EFF]/10 text-[#337EFF] hover:bg-[#337EFF]/20 border-[#337EFF]/30"
+                    )}
                   >
                     {item}
                   </Button>

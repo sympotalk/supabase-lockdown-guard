@@ -48,113 +48,88 @@ export default function RoomingTab() {
     loadRoomTypes();
   }, [eventId]);
 
+  // [Phase 76-Pre.A] Fetch ALL participants with left-join to rooming_participants
   const { data: roomingList, error, isLoading, mutate } = useSWR(
     eventId ? `rooming_${eventId}` : null,
     async () => {
       if (!eventId) return [];
       
-      console.log('[72-RULE.UI.BIND] Fetching from public.rooming_participants for event:', eventId);
+      console.log('[Phase 76-Pre.A] Fetching all participants with rooming data for event:', eventId);
       
-      const { data, error } = await supabase
-        .from("rooming_participants")
-        .select(`
-          id,
-          event_id,
-          participant_id,
-          room_type,
-          room_credit,
-          check_in,
-          check_out,
-          stay_days,
-          status,
-          manual_assigned,
-          assigned_at,
-          adults,
-          children,
-          infants,
-          participants:participant_id (
-            name,
-            phone,
-            organization,
-            fixed_role,
-            custom_role,
-            participant_no
-          )
-        `)
+      // Fetch all participants first
+      const { data: allParticipants, error: participantsError } = await supabase
+        .from("participants")
+        .select("id, name, organization, phone, fixed_role, custom_role, participant_no")
         .eq("event_id", eventId)
         .eq("is_active", true)
-        .order("assigned_at", { ascending: false });
+        .order("participant_no", { ascending: true });
       
-      if (error) {
-        console.error('[72-RULE.UI.BIND] Query error:', error);
-        throw error;
+      if (participantsError) {
+        console.error('[Phase 76-Pre.A] Participants query error:', participantsError);
+        throw participantsError;
       }
       
-      console.log('[72-RULE.UI.BIND] Fetched rooming data:', data?.length || 0, 'records');
+      // Fetch rooming data
+      const { data: roomingData, error: roomingError } = await supabase
+        .from("rooming_participants")
+        .select("*")
+        .eq("event_id", eventId)
+        .eq("is_active", true);
       
-      // [Phase 72–RM.BADGE.SYNC.RENUM] Sort by role priority and participant_no
-      const sortedData = (data || []).sort((a: any, b: any) => {
-        // Use participant_no from participants relation
-        const noA = a.participants?.participant_no || 9999;
-        const noB = b.participants?.participant_no || 9999;
-        return noA - noB;
+      if (roomingError) {
+        console.error('[Phase 76-Pre.A] Rooming query error:', roomingError);
+        // Don't throw, just use empty array
+      }
+      
+      // Create a map of participant_id -> rooming data
+      const roomingMap = new Map(
+        (roomingData || []).map(r => [r.participant_id, r])
+      );
+      
+      // Merge participants with rooming data
+      const merged = (allParticipants || []).map((p: any) => {
+        const rooming = roomingMap.get(p.id);
+        return {
+          // Participant data
+          participant_id: p.id,
+          participant_no: p.participant_no,
+          name: p.name,
+          organization: p.organization,
+          phone: p.phone,
+          fixed_role: p.fixed_role,
+          custom_role: p.custom_role,
+          // Rooming data (may be null)
+          id: rooming?.id || null,
+          room_type: rooming?.room_type || null,
+          room_credit: rooming?.room_credit || null,
+          check_in: rooming?.check_in || null,
+          check_out: rooming?.check_out || null,
+          stay_days: rooming?.stay_days || null,
+          status: rooming?.status || '배정대기',
+          manual_assigned: rooming?.manual_assigned || false,
+          assigned_at: rooming?.assigned_at || null,
+          adults: rooming?.adults || 0,
+          children: rooming?.children || 0,
+          infants: rooming?.infants || 0,
+        };
       });
       
-      // 빈 결과시 RPC로 백필 트리거
-      if (sortedData.length === 0) {
-        console.log('[72-RULE.UI.BIND] Empty result, triggering seed RPC');
-        const { data: seedData, error: seedError } = await supabase.rpc(
+      console.log('[Phase 76-Pre.A] Merged', merged.length, 'participants with rooming data');
+      
+      // Seed rooming if needed
+      if (!roomingData || roomingData.length === 0) {
+        console.log('[Phase 76-Pre.A] No rooming data, triggering seed RPC');
+        const { error: seedError } = await supabase.rpc(
           'seed_rooming_from_participants',
           { p_event: eventId }
         );
         
         if (seedError) {
-          console.error('[72-RULE.UI.BIND] Seed RPC error:', seedError);
-        } else {
-          console.log('[72-RULE.UI.BIND] Seeded', seedData, 'records');
-          // 재조회
-          const { data: reloadData } = await supabase
-            .from("rooming_participants")
-            .select(`
-              id,
-              event_id,
-              participant_id,
-              room_type,
-              room_credit,
-              check_in,
-              check_out,
-              stay_days,
-              status,
-              manual_assigned,
-              assigned_at,
-              adults,
-              children,
-              infants,
-              participants:participant_id (
-                name,
-                phone,
-                organization,
-                fixed_role,
-                custom_role,
-                participant_no
-              )
-            `)
-            .eq("event_id", eventId)
-            .eq("is_active", true)
-            .order("assigned_at", { ascending: false });
-          
-          // [Phase 72–RM.BADGE.SYNC.RENUM] Sort reloaded data as well
-          const sortedReloadData = (reloadData || []).sort((a: any, b: any) => {
-            const noA = a.participants?.participant_no || 9999;
-            const noB = b.participants?.participant_no || 9999;
-            return noA - noB;
-          });
-          
-          return sortedReloadData;
+          console.error('[Phase 76-Pre.A] Seed RPC error:', seedError);
         }
       }
       
-      return sortedData;
+      return merged;
     },
     { 
       revalidateOnFocus: false, 
@@ -276,37 +251,35 @@ export default function RoomingTab() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead className="w-12">No.</TableHead>
-                      <TableHead>참가자명</TableHead>
-                      <TableHead>객실타입</TableHead>
-                      <TableHead>룸크레딧</TableHead>
-                      <TableHead>구성</TableHead>
-                      <TableHead>상태</TableHead>
+                      <TableHead className="w-12 text-left">No.</TableHead>
+                      <TableHead className="text-left">구분</TableHead>
+                      <TableHead className="text-left">참가자명</TableHead>
+                      <TableHead className="text-left">직책/직위</TableHead>
+                      <TableHead className="text-center">룸크레딧</TableHead>
+                      <TableHead className="text-center">구성</TableHead>
+                      <TableHead className="text-right">상태</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {roomingList.map((r: any) => (
+                    {roomingList.map((r: any, index: number) => (
                       <TableRow
-                        key={r.id}
-                        className="cursor-pointer hover:bg-muted/50"
+                        key={r.participant_id || index}
+                        className="cursor-pointer hover:bg-muted/50 transition-colors"
                         onClick={() => setSelectedParticipant(r)}
                       >
-                        <TableCell className="text-center text-muted-foreground text-sm">
-                          {r.participant_no || "-"}
+                        <TableCell className="text-left text-muted-foreground text-sm font-medium">
+                          {r.participant_no || index + 1}
                         </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <span className="font-medium">
-                              {r.participants?.name || "-"}
-                            </span>
+                        <TableCell className="text-left">
+                          <div className="flex items-center gap-1">
                             {r.fixed_role && (
                               <Badge
                                 variant="outline"
                                 className={cn(
-                                  "text-xs px-2 py-0.5",
-                                  r.fixed_role === "좌장" && "bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-200",
-                                  r.fixed_role === "연자" && "bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-200",
-                                  r.fixed_role === "참석자" && "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-200"
+                                  "text-xs px-2.5 py-0.5 rounded-full",
+                                  r.fixed_role === "좌장" && "bg-gray-100 text-gray-800 border-gray-300",
+                                  r.fixed_role === "연자" && "bg-purple-100 text-purple-800 border-purple-300",
+                                  r.fixed_role === "참석자" && "bg-blue-100 text-blue-800 border-blue-300"
                                 )}
                               >
                                 {r.fixed_role}
@@ -315,22 +288,30 @@ export default function RoomingTab() {
                             {r.custom_role && (
                               <Badge
                                 variant="outline"
-                                className="bg-blue-50 text-blue-700 dark:bg-blue-900 dark:text-blue-200 text-xs px-2 py-0.5"
+                                className="text-xs px-2.5 py-0.5 rounded-full bg-[#E0F2FE] text-[#0369A1] border-transparent"
                               >
                                 {r.custom_role}
                               </Badge>
                             )}
                           </div>
                         </TableCell>
-                        <TableCell>{r.room_type || "-"}</TableCell>
-                        <TableCell className="text-muted-foreground">
-                          {r.room_credit?.toLocaleString()}원
+                        <TableCell className="text-left">
+                          <span className="font-medium">{r.name || "-"}</span>
                         </TableCell>
-                        <TableCell className="text-sm text-muted-foreground">
-                          성인 {r.adults || 0} / 소아 {r.children || 0} / 유아 {r.infants || 0}
+                        <TableCell className="text-left text-sm text-muted-foreground">
+                          {r.organization || "-"}
                         </TableCell>
-                        <TableCell>
-                          {getStatusBadge(r.manual_assigned, r.room_type)}
+                        <TableCell className="text-center text-muted-foreground">
+                          {r.room_credit ? `${r.room_credit.toLocaleString()}원` : "-"}
+                        </TableCell>
+                        <TableCell className="text-center text-sm text-muted-foreground">
+                          {r.adults || r.children || r.infants 
+                            ? `성인 ${r.adults || 0} / 소아 ${r.children || 0} / 유아 ${r.infants || 0}`
+                            : "-"
+                          }
+                        </TableCell>
+                        <TableCell className="text-right">
+                          {getStatusBadge(r.manual_assigned, r.room_type || r.status)}
                         </TableCell>
                       </TableRow>
                     ))}
@@ -346,7 +327,7 @@ export default function RoomingTab() {
               <ManualAssignPanel
                 eventId={eventId!}
                 participantId={selectedParticipant.participant_id}
-                participantName={selectedParticipant.participants?.name || "참가자"}
+                participantName={selectedParticipant.name || "참가자"}
                 roomTypes={roomTypes}
                 currentAssignment={{
                   room_type: selectedParticipant.room_type,

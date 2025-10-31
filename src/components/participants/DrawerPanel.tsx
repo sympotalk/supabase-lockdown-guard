@@ -824,6 +824,7 @@ export function DrawerPanel({ participants, onUpdate }: DrawerPanelProps) {
           <SmartBadges
             currentMemo={localData?.request_note || ""}
             onMemoChange={(newMemo) => handleFieldChange("request_note", newMemo)}
+            eventId={localData?.event_id}
           />
 
           {/* SFE Codes */}
