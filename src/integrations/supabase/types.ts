@@ -3898,6 +3898,7 @@ export type Database = {
           action: string
           agency_id: string | null
           changed_fields: Json | null
+          context_json: Json | null
           created_at: string | null
           edited_at: string | null
           edited_by: string | null
@@ -3905,13 +3906,15 @@ export type Database = {
           id: string
           memo_diff: string | null
           metadata: Json | null
-          participant_id: string
+          participant_id: string | null
+          session_id: string | null
           upload_session_id: string | null
         }
         Insert: {
           action: string
           agency_id?: string | null
           changed_fields?: Json | null
+          context_json?: Json | null
           created_at?: string | null
           edited_at?: string | null
           edited_by?: string | null
@@ -3919,13 +3922,15 @@ export type Database = {
           id?: string
           memo_diff?: string | null
           metadata?: Json | null
-          participant_id: string
+          participant_id?: string | null
+          session_id?: string | null
           upload_session_id?: string | null
         }
         Update: {
           action?: string
           agency_id?: string | null
           changed_fields?: Json | null
+          context_json?: Json | null
           created_at?: string | null
           edited_at?: string | null
           edited_by?: string | null
@@ -3933,7 +3938,8 @@ export type Database = {
           id?: string
           memo_diff?: string | null
           metadata?: Json | null
-          participant_id?: string
+          participant_id?: string | null
+          session_id?: string | null
           upload_session_id?: string | null
         }
         Relationships: [
@@ -7851,6 +7857,38 @@ export type Database = {
           },
         ]
       }
+      v_upload_session_summary: {
+        Row: {
+          action: string | null
+          count: number | null
+          event_id: string | null
+          last_at: string | null
+          session_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "participants_log_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "event_progress_view"
+            referencedColumns: ["event_id"]
+          },
+          {
+            foreignKeyName: "participants_log_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "participants_log_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "v_event_room_summary"
+            referencedColumns: ["event_id"]
+          },
+        ]
+      }
     }
     Functions: {
       accept_invite_and_link: { Args: { p_token: string }; Returns: Json }
@@ -7878,20 +7916,15 @@ export type Database = {
         Args: { p_days_back?: number; p_event_id: string }
         Returns: Json
       }
-      ai_participant_import_from_excel:
-        | {
-            Args: { p_data: Json; p_event_id: string; p_replace?: boolean }
-            Returns: Json
-          }
-        | {
-            Args: {
-              p_data: Json
-              p_event_id: string
-              p_replace?: boolean
-              p_session_id?: string
-            }
-            Returns: Json
-          }
+      ai_participant_import_from_excel: {
+        Args: {
+          p_data: Json
+          p_event_id: string
+          p_replace?: boolean
+          p_session_id?: string
+        }
+        Returns: Json
+      }
       ai_rebalance_apply: {
         Args: { p_changes: Json; p_event_id: string }
         Returns: Json

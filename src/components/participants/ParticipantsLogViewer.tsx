@@ -7,20 +7,30 @@ import { Clock, Upload, Edit, Trash2 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { ko } from "date-fns/locale";
 
-type LogMetadata = {
+type ContextJson = {
   inserted?: number;
   updated?: number;
   skipped?: number;
+  deleted?: number;
+  errors?: number;
   mode?: string;
-  session_id?: string;
+  total_rows?: number;
+  name?: string;
+  phone?: string;
+  reason?: string;
+  error?: string;
+  record?: any;
+  source?: string;
+  mapped?: boolean;
 };
 
 interface ParticipantLog {
   id: string;
   action: string;
   created_at: string;
-  metadata: LogMetadata | null;
-  upload_session_id: string | null;
+  context_json: ContextJson | null;
+  session_id: string | null;
+  participant_id: string | null;
 }
 
 interface ParticipantsLogViewerProps {
@@ -52,8 +62,9 @@ export function ParticipantsLogViewer({ eventId, limit = 3 }: ParticipantsLogVie
             id: item.id,
             action: item.action,
             created_at: item.created_at,
-            metadata: item.metadata as LogMetadata | null,
-            upload_session_id: item.upload_session_id
+            context_json: item.context_json as ContextJson | null,
+            session_id: item.session_id,
+            participant_id: item.participant_id
           })));
         }
       } catch (err) {
@@ -90,8 +101,12 @@ export function ParticipantsLogViewer({ eventId, limit = 3 }: ParticipantsLogVie
 
   const getActionIcon = (action: string) => {
     switch (action) {
+      case "upload_start":
+      case "upload_done":
+      case "upload_failed":
       case "bulk_upload_summary":
       case "bulk_insert":
+      case "insert":
         return <Upload className="h-3 w-3" />;
       case "update":
       case "bulk_update":
@@ -105,16 +120,26 @@ export function ParticipantsLogViewer({ eventId, limit = 3 }: ParticipantsLogVie
 
   const getActionLabel = (action: string) => {
     switch (action) {
+      case "upload_start":
+        return "업로드 시작";
+      case "upload_done":
+        return "업로드 완료";
+      case "upload_failed":
+        return "업로드 실패";
       case "bulk_upload_summary":
         return "일괄 업로드";
       case "bulk_insert":
+      case "insert":
         return "신규 등록";
       case "bulk_update":
-        return "업데이트";
       case "update":
         return "수정";
       case "delete":
         return "삭제";
+      case "skip":
+        return "스킵";
+      case "parse_error":
+        return "파싱 에러";
       default:
         return action;
     }
@@ -122,13 +147,17 @@ export function ParticipantsLogViewer({ eventId, limit = 3 }: ParticipantsLogVie
 
   const getActionVariant = (action: string): "default" | "secondary" | "destructive" | "outline" => {
     switch (action) {
+      case "upload_done":
       case "bulk_upload_summary":
       case "bulk_insert":
+      case "insert":
         return "default";
       case "update":
       case "bulk_update":
         return "secondary";
       case "delete":
+      case "upload_failed":
+      case "parse_error":
         return "destructive";
       default:
         return "outline";
@@ -192,16 +221,32 @@ export function ParticipantsLogViewer({ eventId, limit = 3 }: ParticipantsLogVie
                   </span>
                 </div>
                 
-                {log.upload_session_id && (
+                {log.session_id && (
                   <div className="text-xs text-muted-foreground mt-1 font-mono truncate">
-                    세션: {log.upload_session_id.substring(0, 16)}...
+                    세션: {log.session_id.substring(0, 16)}...
                   </div>
                 )}
                 
-                {log.metadata && log.action === "bulk_upload_summary" && (
+                {log.context_json && (log.action === "upload_done" || log.action === "bulk_upload_summary") && (
                   <div className="text-xs text-muted-foreground mt-1">
-                    신규 {log.metadata.inserted || 0}명 / 업데이트 {log.metadata.updated || 0}명
-                    {(log.metadata.skipped || 0) > 0 && ` / 실패 ${log.metadata.skipped}명`}
+                    {log.context_json.inserted && `신규 ${log.context_json.inserted}명`}
+                    {log.context_json.updated && ` / 갱신 ${log.context_json.updated}명`}
+                    {log.context_json.skipped && log.context_json.skipped > 0 && ` / 스킵 ${log.context_json.skipped}건`}
+                    {log.context_json.deleted && log.context_json.deleted > 0 && ` / 삭제 ${log.context_json.deleted}명`}
+                    {log.context_json.errors && log.context_json.errors > 0 && ` / 오류 ${log.context_json.errors}건`}
+                  </div>
+                )}
+                
+                {log.context_json?.error && (
+                  <div className="text-xs text-destructive mt-1 truncate">
+                    {log.context_json.error}
+                  </div>
+                )}
+                
+                {log.context_json?.reason && (log.action === "skip" || log.action === "delete") && (
+                  <div className="text-xs text-muted-foreground mt-1">
+                    사유: {log.context_json.reason}
+                    {log.context_json.name && ` (${log.context_json.name})`}
                   </div>
                 )}
               </div>

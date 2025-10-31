@@ -274,7 +274,7 @@ export function UploadParticipantsModal({
       });
       
       if (error) {
-        console.error("[75-C.1] RPC upload error →", error);
+        console.error("[77-Upload-FIX] RPC upload error →", error);
         
         // [Phase 75-C.1] Handle duplicate constraint violations gracefully
         if (error.code === '23505' || error.message?.includes('duplicate') || error.message?.includes('unique')) {
@@ -293,22 +293,24 @@ export function UploadParticipantsModal({
         }
         
         // Specific error handling
-        if (error.message?.includes('AGENCY_CONTEXT_NOT_FOUND')) {
+        if (error.message?.includes('AGENCY_CONTEXT_NOT_FOUND') || error.message?.includes('EVENT_NOT_FOUND')) {
           toast({
             title: "권한 오류",
-            description: "사용자 계정이 에이전시에 연결되어 있지 않습니다. 관리자에게 문의하세요.",
+            description: "사용자 계정이 에이전시에 연결되어 있지 않거나 행사를 찾을 수 없습니다.",
             variant: "destructive"
           });
         }
         throw error;
       }
       
-      // [75-C.1] Log upload result with session tracking
+      // [77-Upload-FIX] Log upload result with session tracking
       const result = data as any;
-      console.log("[75-C.1] RPC success →", {
+      console.log("[77-Upload-FIX] RPC success →", {
         inserted: result?.inserted || 0,
         updated: result?.updated || 0,
         skipped: result?.skipped || 0,
+        deleted: result?.deleted || 0,
+        errors: result?.errors || 0,
         mode: result?.mode || 'unknown',
         sessionId: result?.session_id || sessionId
       });
@@ -317,25 +319,29 @@ export function UploadParticipantsModal({
       if (agencyScope) {
         const cacheKey = `participants_${agencyScope}_${activeEventId}`;
         await mutate(cacheKey);
-        console.info("[73-L.7.6] Cache invalidated:", cacheKey);
+        console.info("[77-Upload-FIX] Cache invalidated:", cacheKey);
       }
       
       mutate('event_progress_view');
 
-      // [73-L.7.6] Show detailed result toast
+      // [77-Upload-FIX] Show detailed result toast with errors
       const inserted = result?.inserted || 0;
       const updated = result?.updated || 0;
       const skipped = result?.skipped || 0;
+      const deleted = result?.deleted || 0;
+      const errors = result?.errors || 0;
 
       if (replaceMode) {
         toast({
           title: "전체 교체 완료",
-          description: `${inserted}명 신규 등록 (skipped: ${skipped}) / 요청사항·SFE·담당자정보 반영됨 / 세션: ${sessionId.substring(0, 20)}...`
+          description: `${deleted}명 삭제 · ${inserted}명 신규 등록${skipped > 0 ? ` · 스킵 ${skipped}건` : ''}${errors > 0 ? ` · 오류 ${errors}건` : ''} · 세션: ${sessionId.substring(0, 20)}...`,
+          variant: errors > 0 ? "destructive" : "default"
         });
       } else {
         toast({
           title: "업로드 완료",
-          description: `신규: ${inserted}명 / 업데이트: ${updated}명 / 실패: ${skipped}명 / 요청사항·SFE·담당자정보 반영됨`
+          description: `추가 ${inserted}명 · 갱신 ${updated}명${skipped > 0 ? ` · 스킵 ${skipped}건` : ''}${errors > 0 ? ` · 오류 ${errors}건` : ''}`,
+          variant: errors > 0 ? "destructive" : "default"
         });
       }
       
