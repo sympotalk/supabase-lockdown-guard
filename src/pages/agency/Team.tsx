@@ -41,9 +41,6 @@ export default function AgencyTeam() {
   const [agencyId, setAgencyId] = useState<string>("");
   const [agencyName, setAgencyName] = useState<string>("");
   
-  // Invite form state
-  const [inviteEmail, setInviteEmail] = useState("");
-  
   // All agency users (Owner & Staff) can invite and manage members
   const canInvite = ['agency_owner', 'staff', 'master'].includes(role || '');
 
@@ -143,14 +140,7 @@ export default function AgencyTeam() {
       // Load all team members for this agency
       const { data: membersData, error } = await supabase
         .from("user_roles")
-        .select(`
-          user_id,
-          role,
-          profiles:user_id (
-            email,
-            full_name
-          )
-        `)
+        .select("user_id, role, profiles(email, full_name)")
         .eq("agency_id", roleData.agency_id);
 
       if (error) {
@@ -172,23 +162,9 @@ export default function AgencyTeam() {
     }
   };
 
-  const handleInvite = async (e: React.FormEvent) => {
-    e.preventDefault();
-
+  const generateInviteLink = async () => {
     if (!agencyId) {
       toast.error("에이전시 정보를 불러올 수 없습니다.");
-      return;
-    }
-
-    if (!inviteEmail.trim()) {
-      toast.error("이메일을 입력해주세요.");
-      return;
-    }
-
-    // Basic email validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(inviteEmail)) {
-      toast.error("올바른 이메일 형식을 입력해주세요.");
       return;
     }
 
@@ -197,13 +173,13 @@ export default function AgencyTeam() {
     try {
       const { data, error } = await supabase.rpc("invite_member", {
         p_agency_id: agencyId,
-        p_email: inviteEmail.toLowerCase().trim(),
-        p_role: "staff", // Always staff role
+        p_email: `invite_${Date.now()}@link.sympohub.com`, // dummy email
+        p_role: "staff",
       });
 
       if (error) {
-        console.error("[Team] Invite error:", error);
-        toast.error("초대에 실패했습니다.", {
+        console.error("[Team] Invite link error:", error);
+        toast.error("초대 링크 생성 실패", {
           description: error.message,
         });
         return;
@@ -216,16 +192,25 @@ export default function AgencyTeam() {
         return;
       }
 
-      toast.success(result?.message || "초대가 발송되었습니다.");
-      
-      // Reset form
-      setInviteEmail("");
+      // Extract token from result
+      const token = result?.token || result?.invite_token;
+      if (!token) {
+        toast.error("초대 토큰을 생성할 수 없습니다.");
+        return;
+      }
+
+      const inviteUrl = `https://sympohub.com/invite?token=${token}`;
+      await navigator.clipboard.writeText(inviteUrl);
+
+      toast.success("초대 링크가 복사되었습니다.", {
+        description: "이 링크를 팀원에게 전달하세요.",
+      });
 
       // Reload invites
       loadInvites();
     } catch (error: any) {
-      console.error("[Team] Invite exception:", error);
-      toast.error("초대에 실패했습니다.", {
+      console.error("[Team] Invite link exception:", error);
+      toast.error("초대 링크 생성 실패", {
         description: error.message,
       });
     } finally {
@@ -312,56 +297,41 @@ export default function AgencyTeam() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleInvite} className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="invite-email">
-                    이메일 <span className="text-destructive">*</span>
-                  </Label>
-                  <Input
-                    id="invite-email"
-                    type="email"
-                    placeholder="user@example.com"
-                    value={inviteEmail}
-                    onChange={(e) => setInviteEmail(e.target.value)}
-                    disabled={submitting || !agencyId}
-                    required
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="invite-role">
-                    권한 <span className="text-destructive">*</span>
-                  </Label>
-                  <Select value="staff" disabled>
-                    <SelectTrigger id="invite-role">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="staff">Staff</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <p className="text-xs text-muted-foreground">
-                    모든 초대는 Staff 권한으로 발송됩니다
-                  </p>
-                </div>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="invite-role">권한</Label>
+                <Select value="staff" disabled>
+                  <SelectTrigger id="invite-role">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="staff">Staff</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">
+                  모든 초대는 Staff 권한으로 발송됩니다
+                </p>
               </div>
 
               <Button 
-                type="submit" 
+                onClick={generateInviteLink}
                 disabled={submitting || !agencyId}
                 className="w-full"
               >
                 <UserPlus className="h-4 w-4 mr-2" />
-                {submitting ? "초대 중..." : "초대하기"}
+                {submitting ? "생성 중..." : "초대 링크 생성"}
               </Button>
+
+              <p className="text-xs text-muted-foreground text-center">
+                생성된 링크를 복사하여 팀원에게 전달하세요.
+              </p>
 
               {!agencyId && (
                 <p className="text-xs text-muted-foreground text-center">
                   에이전시 정보를 불러오는 중입니다...
                 </p>
               )}
-            </form>
+            </div>
           </CardContent>
         </Card>
 
@@ -428,8 +398,7 @@ export default function AgencyTeam() {
               {invites.slice(0, 3).map((log) => (
                 <li key={log.id} className="text-sm text-foreground flex items-center gap-2">
                   <span className="text-muted-foreground">•</span>
-                  <span className="font-mono text-[13px]">{log.email}</span>
-                  <span className="text-muted-foreground">님을 초대했습니다</span>
+                  <span className="text-muted-foreground">링크 발급됨</span>
                   <span className="text-muted-foreground text-xs">
                     ({format(new Date(log.created_at), "MM월 dd일 HH:mm")})
                   </span>
