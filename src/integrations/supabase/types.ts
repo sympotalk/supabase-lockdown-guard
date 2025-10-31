@@ -5610,6 +5610,144 @@ export type Database = {
         }
         Relationships: []
       }
+      rooming_feedback_logs: {
+        Row: {
+          ai_score: number | null
+          event_id: string
+          id: string
+          modified_by: string | null
+          new_room_id: string | null
+          participant_id: string
+          prev_room_id: string | null
+          score_delta: number | null
+          timestamp: string | null
+          user_reason: string | null
+        }
+        Insert: {
+          ai_score?: number | null
+          event_id: string
+          id?: string
+          modified_by?: string | null
+          new_room_id?: string | null
+          participant_id: string
+          prev_room_id?: string | null
+          score_delta?: number | null
+          timestamp?: string | null
+          user_reason?: string | null
+        }
+        Update: {
+          ai_score?: number | null
+          event_id?: string
+          id?: string
+          modified_by?: string | null
+          new_room_id?: string | null
+          participant_id?: string
+          prev_room_id?: string | null
+          score_delta?: number | null
+          timestamp?: string | null
+          user_reason?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rooming_feedback_logs_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "event_progress_view"
+            referencedColumns: ["event_id"]
+          },
+          {
+            foreignKeyName: "rooming_feedback_logs_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rooming_feedback_logs_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "v_event_room_summary"
+            referencedColumns: ["event_id"]
+          },
+          {
+            foreignKeyName: "rooming_feedback_logs_modified_by_fkey"
+            columns: ["modified_by"]
+            isOneToOne: false
+            referencedRelation: "master_users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rooming_feedback_logs_modified_by_fkey"
+            columns: ["modified_by"]
+            isOneToOne: false
+            referencedRelation: "orphan_users"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "rooming_feedback_logs_modified_by_fkey"
+            columns: ["modified_by"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rooming_feedback_logs_new_room_id_fkey"
+            columns: ["new_room_id"]
+            isOneToOne: false
+            referencedRelation: "event_room_refs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rooming_feedback_logs_new_room_id_fkey"
+            columns: ["new_room_id"]
+            isOneToOne: false
+            referencedRelation: "v_room_stock_status"
+            referencedColumns: ["room_type_ref"]
+          },
+          {
+            foreignKeyName: "rooming_feedback_logs_new_room_id_fkey"
+            columns: ["new_room_id"]
+            isOneToOne: false
+            referencedRelation: "v_rooming_visual_map"
+            referencedColumns: ["event_room_ref_id"]
+          },
+          {
+            foreignKeyName: "rooming_feedback_logs_participant_id_fkey"
+            columns: ["participant_id"]
+            isOneToOne: false
+            referencedRelation: "participants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rooming_feedback_logs_participant_id_fkey"
+            columns: ["participant_id"]
+            isOneToOne: false
+            referencedRelation: "participants_with_logs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rooming_feedback_logs_prev_room_id_fkey"
+            columns: ["prev_room_id"]
+            isOneToOne: false
+            referencedRelation: "event_room_refs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rooming_feedback_logs_prev_room_id_fkey"
+            columns: ["prev_room_id"]
+            isOneToOne: false
+            referencedRelation: "v_room_stock_status"
+            referencedColumns: ["room_type_ref"]
+          },
+          {
+            foreignKeyName: "rooming_feedback_logs_prev_room_id_fkey"
+            columns: ["prev_room_id"]
+            isOneToOne: false
+            referencedRelation: "v_rooming_visual_map"
+            referencedColumns: ["event_room_ref_id"]
+          },
+        ]
+      }
       rooming_match_logs: {
         Row: {
           created_at: string | null
@@ -5686,6 +5824,7 @@ export type Database = {
         Row: {
           adults: number | null
           agency_id: string | null
+          ai_score: number | null
           assigned_at: string | null
           check_in: string | null
           check_out: string | null
@@ -5705,6 +5844,7 @@ export type Database = {
           room_credit: number | null
           room_status: string | null
           room_type_id: string | null
+          score_components: Json | null
           status: Database["public"]["Enums"]["rooming_status"] | null
           stay_days: number | null
           sync_status: string | null
@@ -5713,6 +5853,7 @@ export type Database = {
         Insert: {
           adults?: number | null
           agency_id?: string | null
+          ai_score?: number | null
           assigned_at?: string | null
           check_in?: string | null
           check_out?: string | null
@@ -5732,6 +5873,7 @@ export type Database = {
           room_credit?: number | null
           room_status?: string | null
           room_type_id?: string | null
+          score_components?: Json | null
           status?: Database["public"]["Enums"]["rooming_status"] | null
           stay_days?: number | null
           sync_status?: string | null
@@ -5740,6 +5882,7 @@ export type Database = {
         Update: {
           adults?: number | null
           agency_id?: string | null
+          ai_score?: number | null
           assigned_at?: string | null
           check_in?: string | null
           check_out?: string | null
@@ -5759,6 +5902,7 @@ export type Database = {
           room_credit?: number | null
           room_status?: string | null
           room_type_id?: string | null
+          score_components?: Json | null
           status?: Database["public"]["Enums"]["rooming_status"] | null
           stay_days?: number | null
           sync_status?: string | null
@@ -7613,6 +7757,10 @@ export type Database = {
         Args: { p_event_id: string }
         Returns: Json
       }
+      ai_feedback_analyze: {
+        Args: { p_days_back?: number; p_event_id: string }
+        Returns: Json
+      }
       ai_participant_import_from_excel:
         | {
             Args: { p_data: Json; p_event_id: string; p_replace?: boolean }
@@ -7827,6 +7975,14 @@ export type Database = {
           room_credit: string
           room_type_id: string
           type_name: string
+        }[]
+      }
+      get_feedback_timeline: {
+        Args: { p_days_back?: number; p_event_id: string }
+        Returns: {
+          avg_delta: number
+          day: string
+          total_changes: number
         }[]
       }
       get_flow_forecast: {

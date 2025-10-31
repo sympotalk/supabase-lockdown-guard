@@ -21,6 +21,7 @@ import RoomingReportTab from "@/components/rooming/RoomingReportTab";
 import RoomingVisualTab from "@/components/rooming/RoomingVisualTab";
 import StockStatusCards from "@/components/rooming/StockStatusCards";
 import RebalancePreviewModal from "@/components/rooming/RebalancePreviewModal";
+import AIFeedbackAnalytics from "@/components/rooming/AIFeedbackAnalytics";
 
 export default function RoomingTab() {
   const { eventId } = useParams();
@@ -476,6 +477,7 @@ export default function RoomingTab() {
         <TabsTrigger value="visual">시각화 보기</TabsTrigger>
         <TabsTrigger value="rules">룰셋 관리</TabsTrigger>
         <TabsTrigger value="report">AI 리포트</TabsTrigger>
+        <TabsTrigger value="analytics">AI 학습 분석</TabsTrigger>
       </TabsList>
 
       <TabsContent value="participants" className="space-y-4">
@@ -789,6 +791,10 @@ export default function RoomingTab() {
 
       <TabsContent value="report">
         <RoomingReportTab eventId={eventId!} />
+      </TabsContent>
+
+      <TabsContent value="analytics">
+        <AIFeedbackAnalytics eventId={eventId!} />
       </TabsContent>
     </Tabs>
   );
