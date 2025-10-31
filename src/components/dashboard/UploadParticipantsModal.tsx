@@ -351,37 +351,53 @@ export function UploadParticipantsModal({
         await detectCompanions(activeEventId);
       }
 
-      // [Phase 77-F] AI 메모 기반 요청사항 자동 추출
+      // [Phase 77-FIX.AI-MEMO-PRO.HUMAN] AI 메모 기반 요청사항 자동 추출 + 검토 필요 항목 분류
       if (activeEventId) {
         try {
-          console.log("[Phase 77-F] Starting request extraction from memo/request_note");
-          const { data: extracted, error: extractError } = await supabase.rpc(
+          console.log("[Phase 77-MEMO-PRO] Starting intelligent request extraction with human review flagging");
+          const { data: result, error: extractError } = await supabase.rpc(
             'ai_extract_requests_from_memo',
             { p_event_id: activeEventId }
           );
 
           if (extractError) {
-            console.error('[Phase 77-F] 요청사항 추출 실패:', extractError);
-          } else if (extracted && Array.isArray(extracted) && extracted.length > 0) {
-            console.log(`[Phase 77-F] Extracted ${extracted.length} requests`);
-            const { error: applyError } = await supabase.rpc(
-              'apply_extracted_requests',
-              { p_event_id: activeEventId, p_items: extracted }
-            );
-
-            if (applyError) {
-              console.error('[Phase 77-F] 요청사항 저장 실패:', applyError);
-            } else {
-              const eqCnt = extracted.filter((x: any) => x.category === 'equipment').length;
-              const prefCnt = extracted.length - eqCnt;
+            console.error('[Phase 77-MEMO-PRO] 요청사항 추출 실패:', extractError);
+            toast({
+              title: '요청사항 분석 실패',
+              description: extractError.message || '알 수 없는 오류',
+              variant: 'destructive'
+            });
+          } else if (result) {
+            const summary = result as { confident_requests?: number; review_required?: number; skipped?: number; total_processed?: number; error?: string };
+            
+            if (summary.error) {
+              console.warn('[Phase 77-MEMO-PRO] 추출 건너뜀:', summary.error);
               toast({
-                title: '요청사항 자동 반영',
-                description: `장비 ${eqCnt}건, 기타 ${prefCnt}건을 반영했습니다.`
+                title: '요청사항 분석 건너뜀',
+                description: '메모 컬럼이 없어 자동으로 건너뛰었습니다.',
               });
+            } else {
+              console.log(`[Phase 77-MEMO-PRO] Extraction complete:`, summary);
+              
+              const confidentCount = summary.confident_requests || 0;
+              const reviewCount = summary.review_required || 0;
+              const skippedCount = summary.skipped || 0;
+              
+              if (confidentCount > 0 || reviewCount > 0) {
+                toast({
+                  title: '요청사항 분석 완료',
+                  description: `AI 인식 ${confidentCount}건 · 검토 필요 ${reviewCount}건${skippedCount > 0 ? ` · 건너뜀 ${skippedCount}건` : ''}`,
+                });
+              } else if (skippedCount > 0) {
+                toast({
+                  title: '요청사항 없음',
+                  description: '요청사항이 없는 참가자는 자동으로 건너뛰었습니다.',
+                });
+              }
             }
           }
         } catch (err) {
-          console.error('[Phase 77-F] 요청사항 처리 중 오류:', err);
+          console.error('[Phase 77-MEMO-PRO] 요청사항 처리 중 오류:', err);
         }
       }
       
