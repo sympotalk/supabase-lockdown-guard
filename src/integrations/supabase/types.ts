@@ -7925,6 +7925,10 @@ export type Database = {
         Args: { p_days_back?: number; p_event_id: string }
         Returns: Json
       }
+      ai_match_companion_after_upload: {
+        Args: { p_event_id: string }
+        Returns: Json
+      }
       ai_participant_import_from_excel:
         | { Args: { p_event_id: string; p_payload: Json }; Returns: Json }
         | {
