@@ -139,6 +139,16 @@ export default function InviteSignup() {
       if (signUpError) throw signUpError;
       if (!authData.user) throw new Error("회원가입에 실패했습니다.");
 
+      // [74-B.0-FIX.11] Auto-confirm email for invited users
+      const { error: confirmError } = await supabase.rpc(
+        'auto_confirm_invited_user',
+        { p_user_id: authData.user.id }
+      );
+
+      if (confirmError) {
+        console.warn("[InviteSignup] Auto-confirm failed, user will need to confirm via email:", confirmError);
+      }
+
       // [74-B.0-FIX.9] Step 2: Use RPC to link user to agency and set role
       const { data: linkResult, error: linkError } = await supabase.rpc(
         'accept_invite_and_link',
@@ -157,7 +167,15 @@ export default function InviteSignup() {
 
       console.log("[InviteSignup] Successfully linked to agency:", result);
 
-      toast.success("가입이 완료되었습니다. 에이전시에 연결되었습니다.");
+      // [74-B.0-FIX.11] Show appropriate success message
+      if (!authData.user.email_confirmed_at && confirmError) {
+        toast.success("가입 완료! 이메일로 발송된 확인 링크를 클릭해주세요.", {
+          description: "이메일 확인 후 로그인이 가능합니다.",
+          duration: 10000,
+        });
+      } else {
+        toast.success("가입이 완료되었습니다. 에이전시에 연결되었습니다.");
+      }
 
       // Navigate to dashboard after brief delay
       setTimeout(() => {

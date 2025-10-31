@@ -6801,6 +6801,7 @@ export type Database = {
         Returns: Json
       }
       assign_master_role: { Args: { user_email: string }; Returns: Json }
+      auto_confirm_invited_user: { Args: { p_user_id: string }; Returns: Json }
       cleanup_old_cache: { Args: never; Returns: undefined }
       create_agency: {
         Args: {
