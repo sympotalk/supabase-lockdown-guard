@@ -7488,6 +7488,10 @@ export type Database = {
         Args: { p_agency_id: string; p_email: string }
         Returns: Json
       }
+      invite_member: {
+        Args: { p_agency_id: string; p_email: string; p_role: string }
+        Returns: Json
+      }
       is_master: { Args: { uid: string }; Returns: boolean }
       link_invited_user: {
         Args: { p_invite_token: string; p_user_id: string }
