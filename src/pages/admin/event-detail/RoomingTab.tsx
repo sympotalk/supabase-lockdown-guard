@@ -20,6 +20,7 @@ import ManualAssignPanel from "@/components/rooming/ManualAssignPanel";
 import RoomingReportTab from "@/components/rooming/RoomingReportTab";
 import RoomingVisualTab from "@/components/rooming/RoomingVisualTab";
 import StockStatusCards from "@/components/rooming/StockStatusCards";
+import RoomingVisualMapCards from "@/components/rooming/RoomingVisualMapCards";
 import RebalancePreviewModal from "@/components/rooming/RebalancePreviewModal";
 import AIFeedbackAnalytics from "@/components/rooming/AIFeedbackAnalytics";
 import UserBiasProfile from "@/components/rooming/UserBiasProfile";
@@ -515,6 +516,9 @@ export default function RoomingTab() {
       <TabsContent value="participants" className="space-y-4">
         {/* [Phase 77-H] Stock Status Cards */}
         <StockStatusCards stockStatus={stockStatus} />
+        
+        {/* [Phase 77-STATS-CARD] Rooming Visual Map Cards */}
+        {eventId && <RoomingVisualMapCards eventId={eventId} />}
 
         {/* [Phase 77-H] Stock Alert Bar */}
         {stockAlerts.length > 0 && (

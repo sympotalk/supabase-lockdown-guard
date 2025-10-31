@@ -1583,13 +1583,6 @@ export type Database = {
             referencedRelation: "v_event_room_summary"
             referencedColumns: ["type_id"]
           },
-          {
-            foreignKeyName: "event_room_refs_room_type_id_fkey"
-            columns: ["room_type_id"]
-            isOneToOne: false
-            referencedRelation: "v_rooming_visual_map"
-            referencedColumns: ["room_type_id"]
-          },
         ]
       }
       event_rooms: {
@@ -5767,13 +5760,6 @@ export type Database = {
             referencedColumns: ["room_type_ref"]
           },
           {
-            foreignKeyName: "rooming_feedback_logs_new_room_id_fkey"
-            columns: ["new_room_id"]
-            isOneToOne: false
-            referencedRelation: "v_rooming_visual_map"
-            referencedColumns: ["event_room_ref_id"]
-          },
-          {
             foreignKeyName: "rooming_feedback_logs_participant_id_fkey"
             columns: ["participant_id"]
             isOneToOne: false
@@ -5800,13 +5786,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "v_room_stock_status"
             referencedColumns: ["room_type_ref"]
-          },
-          {
-            foreignKeyName: "rooming_feedback_logs_prev_room_id_fkey"
-            columns: ["prev_room_id"]
-            isOneToOne: false
-            referencedRelation: "v_rooming_visual_map"
-            referencedColumns: ["event_room_ref_id"]
           },
         ]
       }
@@ -6208,13 +6187,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "v_room_stock_status"
             referencedColumns: ["room_type_ref"]
-          },
-          {
-            foreignKeyName: "rooming_stock_alerts_room_type_ref_fkey"
-            columns: ["room_type_ref"]
-            isOneToOne: false
-            referencedRelation: "v_rooming_visual_map"
-            referencedColumns: ["event_room_ref_id"]
           },
         ]
       }
@@ -7669,13 +7641,6 @@ export type Database = {
             referencedRelation: "v_event_room_summary"
             referencedColumns: ["type_id"]
           },
-          {
-            foreignKeyName: "event_room_refs_room_type_id_fkey"
-            columns: ["room_type_id"]
-            isOneToOne: false
-            referencedRelation: "v_rooming_visual_map"
-            referencedColumns: ["room_type_id"]
-          },
         ]
       }
       v_master_operations: {
@@ -7756,15 +7721,16 @@ export type Database = {
       }
       v_rooming_visual_map: {
         Row: {
-          assigned_count: number | null
+          ai_weighted_rooms: number | null
+          assigned_rooms: number | null
+          canceled_rooms: number | null
+          confirmed_rooms: number | null
           event_id: string | null
-          event_room_ref_id: string | null
-          participants: Json | null
-          remaining_count: number | null
-          room_credit: number | null
+          manual_assigned_rooms: number | null
+          pending_rooms: number | null
+          room_type: string | null
           room_type_id: string | null
-          room_type_name: string | null
-          stock: number | null
+          total_rooms: number | null
         }
         Relationships: [
           {
