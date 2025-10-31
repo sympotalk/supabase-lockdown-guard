@@ -7305,7 +7305,27 @@ export type Database = {
             }
             Returns: Json
           }
+      ai_rooming_report: {
+        Args: { p_event_id: string }
+        Returns: {
+          assigned_at: string
+          companion_names: string
+          fixed_role: string
+          match_reason: string
+          match_score: number
+          participant_id: string
+          participant_name: string
+          request_summary: string
+          room_credit: string
+          room_status: string
+          room_type_name: string
+        }[]
+      }
       ai_rooming_stats: { Args: { p_event_id: string }; Returns: Json }
+      ai_update_request_fulfillment: {
+        Args: { p_event_id: string }
+        Returns: Json
+      }
       assign_master_role: { Args: { user_email: string }; Returns: Json }
       auto_confirm_invited_user: { Args: { p_user_id: string }; Returns: Json }
       cleanup_old_cache: { Args: never; Returns: undefined }
