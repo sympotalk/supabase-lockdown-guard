@@ -28,6 +28,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ModuleInsightBar } from "@/components/common/ModuleInsightBar";
+import CompanionBadge from "@/components/participants/CompanionBadge";
+import CompanionScanModal from "@/components/participants/CompanionScanModal";
+import { useCompanionGroup } from "@/hooks/useCompanionGroup";
 
 export default function Participants() {
   const navigate = useNavigate();
@@ -36,6 +39,7 @@ export default function Participants() {
   const [selectedEventId, setSelectedEventId] = useState<string | undefined>(undefined);
   const [searchQuery, setSearchQuery] = useState("");
   const [events, setEvents] = useState<Array<{id: string; name: string}>>([]);
+  const [showCompanionScan, setShowCompanionScan] = useState(false);
 
   // [71-E.FIXSELECT] Debug log
   useEffect(() => {
@@ -104,6 +108,17 @@ export default function Participants() {
             </p>
           </div>
           <div className="flex gap-3">
+            {selectedEventId && (
+              <Button 
+                variant="outline" 
+                size="lg" 
+                className="gap-2"
+                onClick={() => setShowCompanionScan(true)}
+              >
+                <Search className="h-5 w-5" />
+                동반자 스캔
+              </Button>
+            )}
             <Button variant="outline" size="lg" className="gap-2" onClick={refresh}>
               <RefreshCw className="h-5 w-5" />
               새로고침
@@ -175,6 +190,7 @@ export default function Participants() {
                             <TableHead className="font-semibold">성명</TableHead>
                             <TableHead className="font-semibold">소속</TableHead>
                             <TableHead className="font-semibold">연락처</TableHead>
+                            <TableHead className="font-semibold">동반자</TableHead>
                             <TableHead className="font-semibold">숙박정보</TableHead>
                             <TableHead className="font-semibold">객실타입</TableHead>
                             <TableHead className="font-semibold">메시지 상태</TableHead>
@@ -314,5 +330,16 @@ export default function Participants() {
           </div>
         </div>
       </div>
+
+      {/* [Phase 77-I] Companion Scan Modal */}
+      {selectedEventId && (
+        <CompanionScanModal
+          open={showCompanionScan}
+          onOpenChange={setShowCompanionScan}
+          eventId={selectedEventId}
+          onSuccess={refresh}
+        />
+      )}
+    </div>
   );
 }

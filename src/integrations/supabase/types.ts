@@ -3470,6 +3470,80 @@ export type Database = {
         }
         Relationships: []
       }
+      participant_companions: {
+        Row: {
+          a_participant_id: string
+          b_participant_id: string
+          created_at: string | null
+          event_id: string
+          relation: string | null
+        }
+        Insert: {
+          a_participant_id: string
+          b_participant_id: string
+          created_at?: string | null
+          event_id: string
+          relation?: string | null
+        }
+        Update: {
+          a_participant_id?: string
+          b_participant_id?: string
+          created_at?: string | null
+          event_id?: string
+          relation?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "participant_companions_a_participant_id_fkey"
+            columns: ["a_participant_id"]
+            isOneToOne: false
+            referencedRelation: "participants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "participant_companions_a_participant_id_fkey"
+            columns: ["a_participant_id"]
+            isOneToOne: false
+            referencedRelation: "participants_with_logs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "participant_companions_b_participant_id_fkey"
+            columns: ["b_participant_id"]
+            isOneToOne: false
+            referencedRelation: "participants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "participant_companions_b_participant_id_fkey"
+            columns: ["b_participant_id"]
+            isOneToOne: false
+            referencedRelation: "participants_with_logs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "participant_companions_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "event_progress_view"
+            referencedColumns: ["event_id"]
+          },
+          {
+            foreignKeyName: "participant_companions_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "participant_companions_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "v_event_room_summary"
+            referencedColumns: ["event_id"]
+          },
+        ]
+      }
       participant_insights: {
         Row: {
           agency_id: string | null
@@ -7531,6 +7605,10 @@ export type Database = {
         Args: { p_event_id: string }
         Returns: Json
       }
+      ai_extract_companions_from_notes: {
+        Args: { p_event_id: string }
+        Returns: Json
+      }
       ai_extract_requests_from_memo: {
         Args: { p_event_id: string }
         Returns: Json
@@ -7716,6 +7794,10 @@ export type Database = {
       }
       get_cached_data: {
         Args: { _key: string; _ttl_seconds?: number }
+        Returns: Json
+      }
+      get_companion_group: {
+        Args: { p_event_id: string; p_participant_id: string }
         Returns: Json
       }
       get_deployment_health_summary: {
@@ -7996,6 +8078,10 @@ export type Database = {
         Returns: Json
       }
       is_master: { Args: { uid: string }; Returns: boolean }
+      link_companions: {
+        Args: { p_event_id: string; p_pairs: Json }
+        Returns: Json
+      }
       link_companions_pair: {
         Args: { p_source_id: string; p_target_id: string }
         Returns: Json
@@ -8167,6 +8253,10 @@ export type Database = {
         Returns: Json
       }
       unaccent: { Args: { "": string }; Returns: string }
+      unlink_companions: {
+        Args: { p_a_id: string; p_b_id: string; p_event_id: string }
+        Returns: Json
+      }
       unlink_companions_pair: {
         Args: { p_source_id: string; p_target_id: string }
         Returns: Json
