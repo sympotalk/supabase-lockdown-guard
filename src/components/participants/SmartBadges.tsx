@@ -81,7 +81,8 @@ export function SmartBadges({ currentMemo, onMemoChange, eventId }: SmartBadgesP
     // Update room category with event room types
     const roomCategory = merged.find(c => c.key === "room");
     if (roomCategory && roomTypes && roomTypes.length > 0) {
-      roomCategory.items = roomTypes;
+      // [Phase 76-Pre.B] Safe handling of room types
+      roomCategory.items = roomTypes.map(rt => rt?.toString() || '미지정').filter(Boolean);
     } else if (roomCategory) {
       // Fallback if no room types defined
       roomCategory.items = ["프리미엄", "디럭스", "스탠다드"];

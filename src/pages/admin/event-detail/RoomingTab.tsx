@@ -98,9 +98,9 @@ export default function RoomingTab() {
           phone: p.phone,
           fixed_role: p.fixed_role,
           custom_role: p.custom_role,
-          // Rooming data (may be null)
+          // Rooming data (may be null) - [Phase 76-Pre.B] Safe fallbacks
           id: rooming?.id || null,
-          room_type: rooming?.room_type || null,
+          room_type: rooming?.room_type || '미지정',
           room_credit: rooming?.room_credit || null,
           check_in: rooming?.check_in || null,
           check_out: rooming?.check_out || null,
@@ -302,7 +302,7 @@ export default function RoomingTab() {
                           {r.organization || "-"}
                         </TableCell>
                         <TableCell className="text-center text-muted-foreground">
-                          {r.room_credit ? `${r.room_credit.toLocaleString()}원` : "-"}
+                          {r.room_credit ? `${r.room_credit?.toLocaleString?.() || '미지정'}원` : "-"}
                         </TableCell>
                         <TableCell className="text-center text-sm text-muted-foreground">
                           {r.adults || r.children || r.infants 
