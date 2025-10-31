@@ -107,6 +107,13 @@ export type Database = {
             foreignKeyName: "account_provisioning_created_by_fkey"
             columns: ["created_by"]
             isOneToOne: false
+            referencedRelation: "orphan_users"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "account_provisioning_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
             referencedRelation: "user_profiles"
             referencedColumns: ["id"]
           },
@@ -208,6 +215,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "master_users"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agencies_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "orphan_users"
+            referencedColumns: ["user_id"]
           },
           {
             foreignKeyName: "agencies_created_by_fkey"
@@ -410,6 +424,13 @@ export type Database = {
             foreignKeyName: "agency_managers_master_id_fkey"
             columns: ["master_id"]
             isOneToOne: false
+            referencedRelation: "orphan_users"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "agency_managers_master_id_fkey"
+            columns: ["master_id"]
+            isOneToOne: false
             referencedRelation: "user_profiles"
             referencedColumns: ["id"]
           },
@@ -488,6 +509,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "master_users"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agency_members_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "orphan_users"
+            referencedColumns: ["user_id"]
           },
           {
             foreignKeyName: "agency_members_user_id_fkey"
@@ -919,6 +947,13 @@ export type Database = {
             foreignKeyName: "behavior_logs_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
+            referencedRelation: "orphan_users"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "behavior_logs_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
             referencedRelation: "user_profiles"
             referencedColumns: ["id"]
           },
@@ -1220,6 +1255,13 @@ export type Database = {
             foreignKeyName: "declaration_logs_declared_by_fkey"
             columns: ["declared_by"]
             isOneToOne: false
+            referencedRelation: "orphan_users"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "declaration_logs_declared_by_fkey"
+            columns: ["declared_by"]
+            isOneToOne: false
             referencedRelation: "user_profiles"
             referencedColumns: ["id"]
           },
@@ -1373,6 +1415,13 @@ export type Database = {
             foreignKeyName: "edge_incidents_created_by_fkey"
             columns: ["created_by"]
             isOneToOne: false
+            referencedRelation: "orphan_users"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "edge_incidents_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
             referencedRelation: "user_profiles"
             referencedColumns: ["id"]
           },
@@ -1382,6 +1431,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "master_users"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "edge_incidents_resolved_by_fkey"
+            columns: ["resolved_by"]
+            isOneToOne: false
+            referencedRelation: "orphan_users"
+            referencedColumns: ["user_id"]
           },
           {
             foreignKeyName: "edge_incidents_resolved_by_fkey"
@@ -1706,6 +1762,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "master_users"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "events_manager_id_fkey"
+            columns: ["manager_id"]
+            isOneToOne: false
+            referencedRelation: "orphan_users"
+            referencedColumns: ["user_id"]
           },
           {
             foreignKeyName: "events_manager_id_fkey"
@@ -2141,6 +2204,13 @@ export type Database = {
             foreignKeyName: "forms_created_by_fkey"
             columns: ["created_by"]
             isOneToOne: false
+            referencedRelation: "orphan_users"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "forms_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
             referencedRelation: "user_profiles"
             referencedColumns: ["id"]
           },
@@ -2287,6 +2357,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "master_users"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "guide_views_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "orphan_users"
+            referencedColumns: ["user_id"]
           },
           {
             foreignKeyName: "guide_views_user_id_fkey"
@@ -2737,6 +2814,13 @@ export type Database = {
             foreignKeyName: "invite_links_created_by_fkey"
             columns: ["created_by"]
             isOneToOne: false
+            referencedRelation: "orphan_users"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "invite_links_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
             referencedRelation: "user_profiles"
             referencedColumns: ["id"]
           },
@@ -2746,6 +2830,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "master_users"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invite_links_used_by_fkey"
+            columns: ["used_by"]
+            isOneToOne: false
+            referencedRelation: "orphan_users"
+            referencedColumns: ["user_id"]
           },
           {
             foreignKeyName: "invite_links_used_by_fkey"
@@ -2832,6 +2923,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "master_users"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "logs_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "orphan_users"
+            referencedColumns: ["user_id"]
           },
           {
             foreignKeyName: "logs_created_by_fkey"
@@ -3183,6 +3281,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "master_users"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "orphan_users"
+            referencedColumns: ["user_id"]
           },
           {
             foreignKeyName: "messages_created_by_fkey"
@@ -3589,6 +3694,13 @@ export type Database = {
             foreignKeyName: "participants_call_actor_fkey"
             columns: ["call_actor"]
             isOneToOne: false
+            referencedRelation: "orphan_users"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "participants_call_actor_fkey"
+            columns: ["call_actor"]
+            isOneToOne: false
             referencedRelation: "user_profiles"
             referencedColumns: ["id"]
           },
@@ -3731,6 +3843,13 @@ export type Database = {
             foreignKeyName: "participants_logs_updated_by_fkey"
             columns: ["updated_by"]
             isOneToOne: false
+            referencedRelation: "orphan_users"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "participants_logs_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
             referencedRelation: "user_profiles"
             referencedColumns: ["id"]
           },
@@ -3855,6 +3974,13 @@ export type Database = {
             foreignKeyName: "phase_completion_log_completed_by_fkey"
             columns: ["completed_by"]
             isOneToOne: false
+            referencedRelation: "orphan_users"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "phase_completion_log_completed_by_fkey"
+            columns: ["completed_by"]
+            isOneToOne: false
             referencedRelation: "user_profiles"
             referencedColumns: ["id"]
           },
@@ -3903,6 +4029,13 @@ export type Database = {
             foreignKeyName: "profiles_id_fkey"
             columns: ["id"]
             isOneToOne: true
+            referencedRelation: "orphan_users"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "profiles_id_fkey"
+            columns: ["id"]
+            isOneToOne: true
             referencedRelation: "user_profiles"
             referencedColumns: ["id"]
           },
@@ -3912,6 +4045,13 @@ export type Database = {
             isOneToOne: true
             referencedRelation: "master_users"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profiles_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "orphan_users"
+            referencedColumns: ["user_id"]
           },
           {
             foreignKeyName: "profiles_user_id_fkey"
@@ -4167,6 +4307,13 @@ export type Database = {
             foreignKeyName: "qa_alert_rules_created_by_fkey"
             columns: ["created_by"]
             isOneToOne: false
+            referencedRelation: "orphan_users"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "qa_alert_rules_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
             referencedRelation: "user_profiles"
             referencedColumns: ["id"]
           },
@@ -4277,6 +4424,13 @@ export type Database = {
             foreignKeyName: "qa_events_created_by_fkey"
             columns: ["created_by"]
             isOneToOne: false
+            referencedRelation: "orphan_users"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "qa_events_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
             referencedRelation: "user_profiles"
             referencedColumns: ["id"]
           },
@@ -4359,6 +4513,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "master_users"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "qa_master_checklist_checked_by_fkey"
+            columns: ["checked_by"]
+            isOneToOne: false
+            referencedRelation: "orphan_users"
+            referencedColumns: ["user_id"]
           },
           {
             foreignKeyName: "qa_master_checklist_checked_by_fkey"
@@ -4592,6 +4753,13 @@ export type Database = {
             foreignKeyName: "remediation_rules_created_by_fkey"
             columns: ["created_by"]
             isOneToOne: false
+            referencedRelation: "orphan_users"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "remediation_rules_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
             referencedRelation: "user_profiles"
             referencedColumns: ["id"]
           },
@@ -4683,6 +4851,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "master_users"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reports_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "orphan_users"
+            referencedColumns: ["user_id"]
           },
           {
             foreignKeyName: "reports_created_by_fkey"
@@ -4847,6 +5022,13 @@ export type Database = {
             foreignKeyName: "role_audit_actor_user_id_fkey"
             columns: ["actor_user_id"]
             isOneToOne: false
+            referencedRelation: "orphan_users"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "role_audit_actor_user_id_fkey"
+            columns: ["actor_user_id"]
+            isOneToOne: false
             referencedRelation: "user_profiles"
             referencedColumns: ["id"]
           },
@@ -4919,6 +5101,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "master_users"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "role_audit_target_user_id_fkey"
+            columns: ["target_user_id"]
+            isOneToOne: false
+            referencedRelation: "orphan_users"
+            referencedColumns: ["user_id"]
           },
           {
             foreignKeyName: "role_audit_target_user_id_fkey"
@@ -5203,6 +5392,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "master_users"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "room_types_local_last_edited_by_fkey"
+            columns: ["last_edited_by"]
+            isOneToOne: false
+            referencedRelation: "orphan_users"
+            referencedColumns: ["user_id"]
           },
           {
             foreignKeyName: "room_types_local_last_edited_by_fkey"
@@ -5497,6 +5693,13 @@ export type Database = {
             foreignKeyName: "runbooks_created_by_fkey"
             columns: ["created_by"]
             isOneToOne: false
+            referencedRelation: "orphan_users"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "runbooks_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
             referencedRelation: "user_profiles"
             referencedColumns: ["id"]
           },
@@ -5540,6 +5743,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "master_users"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "security_audit_logs_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "orphan_users"
+            referencedColumns: ["user_id"]
           },
           {
             foreignKeyName: "security_audit_logs_user_id_fkey"
@@ -5683,6 +5893,13 @@ export type Database = {
             foreignKeyName: "tm_history_logs_actor_id_fkey"
             columns: ["actor_id"]
             isOneToOne: false
+            referencedRelation: "orphan_users"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "tm_history_logs_actor_id_fkey"
+            columns: ["actor_id"]
+            isOneToOne: false
             referencedRelation: "user_profiles"
             referencedColumns: ["id"]
           },
@@ -5770,6 +5987,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "master_users"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "training_guides_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "orphan_users"
+            referencedColumns: ["user_id"]
           },
           {
             foreignKeyName: "training_guides_created_by_fkey"
@@ -5902,6 +6126,13 @@ export type Database = {
             foreignKeyName: "user_preferences_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: true
+            referencedRelation: "orphan_users"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "user_preferences_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
             referencedRelation: "user_profiles"
             referencedColumns: ["id"]
           },
@@ -5942,6 +6173,13 @@ export type Database = {
             isOneToOne: true
             referencedRelation: "master_users"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_roles_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "orphan_users"
+            referencedColumns: ["user_id"]
           },
           {
             foreignKeyName: "user_roles_user_id_fkey"
@@ -6458,6 +6696,17 @@ export type Database = {
         }
         Relationships: []
       }
+      orphan_users: {
+        Row: {
+          created_at: string | null
+          display_name: string | null
+          email: string | null
+          phone: string | null
+          status: string | null
+          user_id: string | null
+        }
+        Relationships: []
+      }
       participants_with_logs: {
         Row: {
           adult_count: number | null
@@ -6550,6 +6799,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "master_users"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "participants_call_actor_fkey"
+            columns: ["call_actor"]
+            isOneToOne: false
+            referencedRelation: "orphan_users"
+            referencedColumns: ["user_id"]
           },
           {
             foreignKeyName: "participants_call_actor_fkey"
@@ -6675,6 +6931,13 @@ export type Database = {
             foreignKeyName: "logs_created_by_fkey"
             columns: ["created_by"]
             isOneToOne: false
+            referencedRelation: "orphan_users"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "logs_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
             referencedRelation: "user_profiles"
             referencedColumns: ["id"]
           },
@@ -6760,6 +7023,13 @@ export type Database = {
             foreignKeyName: "user_roles_user_id_fkey"
             columns: ["id"]
             isOneToOne: true
+            referencedRelation: "orphan_users"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "user_roles_user_id_fkey"
+            columns: ["id"]
+            isOneToOne: true
             referencedRelation: "user_profiles"
             referencedColumns: ["id"]
           },
@@ -6783,6 +7053,13 @@ export type Database = {
             isOneToOne: true
             referencedRelation: "master_users"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profiles_id_fkey"
+            columns: ["staff_id"]
+            isOneToOne: true
+            referencedRelation: "orphan_users"
+            referencedColumns: ["user_id"]
           },
           {
             foreignKeyName: "profiles_id_fkey"
@@ -7210,6 +7487,10 @@ export type Database = {
         Returns: Json
       }
       is_master: { Args: { uid: string }; Returns: boolean }
+      link_invited_user: {
+        Args: { p_invite_token: string; p_user_id: string }
+        Returns: Json
+      }
       link_orphan_user: {
         Args: { p_agency_id: string; p_role?: string; p_user_id: string }
         Returns: Json

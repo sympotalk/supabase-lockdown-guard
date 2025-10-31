@@ -149,10 +149,13 @@ export default function InviteSignup() {
         console.warn("[InviteSignup] Auto-confirm failed, user will need to confirm via email:", confirmError);
       }
 
-      // [74-B.0-FIX.9] Step 2: Use RPC to link user to agency and set role
+      // [74-B.0-FIX.14] Step 2: Use RPC to link user to agency via invite token
       const { data: linkResult, error: linkError } = await supabase.rpc(
-        'accept_invite_and_link',
-        { p_token: token }
+        'link_invited_user',
+        { 
+          p_user_id: authData.user.id,
+          p_invite_token: token 
+        }
       );
 
       if (linkError) {
