@@ -7932,6 +7932,10 @@ export type Database = {
       ai_participant_import_from_excel:
         | { Args: { p_event_id: string; p_payload: Json }; Returns: Json }
         | {
+            Args: { p_event_id: string; p_mode?: string; p_payload: Json }
+            Returns: Json
+          }
+        | {
             Args: {
               p_data: Json
               p_event_id: string
