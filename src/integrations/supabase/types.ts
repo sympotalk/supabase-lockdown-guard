@@ -5728,6 +5728,76 @@ export type Database = {
           },
         ]
       }
+      rooming_rebalance_logs: {
+        Row: {
+          actor: string | null
+          changes: Json
+          created_at: string | null
+          event_id: string
+          id: string
+          run_id: string
+        }
+        Insert: {
+          actor?: string | null
+          changes: Json
+          created_at?: string | null
+          event_id: string
+          id?: string
+          run_id: string
+        }
+        Update: {
+          actor?: string | null
+          changes?: Json
+          created_at?: string | null
+          event_id?: string
+          id?: string
+          run_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rooming_rebalance_logs_actor_fkey"
+            columns: ["actor"]
+            isOneToOne: false
+            referencedRelation: "master_users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rooming_rebalance_logs_actor_fkey"
+            columns: ["actor"]
+            isOneToOne: false
+            referencedRelation: "orphan_users"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "rooming_rebalance_logs_actor_fkey"
+            columns: ["actor"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rooming_rebalance_logs_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "event_progress_view"
+            referencedColumns: ["event_id"]
+          },
+          {
+            foreignKeyName: "rooming_rebalance_logs_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rooming_rebalance_logs_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "v_event_room_summary"
+            referencedColumns: ["event_id"]
+          },
+        ]
+      }
       rooming_rules: {
         Row: {
           allow_extra_bed: boolean | null
@@ -5792,6 +5862,79 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "v_event_room_summary"
             referencedColumns: ["event_id"]
+          },
+        ]
+      }
+      rooming_stock_alerts: {
+        Row: {
+          created_at: string | null
+          event_id: string
+          id: string
+          needed: number
+          room_type_ref: string
+          shortage: number
+          stock: number
+        }
+        Insert: {
+          created_at?: string | null
+          event_id: string
+          id?: string
+          needed: number
+          room_type_ref: string
+          shortage: number
+          stock: number
+        }
+        Update: {
+          created_at?: string | null
+          event_id?: string
+          id?: string
+          needed?: number
+          room_type_ref?: string
+          shortage?: number
+          stock?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rooming_stock_alerts_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "event_progress_view"
+            referencedColumns: ["event_id"]
+          },
+          {
+            foreignKeyName: "rooming_stock_alerts_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rooming_stock_alerts_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "v_event_room_summary"
+            referencedColumns: ["event_id"]
+          },
+          {
+            foreignKeyName: "rooming_stock_alerts_room_type_ref_fkey"
+            columns: ["room_type_ref"]
+            isOneToOne: false
+            referencedRelation: "event_room_refs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rooming_stock_alerts_room_type_ref_fkey"
+            columns: ["room_type_ref"]
+            isOneToOne: false
+            referencedRelation: "v_room_stock_status"
+            referencedColumns: ["room_type_ref"]
+          },
+          {
+            foreignKeyName: "rooming_stock_alerts_room_type_ref_fkey"
+            columns: ["room_type_ref"]
+            isOneToOne: false
+            referencedRelation: "v_rooming_visual_map"
+            referencedColumns: ["event_room_ref_id"]
           },
         ]
       }
@@ -7208,6 +7351,39 @@ export type Database = {
           },
         ]
       }
+      v_room_stock_status: {
+        Row: {
+          event_id: string | null
+          needed: number | null
+          remaining: number | null
+          room_type_name: string | null
+          room_type_ref: string | null
+          stock: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_room_refs_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "event_progress_view"
+            referencedColumns: ["event_id"]
+          },
+          {
+            foreignKeyName: "event_room_refs_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_room_refs_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "v_event_room_summary"
+            referencedColumns: ["event_id"]
+          },
+        ]
+      }
       v_rooming_visual_map: {
         Row: {
           assigned_count: number | null
@@ -7373,6 +7549,11 @@ export type Database = {
             }
             Returns: Json
           }
+      ai_rebalance_apply: {
+        Args: { p_changes: Json; p_event_id: string }
+        Returns: Json
+      }
+      ai_rebalance_preview: { Args: { p_event_id: string }; Returns: Json }
       ai_rooming_report: {
         Args: { p_event_id: string }
         Returns: {
@@ -7390,6 +7571,7 @@ export type Database = {
         }[]
       }
       ai_rooming_stats: { Args: { p_event_id: string }; Returns: Json }
+      ai_stock_guard: { Args: { p_event_id: string }; Returns: Json }
       ai_update_request_fulfillment: {
         Args: { p_event_id: string }
         Returns: Json
