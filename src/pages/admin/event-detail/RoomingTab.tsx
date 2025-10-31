@@ -15,7 +15,7 @@ export default function RoomingTab() {
   const { eventId } = useParams();
   const [selectedParticipant, setSelectedParticipant] = useState<any>(null);
 
-  // [Phase 76-Pre.C] Load room types with real names from event_room_refs
+  // [Phase 76-H.Fix] Load room types with proper join and sorting
   const { data: roomTypesData, mutate: mutateRoomTypes } = useSWR(
     eventId ? `room_types_real_${eventId}` : null,
     async () => {
@@ -24,27 +24,26 @@ export default function RoomingTab() {
       const { data, error } = await supabase
         .from("event_room_refs" as any)
         .select(`
-          id, 
+          id,
+          room_type_id,
           credit,
-          status,
           room_types!inner(type_name)
         `)
         .eq("event_id", eventId)
-        .eq("is_active", true);
+        .eq("is_active", true)
+        .order("credit", { ascending: true });
 
       if (error) {
-        console.error('[Phase 76-Pre.C] Room types query error:', error);
+        console.error('[Phase 76-H.Fix] Room types query error:', error);
         return [];
       }
 
       // Map to expected format with real names from joined room_types
-      return (data || [])
-        .filter((r: any) => r.status === '선택됨')
-        .map((r: any) => ({
-          id: r.id,
-          name: r.room_types?.type_name || '미지정',
-          credit: r.credit || 0
-        }));
+      return (data || []).map((r: any) => ({
+        id: r.id,
+        name: r.room_types?.type_name || '미지정',
+        credit: r.credit || 0
+      }));
     },
     { revalidateOnFocus: false }
   );
@@ -76,46 +75,49 @@ export default function RoomingTab() {
     async () => {
       if (!eventId) return [];
       
-      console.log('[Phase 76-F.FE-Update] Fetching rooming data from v_rooming_with_names view for event:', eventId);
+      console.log('[Phase 76-H.Fix] Fetching rooming data from v_rooming_with_names view for event:', eventId);
       
-      // [Phase 76-F.FE-Update] Use unified view for all rooming data with room type names
+      // [Phase 76-H.Fix] Use unified view with proper sorting by participant_no
       const { data: viewData, error: viewError } = await supabase
         .from("v_rooming_with_names" as any)
         .select("*")
-        .eq("event_id", eventId);
+        .eq("event_id", eventId)
+        .order("participant_no", { ascending: true });
       
       if (viewError) {
-        console.error('[Phase 76-F.FE-Update] View query error:', viewError);
+        console.error('[Phase 76-H.Fix] View query error:', viewError);
         throw viewError;
       }
       
-      // Map view data to expected format
-      const merged = (viewData || []).map((item: any) => ({
-        // Participant data
-        participant_id: item.participant_id,
-        participant_no: item.participant_no,
-        name: item.participant_name,
-        organization: item.organization,
-        phone: item.phone,
-        fixed_role: item.fixed_role,
-        custom_role: item.custom_role,
-        // Rooming data with room type names from view
-        id: item.rooming_id,
-        room_type: item.room_type_name || '미지정',
-        room_type_id: item.room_type_id,
-        room_credit: item.event_room_credit || item.room_credit || null,
-        check_in: item.check_in,
-        check_out: item.check_out,
-        stay_days: item.stay_days,
-        status: item.status || '배정대기',
-        manual_assigned: item.manual_assigned || false,
-        assigned_at: item.assigned_at,
-        adults: 0,
-        children: 0,
-        infants: 0,
-      }));
+      // Map view data to expected format and ensure sort order is maintained
+      const merged = (viewData || [])
+        .map((item: any) => ({
+          // Participant data
+          participant_id: item.participant_id,
+          participant_no: item.participant_no,
+          name: item.participant_name,
+          organization: item.organization,
+          phone: item.phone,
+          fixed_role: item.fixed_role,
+          custom_role: item.custom_role,
+          // Rooming data with room type names from view
+          id: item.rooming_id,
+          room_type: item.room_type_name || '미지정',
+          room_type_id: item.room_type_id,
+          room_credit: item.event_room_credit || item.room_credit || null,
+          check_in: item.check_in,
+          check_out: item.check_out,
+          stay_days: item.stay_days,
+          status: item.status || '배정대기',
+          manual_assigned: item.manual_assigned || false,
+          assigned_at: item.assigned_at,
+          adults: 0,
+          children: 0,
+          infants: 0,
+        }))
+        .sort((a, b) => a.participant_no - b.participant_no);
       
-      console.log('[Phase 76-F.FE-Update] Fetched', merged.length, 'participants with rooming data from view');
+      console.log('[Phase 76-H.Fix] Fetched', merged.length, 'participants with rooming data from view');
       
       return merged;
     },
