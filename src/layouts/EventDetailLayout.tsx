@@ -80,12 +80,12 @@ export default function EventDetailLayout() {
   }
 
   return (
-    <div className="w-full h-full">
+    <div className="w-full h-full pt-[64px]">
       {/* Card Container with Tabs */}
       <div className="px-6 py-4">
         <div className="bg-card rounded-xl border border-border shadow-sm">
           <Tabs value={tab} onValueChange={setTab} className="w-full">
-            <TabsList className="flex space-x-6 border-b border-border px-6 pt-4 pb-0 bg-transparent h-auto rounded-none">
+            <TabsList className="flex space-x-6 border-b border-border px-6 pt-4 pb-0 bg-transparent h-auto rounded-none z-10">
               <TabsTrigger 
                 value="participants"
                 className="relative pb-3 text-sm font-medium rounded-none bg-transparent border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:text-primary text-muted-foreground hover:text-foreground transition-colors"

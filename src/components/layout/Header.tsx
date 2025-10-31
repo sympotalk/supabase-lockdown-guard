@@ -170,7 +170,7 @@ export function Header() {
                 <ChevronDown className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56 bg-popover">
+            <DropdownMenuContent align="end" className="w-56 bg-popover z-50">
               <DropdownMenuLabel>
                 <div className="flex flex-col">
                   <span className="font-medium">{displayName || "사용자"}</span>

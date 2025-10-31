@@ -359,7 +359,7 @@ export default function EventOverview() {
   }
 
   return (
-    <div className="layout-full space-y-6">
+    <div className="layout-full space-y-6 pt-[64px]">
         <div className="flex items-center gap-4">
           <Button
             variant="ghost"
