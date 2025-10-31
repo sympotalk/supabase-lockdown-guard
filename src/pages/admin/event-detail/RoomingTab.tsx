@@ -8,6 +8,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Alert } from "@/components/ui/alert";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { Sparkles, Users } from "lucide-react";
@@ -19,6 +21,7 @@ export default function RoomingTab() {
   const { eventId } = useParams();
   const [selectedParticipant, setSelectedParticipant] = useState<any>(null);
   const [isRunningAI, setIsRunningAI] = useState(false);
+  const [stats, setStats] = useState<any>(null);
 
   // [Phase 76-H.Fix] Load room types with proper join and sorting
   const { data: roomTypesData, mutate: mutateRoomTypes } = useSWR(
@@ -52,6 +55,23 @@ export default function RoomingTab() {
     },
     { revalidateOnFocus: false }
   );
+
+  // [Phase 77-A.1] Load rooming statistics
+  const loadRoomingStats = async () => {
+    if (!eventId) return;
+    try {
+      const { data, error } = await supabase.rpc('ai_rooming_stats', { p_event_id: eventId });
+      if (error) throw error;
+      setStats(data);
+    } catch (err) {
+      console.error('[Phase 77-A.1] 통계 로드 실패:', err);
+    }
+  };
+
+  useEffect(() => {
+    if (!eventId) return;
+    loadRoomingStats();
+  }, [eventId]);
 
   // [Phase 76-Pre.C] Realtime subscription for room types
   useEffect(() => {
@@ -165,6 +185,7 @@ export default function RoomingTab() {
         (payload) => {
           console.log("[Phase 72] Participant role/number updated, refreshing rooming:", payload);
           mutate();
+          loadRoomingStats(); // Refresh stats on participant update
         }
       )
       .subscribe();
@@ -244,6 +265,7 @@ export default function RoomingTab() {
           description: `${result.assigned}명의 참가자가 자동 배정되었습니다.`
         });
         mutate(); // 데이터 갱신
+        loadRoomingStats(); // 통계 갱신
       } else {
         toast.info('배정 가능한 참가자가 없습니다', {
           description: '모든 참가자가 이미 수동 배정되었거나 조건을 충족하지 못했습니다.'
@@ -277,6 +299,49 @@ export default function RoomingTab() {
       </TabsList>
 
       <TabsContent value="participants" className="space-y-4">
+        {/* [Phase 77-A.1] Rooming Statistics Cards */}
+        {stats && (
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <Card className="p-4 shadow-sm rounded-lg">
+                <div className="text-muted-foreground text-sm mb-1">배정 완료</div>
+                <div className="text-2xl font-bold text-primary">{stats.assigned}</div>
+              </Card>
+              <Card className="p-4 shadow-sm rounded-lg">
+                <div className="text-muted-foreground text-sm mb-1">배정 대기</div>
+                <div className="text-2xl font-bold text-orange-500">{stats.pending}</div>
+              </Card>
+              <Card className="p-4 shadow-sm rounded-lg">
+                <div className="text-muted-foreground text-sm mb-1">총 객실 수</div>
+                <div className="text-2xl font-bold text-foreground">{stats.totalRooms}</div>
+              </Card>
+              <Card className="p-4 shadow-sm rounded-lg">
+                <div className="text-muted-foreground text-sm mb-1">남은 객실</div>
+                <div className={cn(
+                  "text-2xl font-bold",
+                  stats.remaining < 0 ? "text-destructive" : "text-green-600"
+                )}>
+                  {stats.remaining}
+                </div>
+              </Card>
+            </div>
+            
+            {/* 부족 객실 경고 */}
+            {stats.shortage && stats.shortage.length > 0 && (
+              <Alert variant="destructive">
+                <div className="font-semibold">⚠️ 객실 부족 경고</div>
+                <div className="text-sm mt-1">
+                  {stats.shortage.map((s: any, idx: number) => (
+                    <div key={idx}>
+                      {s.room_type}: {s.shortage}개 부족 (필요 {s.needed}개, 보유 {s.available}개)
+                    </div>
+                  ))}
+                </div>
+              </Alert>
+            )}
+          </div>
+        )}
+
         {/* AI Auto-Match Button */}
         <div className="flex items-center justify-between p-4 bg-gradient-to-r from-primary/10 to-primary/5 rounded-lg border">
           <div>
@@ -420,6 +485,7 @@ export default function RoomingTab() {
                 }}
                 onUpdate={() => {
                   mutate();
+                  loadRoomingStats();
                   setSelectedParticipant(null);
                 }}
               />

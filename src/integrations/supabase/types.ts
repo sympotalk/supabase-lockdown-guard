@@ -7305,6 +7305,7 @@ export type Database = {
             }
             Returns: Json
           }
+      ai_rooming_stats: { Args: { p_event_id: string }; Returns: Json }
       assign_master_role: { Args: { user_email: string }; Returns: Json }
       auto_confirm_invited_user: { Args: { p_user_id: string }; Returns: Json }
       cleanup_old_cache: { Args: never; Returns: undefined }
