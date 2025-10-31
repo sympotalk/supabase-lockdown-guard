@@ -14,6 +14,7 @@ import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { Sparkles, Users } from "lucide-react";
 import { toast } from "sonner";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import RulesPanel from "@/components/rooming/RulesPanel";
 import ManualAssignPanel from "@/components/rooming/ManualAssignPanel";
 
@@ -299,48 +300,48 @@ export default function RoomingTab() {
       </TabsList>
 
       <TabsContent value="participants" className="space-y-4">
-        {/* [Phase 77-A.1] Rooming Statistics Cards */}
-        {stats && (
-          <div className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <Card className="p-4 shadow-sm rounded-lg">
-                <div className="text-muted-foreground text-sm mb-1">배정 완료</div>
-                <div className="text-2xl font-bold text-primary">{stats.assigned}</div>
-              </Card>
-              <Card className="p-4 shadow-sm rounded-lg">
-                <div className="text-muted-foreground text-sm mb-1">배정 대기</div>
-                <div className="text-2xl font-bold text-orange-500">{stats.pending}</div>
-              </Card>
-              <Card className="p-4 shadow-sm rounded-lg">
-                <div className="text-muted-foreground text-sm mb-1">총 객실 수</div>
-                <div className="text-2xl font-bold text-foreground">{stats.totalRooms}</div>
-              </Card>
-              <Card className="p-4 shadow-sm rounded-lg">
-                <div className="text-muted-foreground text-sm mb-1">남은 객실</div>
-                <div className={cn(
-                  "text-2xl font-bold",
-                  stats.remaining < 0 ? "text-destructive" : "text-green-600"
-                )}>
-                  {stats.remaining}
-                </div>
-              </Card>
-            </div>
-            
-            {/* 부족 객실 경고 */}
-            {stats.shortage && stats.shortage.length > 0 && (
-              <Alert variant="destructive">
-                <div className="font-semibold">⚠️ 객실 부족 경고</div>
-                <div className="text-sm mt-1">
+        {/* [Phase 77-B] Floating Summary Bar - 고정형 통계 카드 */}
+        <div className="sticky top-[64px] z-40 bg-background border-b pb-3 mb-4">
+          {stats && (
+            <div className="space-y-3">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+                <Card className="p-3 shadow-sm rounded-xl bg-blue-50">
+                  <div className="text-xs text-gray-600 mb-0.5">배정 완료</div>
+                  <div className="text-xl font-bold text-blue-600">{stats.assigned}</div>
+                </Card>
+                <Card className="p-3 shadow-sm rounded-xl bg-orange-50">
+                  <div className="text-xs text-gray-600 mb-0.5">배정 대기</div>
+                  <div className="text-xl font-bold text-orange-600">{stats.pending}</div>
+                </Card>
+                <Card className="p-3 shadow-sm rounded-xl bg-gray-50">
+                  <div className="text-xs text-gray-600 mb-0.5">총 객실</div>
+                  <div className="text-xl font-bold text-gray-700">{stats.totalRooms}</div>
+                </Card>
+                <Card className="p-3 shadow-sm rounded-xl">
+                  <div className="text-xs text-gray-600 mb-0.5">남은 객실</div>
+                  <div className={cn(
+                    "text-xl font-bold",
+                    stats.remaining < 0 ? "text-red-500" : "text-green-600"
+                  )}>
+                    {stats.remaining}
+                  </div>
+                </Card>
+              </div>
+              
+              {/* [Phase 77-B] 부족 객실 고정 경고 영역 */}
+              {stats.shortage && stats.shortage.length > 0 && (
+                <div className="p-2 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm">
+                  <span className="font-semibold">⚠️ 객실 부족:</span>
                   {stats.shortage.map((s: any, idx: number) => (
-                    <div key={idx}>
-                      {s.room_type}: {s.shortage}개 부족 (필요 {s.needed}개, 보유 {s.available}개)
-                    </div>
+                    <span key={idx} className="ml-2">
+                      {s.room_type} ({s.shortage}개)
+                    </span>
                   ))}
                 </div>
-              </Alert>
-            )}
-          </div>
-        )}
+              )}
+            </div>
+          )}
+        </div>
 
         {/* AI Auto-Match Button */}
         <div className="flex items-center justify-between p-4 bg-gradient-to-r from-primary/10 to-primary/5 rounded-lg border">
@@ -406,7 +407,7 @@ export default function RoomingTab() {
                         className="cursor-pointer hover:bg-muted/50 transition-colors"
                         onClick={() => setSelectedParticipant(r)}
                       >
-                        <TableCell className="text-left text-muted-foreground text-sm font-medium">
+                         <TableCell className="text-left text-muted-foreground text-sm font-medium">
                           {r.participant_no || index + 1}
                         </TableCell>
                         <TableCell className="text-left">
@@ -435,10 +436,26 @@ export default function RoomingTab() {
                           </div>
                         </TableCell>
                          <TableCell className="text-left">
+                           {/* [Phase 77-B] 동반의료인 시각화 개선 */}
                            <div className="flex items-center gap-2">
                              <span className="font-medium">{r.name || "-"}</span>
                              {r.companions && r.companions.length > 0 && (
-                               <Users className="w-4 h-4 text-primary" aria-label="동반 배정" />
+                               <TooltipProvider>
+                                 <Tooltip>
+                                   <TooltipTrigger asChild>
+                                     <button className="text-blue-500 hover:text-blue-700 transition-colors">
+                                       <Users className="w-4 h-4" />
+                                     </button>
+                                   </TooltipTrigger>
+                                   <TooltipContent>
+                                     <p className="text-xs">
+                                       {r.companions.length === 1
+                                         ? `동반의료인과 같은 객실입니다`
+                                         : `동반의료인 ${r.companions.length}명과 같은 객실입니다`}
+                                     </p>
+                                   </TooltipContent>
+                                 </Tooltip>
+                               </TooltipProvider>
                              )}
                            </div>
                          </TableCell>

@@ -54,11 +54,14 @@ export default function ParticipantRequestsBadges({
     return null;
   };
 
-  const getPriorityVariant = (priority: number): "default" | "destructive" | "secondary" | "outline" => {
-    if (priority === 1) return "destructive"; // 필수
-    if (priority === 2) return "default"; // 선호
-    if (priority === 3) return "secondary"; // 편의
-    return "outline"; // 뷰/층
+  // [Phase 77-B] Priority 기반 색상 구분 강화
+  const getPriorityColor = (priority: number) => {
+    switch (priority) {
+      case 1: return 'bg-red-100 text-red-700 border-red-300'; // 필수
+      case 2: return 'bg-blue-100 text-blue-700 border-blue-300'; // 선호
+      case 3: return 'bg-gray-100 text-gray-700 border-gray-300'; // 편의
+      default: return 'bg-green-100 text-green-700 border-green-300'; // 기타
+    }
   };
 
   const visibleRequests = requests.slice(0, maxVisible);
@@ -70,14 +73,13 @@ export default function ParticipantRequestsBadges({
         {visibleRequests.map((req) => (
           <Tooltip key={req.id}>
             <TooltipTrigger asChild>
-              <Badge 
-                variant={getPriorityVariant(req.priority)} 
-                className="text-xs gap-1 cursor-help"
+              <span
+                className={`inline-flex items-center gap-1 px-2 py-1 text-xs rounded-md border ${getPriorityColor(req.priority)} cursor-help`}
               >
                 {getIcon(req.request_value)}
                 {req.request_value}
                 {req.priority === 1 && <ArrowUp className="w-3 h-3" />}
-              </Badge>
+              </span>
             </TooltipTrigger>
             <TooltipContent>
               <p className="text-xs">
@@ -94,9 +96,9 @@ export default function ParticipantRequestsBadges({
         {hiddenCount > 0 && (
           <Tooltip>
             <TooltipTrigger asChild>
-              <Badge variant="outline" className="text-xs cursor-help">
+              <span className="inline-flex items-center px-2 py-1 text-xs rounded-md border border-gray-300 bg-gray-50 text-gray-600 cursor-help">
                 +{hiddenCount}
-              </Badge>
+              </span>
             </TooltipTrigger>
             <TooltipContent>
               <p className="text-xs">{hiddenCount}개의 추가 요청사항</p>
