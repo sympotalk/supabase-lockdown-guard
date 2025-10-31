@@ -36,8 +36,8 @@ export default function AgencyTeam() {
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviteRole, setInviteRole] = useState("staff");
   
-  // Only AGENCY_OWNER can invite users (STAFF can only view)
-  const canInvite = role === 'agency_owner';
+  // All agency users (Owner & Staff) can invite and manage members
+  const canInvite = ['agency_owner', 'staff', 'master'].includes(role || '');
 
   useEffect(() => {
     loadAgencyInfo();
@@ -121,13 +121,6 @@ export default function AgencyTeam() {
   const handleInvite = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!canInvite) {
-      toast.error("권한이 없습니다.", {
-        description: "팀원 초대는 에이전시 관리자만 가능합니다.",
-      });
-      return;
-    }
-
     if (!agencyId) {
       toast.error("에이전시 정보를 불러올 수 없습니다.");
       return;
@@ -188,8 +181,8 @@ export default function AgencyTeam() {
   };
 
   const handleDeleteInvite = async (inviteId: string) => {
-    if (!canInvite) {
-      toast.error("권한이 없습니다.");
+    if (!agencyId) {
+      toast.error("에이전시 정보를 확인할 수 없습니다.");
       return;
     }
 
@@ -253,60 +246,58 @@ export default function AgencyTeam() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            {canInvite ? (
-              <form onSubmit={handleInvite} className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="invite-email">
-                      이메일 <span className="text-destructive">*</span>
-                    </Label>
-                    <Input
-                      id="invite-email"
-                      type="email"
-                      placeholder="user@example.com"
-                      value={inviteEmail}
-                      onChange={(e) => setInviteEmail(e.target.value)}
-                      disabled={submitting}
-                      required
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="invite-role">
-                      권한 <span className="text-destructive">*</span>
-                    </Label>
-                    <Select
-                      value={inviteRole}
-                      onValueChange={setInviteRole}
-                      disabled={submitting}
-                    >
-                      <SelectTrigger id="invite-role">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="staff">Staff</SelectItem>
-                        <SelectItem value="agency_owner">Manager</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
+            <form onSubmit={handleInvite} className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="invite-email">
+                    이메일 <span className="text-destructive">*</span>
+                  </Label>
+                  <Input
+                    id="invite-email"
+                    type="email"
+                    placeholder="user@example.com"
+                    value={inviteEmail}
+                    onChange={(e) => setInviteEmail(e.target.value)}
+                    disabled={submitting || !agencyId}
+                    required
+                  />
                 </div>
-
-                <Button 
-                  type="submit" 
-                  disabled={submitting || !agencyId}
-                  className="w-full"
-                >
-                  <UserPlus className="h-4 w-4 mr-2" />
-                  {submitting ? "초대 중..." : "초대하기"}
-                </Button>
-              </form>
-            ) : (
-              <div className="bg-muted/50 p-4 rounded-lg">
-                <p className="text-[13px] text-muted-foreground">
-                  <span className="font-medium">안내:</span> 팀원 초대는 에이전시 관리자만 가능합니다.
-                </p>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="invite-role">
+                    권한 <span className="text-destructive">*</span>
+                  </Label>
+                  <Select
+                    value={inviteRole}
+                    onValueChange={setInviteRole}
+                    disabled={submitting || !agencyId}
+                  >
+                    <SelectTrigger id="invite-role">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="staff">Staff</SelectItem>
+                      <SelectItem value="agency_owner">Manager</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
-            )}
+
+              <Button 
+                type="submit" 
+                disabled={submitting || !agencyId}
+                className="w-full"
+              >
+                <UserPlus className="h-4 w-4 mr-2" />
+                {submitting ? "초대 중..." : "초대하기"}
+              </Button>
+
+              {!agencyId && (
+                <p className="text-xs text-muted-foreground text-center">
+                  에이전시 정보를 불러오는 중입니다...
+                </p>
+              )}
+            </form>
           </CardContent>
         </Card>
 
@@ -348,7 +339,7 @@ export default function AgencyTeam() {
                       <TableHead>권한</TableHead>
                       <TableHead>상태</TableHead>
                       <TableHead>생성일</TableHead>
-                      {canInvite && <TableHead className="text-right">관리</TableHead>}
+                      <TableHead className="text-right">관리</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -370,19 +361,17 @@ export default function AgencyTeam() {
                           <TableCell className="text-[12px] text-muted-foreground">
                             {format(new Date(invite.created_at), "yyyy-MM-dd")}
                           </TableCell>
-                          {canInvite && (
-                            <TableCell className="text-right">
-                              {status === "대기중" && (
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => handleDeleteInvite(invite.id)}
-                                >
-                                  <Trash2 className="h-4 w-4 text-destructive" />
-                                </Button>
-                              )}
-                            </TableCell>
-                          )}
+                          <TableCell className="text-right">
+                            {status === "대기중" && agencyId && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleDeleteInvite(invite.id)}
+                              >
+                                <Trash2 className="h-4 w-4 text-destructive" />
+                              </Button>
+                            )}
+                          </TableCell>
                         </TableRow>
                       );
                     })}
