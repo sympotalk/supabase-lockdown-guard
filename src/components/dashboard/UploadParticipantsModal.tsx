@@ -249,16 +249,22 @@ export function UploadParticipantsModal({
     console.log("[73-L.7.6] Normalized payload (first 3):", payload.slice(0, 3));
     
     setUploading(true);
-    console.info("[73-L.7.6] RPC call → ai_participant_import_from_excel", { 
+    
+    // [Phase 75-B.1] Generate session ID for tracking
+    const sessionId = `upload_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    
+    console.info("[75-B.1] RPC call → ai_participant_import_from_excel", { 
       mode: replaceMode ? 'replace' : 'append',
-      count: payload.length 
+      count: payload.length,
+      sessionId 
     });
     
     try {
       const { data, error } = await supabase.rpc('ai_participant_import_from_excel', {
         p_event_id: activeEventId,
         p_data: payload,
-        p_replace: replaceMode
+        p_replace: replaceMode,
+        p_session_id: sessionId
       });
       
       if (error) {
@@ -275,13 +281,14 @@ export function UploadParticipantsModal({
         throw error;
       }
       
-      // [73-L.7.6] Log upload result
+      // [75-B.1] Log upload result with session tracking
       const result = data as any;
-      console.log("[73-L.7.6] RPC success →", {
+      console.log("[75-B.1] RPC success →", {
         inserted: result?.inserted || 0,
         updated: result?.updated || 0,
         skipped: result?.skipped || 0,
-        mode: result?.mode || 'unknown'
+        mode: result?.mode || 'unknown',
+        sessionId: result?.session_id || sessionId
       });
 
       // Invalidate cache

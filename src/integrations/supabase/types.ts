@@ -7073,10 +7073,20 @@ export type Database = {
     }
     Functions: {
       accept_invite_and_link: { Args: { p_token: string }; Returns: Json }
-      ai_participant_import_from_excel: {
-        Args: { p_data: Json; p_event_id: string; p_replace?: boolean }
-        Returns: Json
-      }
+      ai_participant_import_from_excel:
+        | {
+            Args: { p_data: Json; p_event_id: string; p_replace?: boolean }
+            Returns: Json
+          }
+        | {
+            Args: {
+              p_data: Json
+              p_event_id: string
+              p_replace?: boolean
+              p_session_id?: string
+            }
+            Returns: Json
+          }
       assign_master_role: { Args: { user_email: string }; Returns: Json }
       auto_confirm_invited_user: { Args: { p_user_id: string }; Returns: Json }
       cleanup_old_cache: { Args: never; Returns: undefined }
