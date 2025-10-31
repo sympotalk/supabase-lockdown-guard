@@ -329,17 +329,16 @@ export default function Participants() {
             </Card>
           </div>
         </div>
-      </div>
 
-      {/* [Phase 77-I] Companion Scan Modal */}
-      {selectedEventId && (
-        <CompanionScanModal
-          open={showCompanionScan}
-          onOpenChange={setShowCompanionScan}
-          eventId={selectedEventId}
-          onSuccess={refresh}
-        />
-      )}
-    </div>
+        {/* [Phase 77-I] Companion Scan Modal */}
+        {selectedEventId && (
+          <CompanionScanModal
+            open={showCompanionScan}
+            onOpenChange={setShowCompanionScan}
+            eventId={selectedEventId}
+            onSuccess={refresh}
+          />
+        )}
+      </div>
   );
 }
