@@ -3502,6 +3502,78 @@ export type Database = {
         }
         Relationships: []
       }
+      participant_requests: {
+        Row: {
+          created_at: string | null
+          event_id: string
+          id: string
+          is_fulfilled: boolean | null
+          participant_id: string
+          priority: number
+          request_type: string
+          request_value: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          event_id: string
+          id?: string
+          is_fulfilled?: boolean | null
+          participant_id: string
+          priority?: number
+          request_type: string
+          request_value: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          event_id?: string
+          id?: string
+          is_fulfilled?: boolean | null
+          participant_id?: string
+          priority?: number
+          request_type?: string
+          request_value?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "participant_requests_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "event_progress_view"
+            referencedColumns: ["event_id"]
+          },
+          {
+            foreignKeyName: "participant_requests_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "participant_requests_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "v_event_room_summary"
+            referencedColumns: ["event_id"]
+          },
+          {
+            foreignKeyName: "participant_requests_participant_id_fkey"
+            columns: ["participant_id"]
+            isOneToOne: false
+            referencedRelation: "participants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "participant_requests_participant_id_fkey"
+            columns: ["participant_id"]
+            isOneToOne: false
+            referencedRelation: "participants_with_logs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       participants: {
         Row: {
           adult_count: number | null
@@ -5451,6 +5523,78 @@ export type Database = {
         }
         Relationships: []
       }
+      rooming_match_logs: {
+        Row: {
+          created_at: string | null
+          event_id: string
+          id: string
+          match_reason: string | null
+          match_run_id: string
+          match_score: number | null
+          matched_room_type_id: string | null
+          participant_id: string | null
+          warnings: Json | null
+        }
+        Insert: {
+          created_at?: string | null
+          event_id: string
+          id?: string
+          match_reason?: string | null
+          match_run_id: string
+          match_score?: number | null
+          matched_room_type_id?: string | null
+          participant_id?: string | null
+          warnings?: Json | null
+        }
+        Update: {
+          created_at?: string | null
+          event_id?: string
+          id?: string
+          match_reason?: string | null
+          match_run_id?: string
+          match_score?: number | null
+          matched_room_type_id?: string | null
+          participant_id?: string | null
+          warnings?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rooming_match_logs_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "event_progress_view"
+            referencedColumns: ["event_id"]
+          },
+          {
+            foreignKeyName: "rooming_match_logs_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rooming_match_logs_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "v_event_room_summary"
+            referencedColumns: ["event_id"]
+          },
+          {
+            foreignKeyName: "rooming_match_logs_participant_id_fkey"
+            columns: ["participant_id"]
+            isOneToOne: false
+            referencedRelation: "participants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rooming_match_logs_participant_id_fkey"
+            columns: ["participant_id"]
+            isOneToOne: false
+            referencedRelation: "participants_with_logs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       rooming_participants: {
         Row: {
           adults: number | null
@@ -5459,6 +5603,7 @@ export type Database = {
           check_in: string | null
           check_out: string | null
           children: number | null
+          companions: Json | null
           created_at: string | null
           custom_role: string | null
           event_id: string | null
@@ -5485,6 +5630,7 @@ export type Database = {
           check_in?: string | null
           check_out?: string | null
           children?: number | null
+          companions?: Json | null
           created_at?: string | null
           custom_role?: string | null
           event_id?: string | null
@@ -5511,6 +5657,7 @@ export type Database = {
           check_in?: string | null
           check_out?: string | null
           children?: number | null
+          companions?: Json | null
           created_at?: string | null
           custom_role?: string | null
           event_id?: string | null
@@ -7140,6 +7287,10 @@ export type Database = {
     }
     Functions: {
       accept_invite_and_link: { Args: { p_token: string }; Returns: Json }
+      ai_auto_assign_rooms: {
+        Args: { p_dry_run?: boolean; p_event_id: string }
+        Returns: Json
+      }
       ai_participant_import_from_excel:
         | {
             Args: { p_data: Json; p_event_id: string; p_replace?: boolean }

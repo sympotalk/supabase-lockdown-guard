@@ -1,4 +1,5 @@
 // [72-RULE.R2] Rooming Management with Rules and Manual Assignment
+// [Phase 77-A] AI Auto-Match Core Ruleset
 import { supabase } from "@/integrations/supabase/client";
 import useSWR from "swr";
 import { useParams } from "react-router-dom";
@@ -6,14 +7,18 @@ import { useState, useEffect } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
+import { Sparkles, Users } from "lucide-react";
+import { toast } from "sonner";
 import RulesPanel from "@/components/rooming/RulesPanel";
 import ManualAssignPanel from "@/components/rooming/ManualAssignPanel";
 
 export default function RoomingTab() {
   const { eventId } = useParams();
   const [selectedParticipant, setSelectedParticipant] = useState<any>(null);
+  const [isRunningAI, setIsRunningAI] = useState(false);
 
   // [Phase 76-H.Fix] Load room types with proper join and sorting
   const { data: roomTypesData, mutate: mutateRoomTypes } = useSWR(
@@ -196,8 +201,66 @@ export default function RoomingTab() {
     );
   }
 
+  // [Phase 77-A] AI 자동 배정 실행
+  const handleRunAIMatching = async () => {
+    if (!eventId) return;
+    
+    setIsRunningAI(true);
+    try {
+      const { data, error } = await supabase.rpc('ai_auto_assign_rooms', {
+        p_event_id: eventId,
+        p_dry_run: false
+      });
+
+      if (error) throw error;
+
+      console.log('[Phase 77-A] AI 매칭 결과:', data);
+
+      const result = data as any; // RPC 결과를 any로 캐스팅
+
+      // 경고사항 표시
+      if (result?.warnings && result.warnings.length > 0) {
+        result.warnings.forEach((warning: any) => {
+          if (warning.type === 'stock_shortage') {
+            toast.warning('객실 재고 부족', {
+              description: `일부 객실 타입의 재고가 부족합니다. 담당자 확인이 필요합니다.`,
+              duration: 5000
+            });
+          } else if (warning.participant) {
+            toast.warning(`${warning.participant}: ${warning.message}`, { duration: 4000 });
+          }
+        });
+      }
+
+      // 에러 표시
+      if (result?.errors && result.errors.length > 0) {
+        result.errors.forEach((error: any) => {
+          toast.error(`${error.participant}: ${error.message}`, { duration: 4000 });
+        });
+      }
+
+      if (result?.assigned > 0) {
+        toast.success(`AI 자동 배정 완료`, {
+          description: `${result.assigned}명의 참가자가 자동 배정되었습니다.`
+        });
+        mutate(); // 데이터 갱신
+      } else {
+        toast.info('배정 가능한 참가자가 없습니다', {
+          description: '모든 참가자가 이미 수동 배정되었거나 조건을 충족하지 못했습니다.'
+        });
+      }
+    } catch (error: any) {
+      console.error('[Phase 77-A] AI 매칭 실패:', error);
+      toast.error('AI 자동 배정 실패', {
+        description: error.message
+      });
+    } finally {
+      setIsRunningAI(false);
+    }
+  };
+
   const getStatusBadge = (manualAssigned: boolean, roomType: string) => {
-    if (roomType === "배정대기") {
+    if (roomType === "배정대기" || roomType === "미지정") {
       return <Badge variant="secondary">대기중</Badge>;
     }
     if (manualAssigned) {
@@ -214,6 +277,27 @@ export default function RoomingTab() {
       </TabsList>
 
       <TabsContent value="participants" className="space-y-4">
+        {/* AI Auto-Match Button */}
+        <div className="flex items-center justify-between p-4 bg-gradient-to-r from-primary/10 to-primary/5 rounded-lg border">
+          <div>
+            <h3 className="font-semibold flex items-center gap-2">
+              <Sparkles className="w-5 h-5 text-primary" />
+              AI 자동 룸핑 매칭
+            </h3>
+            <p className="text-sm text-muted-foreground mt-1">
+              인원 구성, 소아 연령, 역할을 기반으로 최적의 객실을 자동 배정합니다
+            </p>
+          </div>
+          <Button 
+            onClick={handleRunAIMatching} 
+            disabled={isRunningAI || !roomingList || roomingList.length === 0}
+            className="gap-2"
+          >
+            <Sparkles className="w-4 h-4" />
+            {isRunningAI ? '배정 중...' : 'AI 자동 배정 실행'}
+          </Button>
+        </div>
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           {/* Participants List */}
           <div className="lg:col-span-2">
@@ -238,18 +322,18 @@ export default function RoomingTab() {
               </div>
             ) : (
               <div className="rounded-lg border bg-card">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="w-12 text-left">No.</TableHead>
-                      <TableHead className="text-left">구분</TableHead>
-                      <TableHead className="text-left">참가자명</TableHead>
-                      <TableHead className="text-left">직책/직위</TableHead>
-                      <TableHead className="text-center">룸크레딧</TableHead>
-                      <TableHead className="text-center">구성</TableHead>
-                      <TableHead className="text-right">상태</TableHead>
-                    </TableRow>
-                  </TableHeader>
+                  <Table>
+                   <TableHeader>
+                     <TableRow>
+                       <TableHead className="w-12 text-left">No.</TableHead>
+                       <TableHead className="text-left">구분</TableHead>
+                       <TableHead className="text-left">참가자명</TableHead>
+                       <TableHead className="text-left">객실타입</TableHead>
+                       <TableHead className="text-center">룸크레딧</TableHead>
+                       <TableHead className="text-center">인원구성</TableHead>
+                       <TableHead className="text-right">상태</TableHead>
+                     </TableRow>
+                   </TableHeader>
                   <TableBody>
                     {roomingList.map((r: any, index: number) => (
                       <TableRow
@@ -285,12 +369,21 @@ export default function RoomingTab() {
                             )}
                           </div>
                         </TableCell>
-                        <TableCell className="text-left">
-                          <span className="font-medium">{r.name || "-"}</span>
-                        </TableCell>
-                        <TableCell className="text-left text-sm text-muted-foreground">
-                          {r.organization || "-"}
-                        </TableCell>
+                         <TableCell className="text-left">
+                           <div className="flex items-center gap-2">
+                             <span className="font-medium">{r.name || "-"}</span>
+                             {r.companions && r.companions.length > 0 && (
+                               <Users className="w-4 h-4 text-primary" aria-label="동반 배정" />
+                             )}
+                           </div>
+                         </TableCell>
+                         <TableCell className="text-left text-sm">
+                           {r.room_type !== '미지정' ? (
+                             <span className="font-medium text-foreground">{r.room_type}</span>
+                           ) : (
+                             <span className="text-muted-foreground">-</span>
+                           )}
+                         </TableCell>
                         <TableCell className="text-center text-muted-foreground">
                           {r.room_credit ? `${Number(r.room_credit).toLocaleString()}원` : "-"}
                         </TableCell>
