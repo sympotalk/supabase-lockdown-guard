@@ -63,44 +63,39 @@ export default function InviteSignup() {
     if (!token) return;
 
     try {
-      // Fetch invite from account_provisioning
-      const { data: invite, error } = await supabase
-        .from("account_provisioning")
-        .select(`
-          email,
-          agency_id,
-          role,
-          expires_at,
-          is_used,
-          agencies!inner(name)
-        `)
-        .eq("invite_token", token)
-        .single();
+      // [74-B.0-FIX] Use validate_invite_token RPC for proper validation
+      const { data: validationResult, error } = await supabase.rpc(
+        'validate_invite_token',
+        { p_token: token }
+      );
 
-      if (error || !invite) {
+      if (error) {
+        console.error("[InviteSignup] RPC error:", error);
         setStatus("invalid");
         return;
       }
 
-      // Check if already used
-      if (invite.is_used) {
-        setStatus("used");
-        return;
-      }
+      const result = validationResult as any;
 
-      // Check if expired
-      if (new Date(invite.expires_at) < new Date()) {
-        setStatus("expired");
+      if (!result?.is_valid) {
+        // Map reason to status
+        if (result?.reason === "expired") {
+          setStatus("expired");
+        } else if (result?.reason === "already_used") {
+          setStatus("used");
+        } else {
+          setStatus("invalid");
+        }
         return;
       }
 
       // Valid invite
       setInviteData({
-        email: invite.email,
-        agency_id: invite.agency_id || "",
-        agency_name: (invite.agencies as any)?.name || "",
-        role: invite.role,
-        expires_at: invite.expires_at,
+        email: result.email || "",
+        agency_id: result.agency_id || "",
+        agency_name: result.agency_name || "",
+        role: result.role || "staff",
+        expires_at: result.expires_at || "",
       });
       setStatus("valid");
     } catch (error) {

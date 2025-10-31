@@ -6811,7 +6811,7 @@ export type Database = {
         Returns: Json
       }
       create_agency_invite: {
-        Args: { p_agency_id: string; p_email: string; p_role?: string }
+        Args: { p_agency_id: string; p_email?: string; p_role?: string }
         Returns: Json
       }
       create_event_with_hotel:

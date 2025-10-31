@@ -145,7 +145,9 @@ export default function AgencyView() {
 
       if (error) throw error;
 
-      const inviteUrl = `${window.location.origin}/invite?token=${data}`;
+      // [74-B.0-FIX] Use properly serialized invite_url from RPC
+      const result = data as { token: string; invite_url: string; expires_at: string };
+      const inviteUrl = result?.invite_url || `${window.location.origin}/invite?token=${result?.token}`;
       await navigator.clipboard.writeText(inviteUrl);
       
       toast({
