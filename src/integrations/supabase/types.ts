@@ -5471,7 +5471,8 @@ export type Database = {
           participant_id: string | null
           participant_no: number | null
           room_credit: number | null
-          room_type: string | null
+          room_status: string | null
+          room_type_id: string | null
           status: Database["public"]["Enums"]["rooming_status"] | null
           stay_days: number | null
           sync_status: string | null
@@ -5496,7 +5497,8 @@ export type Database = {
           participant_id?: string | null
           participant_no?: number | null
           room_credit?: number | null
-          room_type?: string | null
+          room_status?: string | null
+          room_type_id?: string | null
           status?: Database["public"]["Enums"]["rooming_status"] | null
           stay_days?: number | null
           sync_status?: string | null
@@ -5521,7 +5523,8 @@ export type Database = {
           participant_id?: string | null
           participant_no?: number | null
           room_credit?: number | null
-          room_type?: string | null
+          room_status?: string | null
+          room_type_id?: string | null
           status?: Database["public"]["Enums"]["rooming_status"] | null
           stay_days?: number | null
           sync_status?: string | null

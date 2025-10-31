@@ -122,7 +122,7 @@ export default function RoomingTab() {
       // Merge participants with rooming data and room type names
       const merged = (allParticipants || []).map((p: any) => {
         const rooming = roomingMap.get(p.id);
-        const roomTypeInfo = rooming?.room_type ? roomTypeMap.get(rooming.room_type) : null;
+        const roomTypeInfo = rooming?.room_type_id ? roomTypeMap.get(rooming.room_type_id) : null;
         
         return {
           // Participant data
@@ -136,7 +136,7 @@ export default function RoomingTab() {
           // Rooming data (may be null) - [Phase 76-Pre.E] With room type name mapping
           id: rooming?.id || null,
           room_type: roomTypeInfo?.name || '미지정',
-          room_type_id: rooming?.room_type || null,
+          room_type_id: rooming?.room_type_id || null,
           room_credit: roomTypeInfo?.credit || rooming?.room_credit || null,
           check_in: rooming?.check_in || null,
           check_out: rooming?.check_out || null,
