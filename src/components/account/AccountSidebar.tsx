@@ -5,12 +5,12 @@ import { toast } from "sonner";
 
 const menuItems = [
   {
-    title: "프로필",
+    title: "계정 관리",
     icon: User,
     url: "/agency/profile",
   },
   {
-    title: "팀원 관리",
+    title: "팀원 초대",
     icon: Settings,
     url: "/agency/team",
   },

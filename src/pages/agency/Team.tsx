@@ -39,15 +39,21 @@ export default function AgencyTeam() {
   const loadAgencyInfo = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      if (!user) {
+        console.warn("[Team] No user found");
+        return;
+      }
 
-      const { data: roleData } = await supabase
+      const { data: roleData, error: roleError } = await supabase
         .from("user_roles")
         .select("agency_id")
         .eq("user_id", user.id)
         .single();
 
-      if (!roleData?.agency_id) return;
+      if (roleError || !roleData?.agency_id) {
+        console.warn("[Team] No agency_id found, skipping RPC calls");
+        return;
+      }
 
       const { data: agencyData } = await supabase
         .from("agencies")
@@ -58,7 +64,7 @@ export default function AgencyTeam() {
       setAgencyId(roleData.agency_id);
       setAgencyName(agencyData?.name || "");
     } catch (error) {
-      console.error("Failed to load agency info:", error);
+      console.error("[Team] Failed to load agency info:", error);
     }
   };
 
@@ -66,15 +72,23 @@ export default function AgencyTeam() {
     setLoading(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      if (!user) {
+        console.warn("[Team] No user found");
+        setLoading(false);
+        return;
+      }
 
-      const { data: roleData } = await supabase
+      const { data: roleData, error: roleError } = await supabase
         .from("user_roles")
         .select("agency_id")
         .eq("user_id", user.id)
         .single();
 
-      if (!roleData?.agency_id) return;
+      if (roleError || !roleData?.agency_id) {
+        console.warn("[Team] No agency_id found, skipping invite load");
+        setLoading(false);
+        return;
+      }
 
       const { data: agencyData } = await supabase
         .from("agencies")
@@ -82,7 +96,11 @@ export default function AgencyTeam() {
         .eq("id", roleData.agency_id)
         .single();
 
-      if (!agencyData?.name) return;
+      if (!agencyData?.name) {
+        console.warn("[Team] No agency name found");
+        setLoading(false);
+        return;
+      }
 
       type MasterUserRow = {
         id: string;
@@ -110,7 +128,7 @@ export default function AgencyTeam() {
       
       setInvites(invitedUsers);
     } catch (error) {
-      console.error("Failed to load invites:", error);
+      console.error("[Team] Failed to load invites:", error);
       toast.error("초대 내역을 불러오는데 실패했습니다.");
     }
     setLoading(false);
@@ -120,9 +138,9 @@ export default function AgencyTeam() {
     <AccountLayout>
       <div className="space-y-8 p-8">
         <div>
-          <h1 className="text-[28px] font-bold">팀원 관리</h1>
+          <h1 className="text-[28px] font-bold">팀원 초대</h1>
           <p className="text-[14px] text-muted-foreground mt-1">
-            에이전시 팀원을 초대하고 관리하세요
+            에이전시 팀원을 초대하고 관리합니다
           </p>
         </div>
 
@@ -133,7 +151,7 @@ export default function AgencyTeam() {
                 <Users className="h-5 w-5" />
                 팀원 초대
               </CardTitle>
-              {canInvite && (
+              {canInvite && agencyId && (
                 <Button size="sm" onClick={() => setInviteOpen(true)}>
                   <UserPlus className="h-4 w-4 mr-2" />
                   새 팀원 초대
@@ -204,12 +222,14 @@ export default function AgencyTeam() {
           </CardContent>
         </Card>
 
-        <InviteModal
-          open={inviteOpen}
-          onOpenChange={setInviteOpen}
-          agencyId={agencyId}
-          onSuccess={loadInvites}
-        />
+        {agencyId && (
+          <InviteModal
+            open={inviteOpen}
+            onOpenChange={setInviteOpen}
+            agencyId={agencyId}
+            onSuccess={loadInvites}
+          />
+        )}
       </div>
     </AccountLayout>
   );
