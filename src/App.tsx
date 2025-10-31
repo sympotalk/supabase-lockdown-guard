@@ -12,6 +12,7 @@ import Index from "./pages/Index";
 import Login from "./pages/auth/Login";
 import Signup from "./pages/auth/Signup";
 import InviteValidation from "./pages/auth/InviteValidation";
+import InviteSignup from "./pages/invite/InviteSignup";
 import Dashboard from "./pages/admin/Dashboard";
 import MasterDashboard from "./pages/master/Dashboard";
 import MasterAgencies from "./pages/master/Agencies";
@@ -55,7 +56,10 @@ const App = () => (
             {/* Public routes */}
             <Route path="/" element={<Index />} />
             <Route path="/auth/login" element={<Login />} />
-            <Route path="/invite" element={<InviteValidation />} />
+            {/* [74-A.9] New invite signup flow */}
+            <Route path="/invite" element={<InviteSignup />} />
+            {/* Legacy invite validation route */}
+            <Route path="/invite-validate" element={<InviteValidation />} />
             <Route path="/signup/:inviteId" element={<Signup />} />
 
             {/* Master-only routes */}
