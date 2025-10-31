@@ -24,9 +24,18 @@ interface InvitedUser {
   expires_at: string;
 }
 
+interface TeamMember {
+  id: string;
+  email: string;
+  name: string | null;
+  role: string;
+  status: string;
+}
+
 export default function AgencyTeam() {
   const { role, userId } = useUser();
   const [invites, setInvites] = useState<InvitedUser[]>([]);
+  const [members, setMembers] = useState<TeamMember[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [agencyId, setAgencyId] = useState<string>("");
@@ -34,7 +43,6 @@ export default function AgencyTeam() {
   
   // Invite form state
   const [inviteEmail, setInviteEmail] = useState("");
-  const [inviteRole, setInviteRole] = useState("staff");
   
   // All agency users (Owner & Staff) can invite and manage members
   const canInvite = ['agency_owner', 'staff', 'master'].includes(role || '');
@@ -42,6 +50,7 @@ export default function AgencyTeam() {
   useEffect(() => {
     loadAgencyInfo();
     loadInvites();
+    loadTeamMembers();
   }, []);
 
   const loadAgencyInfo = async () => {
@@ -98,10 +107,10 @@ export default function AgencyTeam() {
         return;
       }
 
-      // Load invites from account_provisioning
+      // Load invites from account_provisioning - explicitly select email field
       const { data: invitesData, error: invitesError } = await supabase
         .from("account_provisioning")
-        .select("*")
+        .select("id, email, role, is_active, is_used, created_at, expires_at")
         .eq("agency_id", roleData.agency_id)
         .order("created_at", { ascending: false });
 
@@ -116,6 +125,51 @@ export default function AgencyTeam() {
       toast.error("초대 내역을 불러오는데 실패했습니다.");
     }
     setLoading(false);
+  };
+
+  const loadTeamMembers = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data: roleData } = await supabase
+        .from("user_roles")
+        .select("agency_id")
+        .eq("user_id", user.id)
+        .single();
+
+      if (!roleData?.agency_id) return;
+
+      // Load all team members for this agency
+      const { data: membersData, error } = await supabase
+        .from("user_roles")
+        .select(`
+          user_id,
+          role,
+          profiles:user_id (
+            email,
+            full_name
+          )
+        `)
+        .eq("agency_id", roleData.agency_id);
+
+      if (error) {
+        console.error("[Team] Failed to load members:", error);
+        return;
+      }
+
+      const formattedMembers: TeamMember[] = (membersData || []).map((m: any) => ({
+        id: m.user_id,
+        email: m.profiles?.email || "N/A",
+        name: m.profiles?.full_name || null,
+        role: m.role,
+        status: "활성",
+      }));
+
+      setMembers(formattedMembers);
+    } catch (error) {
+      console.error("[Team] Failed to load members:", error);
+    }
   };
 
   const handleInvite = async (e: React.FormEvent) => {
@@ -144,7 +198,7 @@ export default function AgencyTeam() {
       const { data, error } = await supabase.rpc("invite_member", {
         p_agency_id: agencyId,
         p_email: inviteEmail.toLowerCase().trim(),
-        p_role: inviteRole,
+        p_role: "staff", // Always staff role
       });
 
       if (error) {
@@ -166,7 +220,6 @@ export default function AgencyTeam() {
       
       // Reset form
       setInviteEmail("");
-      setInviteRole("staff");
 
       // Reload invites
       loadInvites();
@@ -213,7 +266,7 @@ export default function AgencyTeam() {
     return "대기중";
   };
 
-  const getStatusVariant = (status: string) => {
+  const getStatusVariant = (status: string): "default" | "secondary" | "destructive" => {
     switch (status) {
       case "수락됨":
         return "default";
@@ -224,6 +277,19 @@ export default function AgencyTeam() {
         return "destructive";
       default:
         return "secondary";
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "수락됨":
+        return "bg-green-100 text-green-700";
+      case "대기중":
+        return "bg-gray-100 text-gray-700";
+      case "취소됨":
+        return "bg-red-100 text-red-700";
+      default:
+        return "bg-gray-100 text-gray-700";
     }
   };
 
@@ -267,19 +333,17 @@ export default function AgencyTeam() {
                   <Label htmlFor="invite-role">
                     권한 <span className="text-destructive">*</span>
                   </Label>
-                  <Select
-                    value={inviteRole}
-                    onValueChange={setInviteRole}
-                    disabled={submitting || !agencyId}
-                  >
+                  <Select value="staff" disabled>
                     <SelectTrigger id="invite-role">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="staff">Staff</SelectItem>
-                      <SelectItem value="agency_owner">Manager</SelectItem>
                     </SelectContent>
                   </Select>
+                  <p className="text-xs text-muted-foreground">
+                    모든 초대는 Staff 권한으로 발송됩니다
+                  </p>
                 </div>
               </div>
 
@@ -301,34 +365,21 @@ export default function AgencyTeam() {
           </CardContent>
         </Card>
 
-        {/* Invites List */}
+        {/* Current Team Members */}
         <Card className="shadow-md rounded-2xl">
           <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-lg flex items-center gap-2">
-                <Users className="h-5 w-5" />
-                초대 내역
-              </CardTitle>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={loadInvites}
-                disabled={loading}
-              >
-                <RefreshCw className={`h-4 w-4 mr-2 ${loading ? "animate-spin" : ""}`} />
-                새로고침
-              </Button>
-            </div>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Users className="h-5 w-5" />
+              현재 팀원
+            </CardTitle>
+            <p className="text-sm text-muted-foreground mt-1">
+              에이전시에 등록된 모든 팀원입니다
+            </p>
           </CardHeader>
           <CardContent>
-            {loading ? (
+            {members.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
-                <RefreshCw className="h-6 w-6 animate-spin mx-auto mb-2" />
-                로딩 중...
-              </div>
-            ) : invites.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
-                초대 내역이 없습니다.
+                등록된 팀원이 없습니다.
               </div>
             ) : (
               <div className="rounded-md border">
@@ -336,51 +387,60 @@ export default function AgencyTeam() {
                   <TableHeader>
                     <TableRow>
                       <TableHead>이메일</TableHead>
+                      <TableHead>이름</TableHead>
                       <TableHead>권한</TableHead>
                       <TableHead>상태</TableHead>
-                      <TableHead>생성일</TableHead>
-                      <TableHead className="text-right">관리</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {invites.map((invite) => {
-                      const status = getInviteStatus(invite);
-                      return (
-                        <TableRow key={invite.id}>
-                          <TableCell className="text-[13px] font-mono">
-                            {invite.email}
-                          </TableCell>
-                          <TableCell>
-                            <RoleBadge role={invite.role} />
-                          </TableCell>
-                          <TableCell>
-                            <Badge variant={getStatusVariant(status) as any}>
-                              {status}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="text-[12px] text-muted-foreground">
-                            {format(new Date(invite.created_at), "yyyy-MM-dd")}
-                          </TableCell>
-                          <TableCell className="text-right">
-                            {status === "대기중" && agencyId && (
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleDeleteInvite(invite.id)}
-                              >
-                                <Trash2 className="h-4 w-4 text-destructive" />
-                              </Button>
-                            )}
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })}
+                    {members.map((member) => (
+                      <TableRow key={member.id}>
+                        <TableCell className="text-[13px] font-mono">
+                          {member.email}
+                        </TableCell>
+                        <TableCell className="text-[13px]">
+                          {member.name || "-"}
+                        </TableCell>
+                        <TableCell>
+                          <RoleBadge role={member.role} />
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="secondary">{member.status}</Badge>
+                        </TableCell>
+                      </TableRow>
+                    ))}
                   </TableBody>
                 </Table>
               </div>
             )}
           </CardContent>
         </Card>
+
+        {/* Recent Invite Logs */}
+        <div className="mt-8">
+          <h3 className="text-sm font-semibold mb-3 text-foreground">최근 초대 로그</h3>
+          {loading ? (
+            <p className="text-sm text-muted-foreground">로딩 중...</p>
+          ) : invites.length === 0 ? (
+            <p className="text-sm text-muted-foreground">최근 초대 기록이 없습니다.</p>
+          ) : (
+            <ul className="space-y-2">
+              {invites.slice(0, 3).map((log) => (
+                <li key={log.id} className="text-sm text-foreground flex items-center gap-2">
+                  <span className="text-muted-foreground">•</span>
+                  <span className="font-mono text-[13px]">{log.email}</span>
+                  <span className="text-muted-foreground">님을 초대했습니다</span>
+                  <span className="text-muted-foreground text-xs">
+                    ({format(new Date(log.created_at), "MM월 dd일 HH:mm")})
+                  </span>
+                  <Badge variant={getStatusVariant(getInviteStatus(log))} className="ml-auto">
+                    {getInviteStatus(log)}
+                  </Badge>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
       </div>
     </AccountLayout>
   );
