@@ -3745,6 +3745,7 @@ export type Database = {
         Row: {
           action: string
           changed_fields: Json | null
+          created_at: string | null
           edited_at: string | null
           edited_by: string | null
           id: string
@@ -3756,6 +3757,7 @@ export type Database = {
         Insert: {
           action: string
           changed_fields?: Json | null
+          created_at?: string | null
           edited_at?: string | null
           edited_by?: string | null
           id?: string
@@ -3767,6 +3769,7 @@ export type Database = {
         Update: {
           action?: string
           changed_fields?: Json | null
+          created_at?: string | null
           edited_at?: string | null
           edited_by?: string | null
           id?: string
