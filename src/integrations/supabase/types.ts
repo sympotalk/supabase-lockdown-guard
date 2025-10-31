@@ -7041,6 +7041,67 @@ export type Database = {
           },
         ]
       }
+      v_rooming_with_names: {
+        Row: {
+          assigned_at: string | null
+          check_in: string | null
+          check_out: string | null
+          custom_role: string | null
+          event_id: string | null
+          event_room_credit: number | null
+          fixed_role: string | null
+          manual_assigned: boolean | null
+          organization: string | null
+          participant_id: string | null
+          participant_name: string | null
+          participant_no: number | null
+          phone: string | null
+          room_credit: number | null
+          room_status: string | null
+          room_type_id: string | null
+          room_type_name: string | null
+          rooming_id: string | null
+          status: Database["public"]["Enums"]["rooming_status"] | null
+          stay_days: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rooming_participants_event_fk"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "event_progress_view"
+            referencedColumns: ["event_id"]
+          },
+          {
+            foreignKeyName: "rooming_participants_event_fk"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rooming_participants_event_fk"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "v_event_room_summary"
+            referencedColumns: ["event_id"]
+          },
+          {
+            foreignKeyName: "rooming_participants_participant_fk"
+            columns: ["participant_id"]
+            isOneToOne: false
+            referencedRelation: "participants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rooming_participants_participant_fk"
+            columns: ["participant_id"]
+            isOneToOne: false
+            referencedRelation: "participants_with_logs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       v_staff_performance: {
         Row: {
           agency_id: string | null
