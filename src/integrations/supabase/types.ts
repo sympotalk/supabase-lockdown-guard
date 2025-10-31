@@ -7341,6 +7341,10 @@ export type Database = {
         Args: { p_dry_run?: boolean; p_event_id: string }
         Returns: Json
       }
+      ai_detect_companions_from_memo: {
+        Args: { p_event_id: string }
+        Returns: Json
+      }
       ai_participant_import_from_excel:
         | {
             Args: { p_data: Json; p_event_id: string; p_replace?: boolean }
@@ -7792,6 +7796,10 @@ export type Database = {
         Returns: Json
       }
       is_master: { Args: { uid: string }; Returns: boolean }
+      link_companions_pair: {
+        Args: { p_source_id: string; p_target_id: string }
+        Returns: Json
+      }
       link_invited_user: {
         Args: { p_invite_token: string; p_user_id: string }
         Returns: Json
@@ -7959,6 +7967,10 @@ export type Database = {
         Returns: Json
       }
       unaccent: { Args: { "": string }; Returns: string }
+      unlink_companions_pair: {
+        Args: { p_source_id: string; p_target_id: string }
+        Returns: Json
+      }
       update_event_with_hotel:
         | {
             Args: {
