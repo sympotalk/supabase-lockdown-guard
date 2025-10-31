@@ -102,9 +102,9 @@ export function UploadParticipantsModal({
     // address: 주소
     result.address = record['주소'] || record.address || null;
 
-    // [Phase 73-L.7.31-E] request_note: 메모/요청사항
-    result.request_note = record['메모'] || record['요청사항'] || 
-                         record.request_note || record.memo || null;
+    // [Phase 77-MEMO-FIX] Separate memo and request_note
+    result.request_note = record['요청사항'] || record.request_note || null;
+    result.memo = record['메모'] || record.memo || record['특이사항'] || null;
 
     // [Phase 73-L.7.31-E] SFE codes
     result.sfe_company_code = record['SFE 거래처코드'] || record['SFE거래처코드'] || 
@@ -226,7 +226,7 @@ export function UploadParticipantsModal({
       return;
     }
     
-    // [Phase 73-L.7.31-E] Final validation with all fields including manager_info
+    // [Phase 77-MEMO-FIX] Final validation with all fields including memo
     const payload = parsedRows.map(row => ({
       name: String(row.name || '').trim(),
       phone: String(row.phone || '').trim(),
@@ -235,7 +235,8 @@ export function UploadParticipantsModal({
       position: row.position || null,
       department: row.department || null,
       address: row.address || null,
-      request_note: row.request_note || '',
+      request_note: row.request_note || null,
+      memo: row.memo || null,  // ✅ Added: memo field
       sfe_company_code: row.sfe_company_code || '',
       sfe_customer_code: row.sfe_customer_code || '',
       manager_info: row.manager_info || { team: '', name: '', phone: '', emp_id: '' },
