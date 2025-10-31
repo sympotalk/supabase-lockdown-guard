@@ -65,13 +65,13 @@ export default function RoomingTab() {
     };
   }, [eventId, mutateRoomTypes]);
 
-  // [Phase 76-Pre.A] Fetch ALL participants with left-join to rooming_participants
+  // [Phase 76-Pre.E] Fetch ALL participants with rooming and room type data
   const { data: roomingList, error, isLoading, mutate } = useSWR(
     eventId ? `rooming_${eventId}` : null,
     async () => {
       if (!eventId) return [];
       
-      console.log('[Phase 76-Pre.A] Fetching all participants with rooming data for event:', eventId);
+      console.log('[Phase 76-Pre.E] Fetching all participants with rooming and room type data for event:', eventId);
       
       // Fetch all participants first
       const { data: allParticipants, error: participantsError } = await supabase
@@ -82,7 +82,7 @@ export default function RoomingTab() {
         .order("participant_no", { ascending: true });
       
       if (participantsError) {
-        console.error('[Phase 76-Pre.A] Participants query error:', participantsError);
+        console.error('[Phase 76-Pre.E] Participants query error:', participantsError);
         throw participantsError;
       }
       
@@ -94,18 +94,36 @@ export default function RoomingTab() {
         .eq("is_active", true);
       
       if (roomingError) {
-        console.error('[Phase 76-Pre.A] Rooming query error:', roomingError);
+        console.error('[Phase 76-Pre.E] Rooming query error:', roomingError);
         // Don't throw, just use empty array
       }
+      
+      // [Phase 76-Pre.E] Fetch room types from event_room_refs
+      const { data: roomTypesRef, error: roomTypesError } = await supabase
+        .from("event_room_refs" as any)
+        .select("id, room_type_name, room_credit")
+        .eq("event_id", eventId)
+        .eq("is_active", true);
+      
+      if (roomTypesError) {
+        console.error('[Phase 76-Pre.E] Room types query error:', roomTypesError);
+      }
+      
+      // Create a map of room_type_id -> room_type_name
+      const roomTypeMap = new Map(
+        (roomTypesRef || []).map((r: any) => [r.id, { name: r.room_type_name, credit: r.room_credit }])
+      );
       
       // Create a map of participant_id -> rooming data
       const roomingMap = new Map(
         (roomingData || []).map(r => [r.participant_id, r])
       );
       
-      // Merge participants with rooming data
+      // Merge participants with rooming data and room type names
       const merged = (allParticipants || []).map((p: any) => {
         const rooming = roomingMap.get(p.id);
+        const roomTypeInfo = rooming?.room_type ? roomTypeMap.get(rooming.room_type) : null;
+        
         return {
           // Participant data
           participant_id: p.id,
@@ -115,10 +133,11 @@ export default function RoomingTab() {
           phone: p.phone,
           fixed_role: p.fixed_role,
           custom_role: p.custom_role,
-          // Rooming data (may be null) - [Phase 76-Pre.B] Safe fallbacks
+          // Rooming data (may be null) - [Phase 76-Pre.E] With room type name mapping
           id: rooming?.id || null,
-          room_type: rooming?.room_type || '미지정',
-          room_credit: rooming?.room_credit || null,
+          room_type: roomTypeInfo?.name || '미지정',
+          room_type_id: rooming?.room_type || null,
+          room_credit: roomTypeInfo?.credit || rooming?.room_credit || null,
           check_in: rooming?.check_in || null,
           check_out: rooming?.check_out || null,
           stay_days: rooming?.stay_days || null,
@@ -131,18 +150,18 @@ export default function RoomingTab() {
         };
       });
       
-      console.log('[Phase 76-Pre.A] Merged', merged.length, 'participants with rooming data');
+      console.log('[Phase 76-Pre.E] Merged', merged.length, 'participants with rooming and room type data');
       
       // Seed rooming if needed
       if (!roomingData || roomingData.length === 0) {
-        console.log('[Phase 76-Pre.A] No rooming data, triggering seed RPC');
+        console.log('[Phase 76-Pre.E] No rooming data, triggering seed RPC');
         const { error: seedError } = await supabase.rpc(
           'seed_rooming_from_participants',
           { p_event: eventId }
         );
         
         if (seedError) {
-          console.error('[Phase 76-Pre.A] Seed RPC error:', seedError);
+          console.error('[Phase 76-Pre.E] Seed RPC error:', seedError);
         }
       }
       
@@ -348,6 +367,7 @@ export default function RoomingTab() {
                 roomTypes={roomTypesData || []}
                 currentAssignment={{
                   room_type: selectedParticipant.room_type,
+                  room_type_id: selectedParticipant.room_type_id,
                   room_credit: selectedParticipant.room_credit,
                   manual_assigned: selectedParticipant.manual_assigned,
                 }}

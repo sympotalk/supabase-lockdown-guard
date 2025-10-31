@@ -16,6 +16,7 @@ interface ManualAssignPanelProps {
   roomTypes: Array<{ id: string; name: string; credit: number }>;
   currentAssignment?: {
     room_type: string;
+    room_type_id?: string;
     room_credit: number;
     manual_assigned: boolean;
   };
@@ -30,27 +31,28 @@ export default function ManualAssignPanel({
   currentAssignment,
   onUpdate,
 }: ManualAssignPanelProps) {
-  const [selectedRoomType, setSelectedRoomType] = useState<string>("");
+  const [selectedRoomTypeId, setSelectedRoomTypeId] = useState<string>("");
   const [selectedCredit, setSelectedCredit] = useState<number>(0);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    if (currentAssignment) {
-      setSelectedRoomType(currentAssignment.room_type);
-      setSelectedCredit(currentAssignment.room_credit);
+    if (currentAssignment?.room_type_id) {
+      setSelectedRoomTypeId(currentAssignment.room_type_id);
+      const room = roomTypes.find((r) => r.id === currentAssignment.room_type_id);
+      setSelectedCredit(room?.credit || currentAssignment.room_credit || 0);
     }
-  }, [currentAssignment]);
+  }, [currentAssignment, roomTypes]);
 
-  const handleRoomTypeChange = (roomType: string) => {
-    setSelectedRoomType(roomType);
-    const room = roomTypes.find((r) => r.name === roomType);
+  const handleRoomTypeChange = (roomTypeId: string) => {
+    setSelectedRoomTypeId(roomTypeId);
+    const room = roomTypes.find((r) => r.id === roomTypeId);
     if (room) {
       setSelectedCredit(room.credit);
     }
   };
 
   const handleSave = async () => {
-    if (!selectedRoomType) {
+    if (!selectedRoomTypeId) {
       toast.error("객실 타입을 선택해주세요");
       return;
     }
@@ -62,7 +64,7 @@ export default function ManualAssignPanel({
         .upsert({
           event_id: eventId,
           participant_id: participantId,
-          room_type: selectedRoomType,
+          room_type: selectedRoomTypeId,
           room_credit: selectedCredit,
           manual_assigned: true,
           assigned_at: new Date().toISOString(),
@@ -137,13 +139,13 @@ export default function ManualAssignPanel({
       <div className="space-y-4">
         <div>
           <Label>객실 타입 선택</Label>
-          <Select value={selectedRoomType} onValueChange={handleRoomTypeChange}>
+          <Select value={selectedRoomTypeId} onValueChange={handleRoomTypeChange}>
             <SelectTrigger>
               <SelectValue placeholder="객실 선택" />
             </SelectTrigger>
             <SelectContent>
               {roomTypes.map((room) => (
-                <SelectItem key={room.name} value={room.name}>
+                <SelectItem key={room.id} value={room.id}>
                   {room.name} ({room.credit?.toLocaleString?.() || '미지정'}원)
                 </SelectItem>
               ))}
@@ -151,7 +153,7 @@ export default function ManualAssignPanel({
           </Select>
         </div>
 
-        {selectedRoomType && (
+        {selectedRoomTypeId && (
           <div className="p-4 bg-primary/10 rounded-lg">
             <div className="flex items-center gap-2 mb-2">
               <AlertCircle className="w-4 h-4" />
@@ -159,7 +161,7 @@ export default function ManualAssignPanel({
             </div>
             <div className="text-sm space-y-1">
               <p>
-                객실: <span className="font-medium">{selectedRoomType}</span>
+                객실: <span className="font-medium">{roomTypes.find(r => r.id === selectedRoomTypeId)?.name || '미지정'}</span>
               </p>
               <p>
                 룸크레딧: <span className="font-medium">{selectedCredit?.toLocaleString?.() || '미지정'}원</span>
