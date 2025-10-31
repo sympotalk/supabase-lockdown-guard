@@ -11,6 +11,7 @@ interface UserContextType {
   userId: string | null;
   user: User | null;
   session: Session | null;
+  displayName: string | null;
   loading: boolean;
   setRole: (role: AppRole | null) => void;
   setAgencyScope: (scope: string | null) => void;
@@ -25,6 +26,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
   const [userId, setUserId] = useState<string | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
+  const [displayName, setDisplayName] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const location = useLocation();
@@ -78,6 +80,17 @@ export function UserProvider({ children }: { children: ReactNode }) {
       const userRole = roleData?.role as AppRole;
       setRole(userRole);
       console.log("[UserContext] Role loaded:", userRole);
+
+      // Fetch display name from profiles
+      const { data: profileData } = await supabase
+        .from("profiles")
+        .select("display_name")
+        .eq("id", currentUser.id)
+        .single();
+
+      const userDisplayName = profileData?.display_name || currentUser.email?.split("@")[0] || "사용자";
+      setDisplayName(userDisplayName);
+      console.log("[UserContext] Display name loaded:", userDisplayName);
 
       // Handle agency scope
       if (userRole === "master") {
@@ -160,6 +173,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
         userId,
         user,
         session,
+        displayName,
         loading,
         setRole,
         setAgencyScope,

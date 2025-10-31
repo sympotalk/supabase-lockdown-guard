@@ -23,10 +23,9 @@ export function Header() {
   const navigate = useNavigate();
   const location = useLocation();
   const params = useParams();
-  const { user, role, agencyScope, setAgencyScope } = useUser();
+  const { user, role, agencyScope, setAgencyScope, displayName } = useUser();
   const [agencyName, setAgencyName] = useState<string | null>(null);
   const [eventData, setEventData] = useState<any>(null);
-  const [userProfile, setUserProfile] = useState<{ display_name: string | null } | null>(null);
   
   const isEventDetailPage = location.pathname.includes("/admin/events/") && params.eventId;
 
@@ -49,24 +48,6 @@ export function Header() {
 
     fetchAgencyName();
   }, [role, agencyScope]);
-
-  useEffect(() => {
-    const fetchUserProfile = async () => {
-      if (user?.id) {
-        const { data } = await supabase
-          .from("profiles")
-          .select("display_name")
-          .eq("id", user.id)
-          .single();
-        
-        if (data) {
-          setUserProfile(data);
-        }
-      }
-    };
-
-    fetchUserProfile();
-  }, [user?.id]);
 
   useEffect(() => {
     const fetchEventData = async () => {
@@ -107,8 +88,6 @@ export function Header() {
     toast.info("View Mode가 종료되었습니다.");
     navigate("/master/dashboard");
   };
-
-  const displayName = userProfile?.display_name || user?.email?.split("@")[0] || "사용자";
 
   return (
     <header 
@@ -182,11 +161,11 @@ export function Header() {
               <Button variant="ghost" className="gap-2">
                 <Avatar className="h-9 w-9">
                   <AvatarFallback className="bg-primary text-primary-foreground text-sm">
-                    {displayName.charAt(0).toUpperCase()}
+                    {(displayName || "사용자").charAt(0).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
                 <div className="hidden flex-col items-start md:flex">
-                  <span className="text-[15px] font-medium">{displayName}</span>
+                  <span className="text-[15px] font-medium">{displayName || "사용자"}</span>
                 </div>
                 <ChevronDown className="h-4 w-4" />
               </Button>
@@ -194,7 +173,7 @@ export function Header() {
             <DropdownMenuContent align="end" className="w-56 bg-popover">
               <DropdownMenuLabel>
                 <div className="flex flex-col">
-                  <span className="font-medium">{displayName}</span>
+                  <span className="font-medium">{displayName || "사용자"}</span>
                   <span className="text-xs text-muted-foreground">{user?.email}</span>
                 </div>
               </DropdownMenuLabel>
