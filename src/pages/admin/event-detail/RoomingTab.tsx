@@ -19,6 +19,8 @@ import RulesPanel from "@/components/rooming/RulesPanel";
 import ManualAssignPanel from "@/components/rooming/ManualAssignPanel";
 import RoomingReportTab from "@/components/rooming/RoomingReportTab";
 import RoomingVisualTab from "@/components/rooming/RoomingVisualTab";
+import StockStatusCards from "@/components/rooming/StockStatusCards";
+import RebalancePreviewModal from "@/components/rooming/RebalancePreviewModal";
 
 export default function RoomingTab() {
   const { eventId } = useParams();
@@ -26,6 +28,15 @@ export default function RoomingTab() {
   const [isRunningAI, setIsRunningAI] = useState(false);
   const [isRunningWeighted, setIsRunningWeighted] = useState(false);
   const [stats, setStats] = useState<any>(null);
+  
+  // [Phase 77-H] Stock guard & rebalance states
+  const [stockStatus, setStockStatus] = useState<any>(null);
+  const [stockAlerts, setStockAlerts] = useState<any[]>([]);
+  const [isCheckingStock, setIsCheckingStock] = useState(false);
+  const [rebalancePreview, setRebalancePreview] = useState<any>(null);
+  const [showRebalanceModal, setShowRebalanceModal] = useState(false);
+  const [isLoadingPreview, setIsLoadingPreview] = useState(false);
+  const [isApplyingRebalance, setIsApplyingRebalance] = useState(false);
 
   // [Phase 76-H.Fix] Load room types with proper join and sorting
   const { data: roomTypesData, mutate: mutateRoomTypes } = useSWR(
@@ -72,9 +83,133 @@ export default function RoomingTab() {
     }
   };
 
+  // [Phase 77-H] Load stock status
+  const loadStockStatus = async () => {
+    if (!eventId) return;
+    try {
+      const { data, error } = await supabase
+        .from('v_room_stock_status' as any)
+        .select('*')
+        .eq('event_id', eventId);
+      
+      if (error) throw error;
+
+      const shortage = data?.filter((r: any) => r.remaining < 0).length || 0;
+      const surplus = data?.filter((r: any) => r.remaining > 0).length || 0;
+      const normal = data?.filter((r: any) => r.remaining === 0).length || 0;
+
+      setStockStatus({ shortage, surplus, normal });
+    } catch (err) {
+      console.error('[Phase 77-H] 재고 현황 로드 실패:', err);
+    }
+  };
+
+  // [Phase 77-H] Run stock guard
+  const handleStockGuard = async () => {
+    if (!eventId) return;
+    
+    setIsCheckingStock(true);
+    try {
+      const { data, error } = await supabase.rpc('ai_stock_guard', {
+        p_event_id: eventId
+      });
+
+      if (error) throw error;
+
+      const result = data as any;
+      setStockAlerts(result.alerts || []);
+
+      if (result.alerts && result.alerts.length > 0) {
+        toast.warning('객실 재고 부족 감지', {
+          description: `${result.alerts.length}개 객실타입에서 재고가 부족합니다.`
+        });
+      } else {
+        toast.success('재고 점검 완료', {
+          description: '모든 객실 재고가 정상입니다.'
+        });
+      }
+
+      loadStockStatus();
+    } catch (error: any) {
+      console.error('[Phase 77-H] 재고 점검 실패:', error);
+      toast.error('재고 점검 실패', {
+        description: error.message
+      });
+    } finally {
+      setIsCheckingStock(false);
+    }
+  };
+
+  // [Phase 77-H] Load rebalance preview
+  const handleRebalancePreview = async () => {
+    if (!eventId) return;
+    
+    setIsLoadingPreview(true);
+    try {
+      const { data, error } = await supabase.rpc('ai_rebalance_preview', {
+        p_event_id: eventId
+      });
+
+      if (error) throw error;
+
+      const result = data as any;
+      setRebalancePreview(result.preview || []);
+      setShowRebalanceModal(true);
+
+      if (!result.preview || result.preview.length === 0) {
+        toast.info('리밸런스 불필요', {
+          description: '재배정이 필요한 참가자가 없습니다.'
+        });
+      }
+    } catch (error: any) {
+      console.error('[Phase 77-H] 리밸런스 미리보기 실패:', error);
+      toast.error('미리보기 실패', {
+        description: error.message
+      });
+    } finally {
+      setIsLoadingPreview(false);
+    }
+  };
+
+  // [Phase 77-H] Apply rebalance
+  const handleApplyRebalance = async () => {
+    if (!eventId || !rebalancePreview || rebalancePreview.length === 0) return;
+    
+    setIsApplyingRebalance(true);
+    try {
+      const { data, error } = await supabase.rpc('ai_rebalance_apply', {
+        p_event_id: eventId,
+        p_changes: rebalancePreview
+      });
+
+      if (error) throw error;
+
+      const result = data as any;
+      
+      toast.success('리밸런스 적용 완료', {
+        description: `${result.count}건의 재배정이 적용되었습니다.`
+      });
+
+      setShowRebalanceModal(false);
+      setRebalancePreview(null);
+      mutate();
+      loadRoomingStats();
+      loadStockStatus();
+      setStockAlerts([]);
+    } catch (error: any) {
+      console.error('[Phase 77-H] 리밸런스 적용 실패:', error);
+      toast.error('적용 실패', {
+        description: error.message
+      });
+    } finally {
+      setIsApplyingRebalance(false);
+    }
+  };
+
   useEffect(() => {
     if (!eventId) return;
     loadRoomingStats();
+    loadStockStatus();
   }, [eventId]);
 
   // [Phase 76-Pre.C] Realtime subscription for room types
@@ -344,6 +479,39 @@ export default function RoomingTab() {
       </TabsList>
 
       <TabsContent value="participants" className="space-y-4">
+        {/* [Phase 77-H] Stock Status Cards */}
+        <StockStatusCards stockStatus={stockStatus} />
+
+        {/* [Phase 77-H] Stock Alert Bar */}
+        {stockAlerts.length > 0 && (
+          <Alert className="bg-red-50 border-red-200 mb-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-semibold text-red-800">
+                  ⚠️ 일부 객실타입 재고 부족. 리밸런스가 필요합니다.
+                </p>
+                <div className="text-sm text-red-700 mt-1">
+                  {stockAlerts.map((alert: any, idx: number) => (
+                    <span key={idx} className="mr-3">
+                      {alert.room_type_name}: {alert.shortage}개 부족
+                    </span>
+                  ))}
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <Button 
+                  size="sm" 
+                  variant="outline"
+                  onClick={handleRebalancePreview}
+                  disabled={isLoadingPreview}
+                >
+                  {isLoadingPreview ? '분석 중...' : '리밸런스 미리보기'}
+                </Button>
+              </div>
+            </div>
+          </Alert>
+        )}
+
         {/* [Phase 77-B] Floating Summary Bar - 고정형 통계 카드 */}
         <div className="sticky top-[64px] z-40 bg-background border-b pb-3 mb-4">
           {stats && (
@@ -385,6 +553,35 @@ export default function RoomingTab() {
               )}
             </div>
           )}
+        </div>
+
+        {/* [Phase 77-H] Stock Guard & Rebalance Controls */}
+        <div className="flex items-center justify-between p-4 bg-gradient-to-r from-purple-500/10 to-pink-500/10 rounded-lg border border-purple-200">
+          <div>
+            <h3 className="font-semibold flex items-center gap-2">
+              객실 재고 현황
+            </h3>
+            <p className="text-sm text-muted-foreground mt-1">
+              재고 부족을 자동 감지하고 AI가 안전하게 재배정합니다
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <Button 
+              onClick={handleStockGuard}
+              disabled={isCheckingStock}
+              variant="outline"
+              className="gap-2"
+            >
+              {isCheckingStock ? '점검 중...' : '재고 점검'}
+            </Button>
+            <Button 
+              onClick={handleRebalancePreview}
+              disabled={isLoadingPreview || stockAlerts.length === 0}
+              className="gap-2 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white"
+            >
+              {isLoadingPreview ? '분석 중...' : '리밸런스'}
+            </Button>
+          </div>
         </div>
 
         {/* AI Auto-Match Buttons */}
