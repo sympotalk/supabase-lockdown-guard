@@ -23,7 +23,12 @@ export default function RoomingTab() {
       
       const { data, error } = await supabase
         .from("event_room_refs" as any)
-        .select("id, room_type_name, room_credit, status")
+        .select(`
+          id, 
+          credit,
+          status,
+          room_types!inner(type_name)
+        `)
         .eq("event_id", eventId)
         .eq("is_active", true);
 
@@ -32,13 +37,13 @@ export default function RoomingTab() {
         return [];
       }
 
-      // Map to expected format with real names
+      // Map to expected format with real names from joined room_types
       return (data || [])
         .filter((r: any) => r.status === '선택됨')
         .map((r: any) => ({
           id: r.id,
-          name: r.room_type_name || '미지정',
-          credit: r.room_credit || 0
+          name: r.room_types?.type_name || '미지정',
+          credit: r.credit || 0
         }));
     },
     { revalidateOnFocus: false }
@@ -71,99 +76,46 @@ export default function RoomingTab() {
     async () => {
       if (!eventId) return [];
       
-      console.log('[Phase 76-Pre.E] Fetching all participants with rooming and room type data for event:', eventId);
+      console.log('[Phase 76-F.FE-Update] Fetching rooming data from v_rooming_with_names view for event:', eventId);
       
-      // Fetch all participants first
-      const { data: allParticipants, error: participantsError } = await supabase
-        .from("participants")
-        .select("id, name, organization, phone, fixed_role, custom_role, participant_no")
-        .eq("event_id", eventId)
-        .eq("is_active", true)
-        .order("participant_no", { ascending: true });
-      
-      if (participantsError) {
-        console.error('[Phase 76-Pre.E] Participants query error:', participantsError);
-        throw participantsError;
-      }
-      
-      // Fetch rooming data
-      const { data: roomingData, error: roomingError } = await supabase
-        .from("rooming_participants")
+      // [Phase 76-F.FE-Update] Use unified view for all rooming data with room type names
+      const { data: viewData, error: viewError } = await supabase
+        .from("v_rooming_with_names" as any)
         .select("*")
-        .eq("event_id", eventId)
-        .eq("is_active", true);
+        .eq("event_id", eventId);
       
-      if (roomingError) {
-        console.error('[Phase 76-Pre.E] Rooming query error:', roomingError);
-        // Don't throw, just use empty array
+      if (viewError) {
+        console.error('[Phase 76-F.FE-Update] View query error:', viewError);
+        throw viewError;
       }
       
-      // [Phase 76-Pre.E] Fetch room types from event_room_refs
-      const { data: roomTypesRef, error: roomTypesError } = await supabase
-        .from("event_room_refs" as any)
-        .select("id, room_type_name, room_credit")
-        .eq("event_id", eventId)
-        .eq("is_active", true);
+      // Map view data to expected format
+      const merged = (viewData || []).map((item: any) => ({
+        // Participant data
+        participant_id: item.participant_id,
+        participant_no: item.participant_no,
+        name: item.participant_name,
+        organization: item.organization,
+        phone: item.phone,
+        fixed_role: item.fixed_role,
+        custom_role: item.custom_role,
+        // Rooming data with room type names from view
+        id: item.rooming_id,
+        room_type: item.room_type_name || '미지정',
+        room_type_id: item.room_type_id,
+        room_credit: item.event_room_credit || item.room_credit || null,
+        check_in: item.check_in,
+        check_out: item.check_out,
+        stay_days: item.stay_days,
+        status: item.status || '배정대기',
+        manual_assigned: item.manual_assigned || false,
+        assigned_at: item.assigned_at,
+        adults: 0,
+        children: 0,
+        infants: 0,
+      }));
       
-      if (roomTypesError) {
-        console.error('[Phase 76-Pre.E] Room types query error:', roomTypesError);
-      }
-      
-      // Create a map of room_type_id -> room_type_name
-      const roomTypeMap = new Map(
-        (roomTypesRef || []).map((r: any) => [r.id, { name: r.room_type_name, credit: r.room_credit }])
-      );
-      
-      // Create a map of participant_id -> rooming data
-      const roomingMap = new Map(
-        (roomingData || []).map(r => [r.participant_id, r])
-      );
-      
-      // Merge participants with rooming data and room type names
-      const merged = (allParticipants || []).map((p: any) => {
-        const rooming = roomingMap.get(p.id);
-        const roomTypeInfo = rooming?.room_type_id ? roomTypeMap.get(rooming.room_type_id) : null;
-        
-        return {
-          // Participant data
-          participant_id: p.id,
-          participant_no: p.participant_no,
-          name: p.name,
-          organization: p.organization,
-          phone: p.phone,
-          fixed_role: p.fixed_role,
-          custom_role: p.custom_role,
-          // Rooming data (may be null) - [Phase 76-Pre.E] With room type name mapping
-          id: rooming?.id || null,
-          room_type: roomTypeInfo?.name || '미지정',
-          room_type_id: rooming?.room_type_id || null,
-          room_credit: roomTypeInfo?.credit || rooming?.room_credit || null,
-          check_in: rooming?.check_in || null,
-          check_out: rooming?.check_out || null,
-          stay_days: rooming?.stay_days || null,
-          status: rooming?.status || '배정대기',
-          manual_assigned: rooming?.manual_assigned || false,
-          assigned_at: rooming?.assigned_at || null,
-          adults: rooming?.adults || 0,
-          children: rooming?.children || 0,
-          infants: rooming?.infants || 0,
-        };
-      });
-      
-      console.log('[Phase 76-Pre.E] Merged', merged.length, 'participants with rooming and room type data');
-      
-      // Seed rooming if needed
-      if (!roomingData || roomingData.length === 0) {
-        console.log('[Phase 76-Pre.E] No rooming data, triggering seed RPC');
-        const { error: seedError } = await supabase.rpc(
-          'seed_rooming_from_participants',
-          { p_event: eventId }
-        );
-        
-        if (seedError) {
-          console.error('[Phase 76-Pre.E] Seed RPC error:', seedError);
-        }
-      }
+      console.log('[Phase 76-F.FE-Update] Fetched', merged.length, 'participants with rooming data from view');
       
       return merged;
     },
@@ -338,7 +290,7 @@ export default function RoomingTab() {
                           {r.organization || "-"}
                         </TableCell>
                         <TableCell className="text-center text-muted-foreground">
-                          {r.room_credit ? `${r.room_credit?.toLocaleString?.() || '미지정'}원` : "-"}
+                          {r.room_credit ? `${Number(r.room_credit).toLocaleString()}원` : "-"}
                         </TableCell>
                         <TableCell className="text-center text-sm text-muted-foreground">
                           {r.adults || r.children || r.infants 

@@ -64,7 +64,7 @@ export default function ManualAssignPanel({
         .upsert({
           event_id: eventId,
           participant_id: participantId,
-          room_type: selectedRoomTypeId,
+          room_type_id: selectedRoomTypeId,
           room_credit: selectedCredit,
           manual_assigned: true,
           assigned_at: new Date().toISOString(),
@@ -131,7 +131,9 @@ export default function ManualAssignPanel({
           </div>
           <div className="text-sm">
             <span className="text-muted-foreground">룸크레딧:</span>{" "}
-            <span className="font-medium">{currentAssignment.room_credit?.toLocaleString?.() || '미지정'}원</span>
+            <span className="font-medium">
+              {currentAssignment.room_credit ? Number(currentAssignment.room_credit).toLocaleString() : '미지정'}원
+            </span>
           </div>
         </div>
       )}
@@ -146,7 +148,7 @@ export default function ManualAssignPanel({
             <SelectContent>
               {roomTypes.map((room) => (
                 <SelectItem key={room.id} value={room.id}>
-                  {room.name} ({room.credit?.toLocaleString?.() || '미지정'}원)
+                  {room.name} ({room.credit ? Number(room.credit).toLocaleString() : '미지정'}원)
                 </SelectItem>
               ))}
             </SelectContent>
@@ -164,7 +166,7 @@ export default function ManualAssignPanel({
                 객실: <span className="font-medium">{roomTypes.find(r => r.id === selectedRoomTypeId)?.name || '미지정'}</span>
               </p>
               <p>
-                룸크레딧: <span className="font-medium">{selectedCredit?.toLocaleString?.() || '미지정'}원</span>
+                룸크레딧: <span className="font-medium">{selectedCredit ? Number(selectedCredit).toLocaleString() : '미지정'}원</span>
               </p>
               <p className="text-xs text-muted-foreground mt-2">
                 수동 배정 시 자동 배정 규칙이 적용되지 않습니다.
