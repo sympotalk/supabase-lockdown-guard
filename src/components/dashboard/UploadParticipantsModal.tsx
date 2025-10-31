@@ -10,8 +10,6 @@ import { mutate } from "swr";
 import * as XLSX from "xlsx";
 import { useUser } from "@/context/UserContext";
 import { nanoid } from "nanoid";
-import { useCompanionDetection } from "@/hooks/useCompanionDetection";
-import CompanionConfirmModal from "@/components/participants/CompanionConfirmModal";
 
 // [LOCKED][71-I.QA3] Auto-detect event from route, no manual selection
 interface UploadParticipantsModalProps {
@@ -43,9 +41,6 @@ export function UploadParticipantsModal({
   const [parsedRows, setParsedRows] = useState<any[]>([]);
   const [replaceMode, setReplaceMode] = useState(false);
   const activeEventId = eventId ?? "";
-  
-  // [Phase 77-E] AI 동반의료인 감지 훅
-  const { isDetecting, detectCompanions, candidates, showModal, setShowModal } = useCompanionDetection();
 
   // [LOCKED][QA3.FIX.R3] Validate event context only when modal opens
   useEffect(() => {
@@ -346,11 +341,8 @@ export function UploadParticipantsModal({
         });
       }
       
-      // [Phase 77-E] AI 동반의료인 자동 감지 실행
-      if (activeEventId) {
-        console.log("[Phase 77-E] Starting companion detection after upload");
-        await detectCompanions(activeEventId);
-      }
+      // [Phase 77-FIX-REMOVE-COMPANION-AUTO.v3] Companion auto-matching disabled
+      console.log("[Phase77] Companion auto-matching disabled in this build.");
 
       // [Phase 77-FIX.AI-MEMO-PRO.HUMAN] AI 메모 기반 요청사항 자동 추출 + 검토 필요 항목 분류
       if (activeEventId) {
@@ -526,19 +518,5 @@ export function UploadParticipantsModal({
           </Button>
         </div>
       </DialogContent>
-      
-      {/* [Phase 77-E] AI 동반의료인 확인 모달 */}
-      <CompanionConfirmModal
-        open={showModal}
-        onOpenChange={setShowModal}
-        candidates={candidates}
-        onComplete={() => {
-          // 동반자 확인 완료 후 데이터 갱신
-          if (agencyScope && activeEventId) {
-            const cacheKey = `participants_${agencyScope}_${activeEventId}`;
-            mutate(cacheKey);
-          }
-        }}
-      />
     </Dialog>;
 }
