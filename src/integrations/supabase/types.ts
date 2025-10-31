@@ -6717,6 +6717,96 @@ export type Database = {
           },
         ]
       }
+      user_rooming_bias: {
+        Row: {
+          agency_id: string | null
+          bias_score: number | null
+          created_at: string | null
+          id: string
+          last_updated: string | null
+          room_type: string
+          sample_count: number | null
+          user_id: string
+        }
+        Insert: {
+          agency_id?: string | null
+          bias_score?: number | null
+          created_at?: string | null
+          id?: string
+          last_updated?: string | null
+          room_type: string
+          sample_count?: number | null
+          user_id: string
+        }
+        Update: {
+          agency_id?: string | null
+          bias_score?: number | null
+          created_at?: string | null
+          id?: string
+          last_updated?: string | null
+          room_type?: string
+          sample_count?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_rooming_bias_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agencies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_rooming_bias_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agency_performance_summary"
+            referencedColumns: ["agency_id"]
+          },
+          {
+            foreignKeyName: "user_rooming_bias_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agency_summary"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_rooming_bias_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "master_agency_overview"
+            referencedColumns: ["agency_id"]
+          },
+          {
+            foreignKeyName: "user_rooming_bias_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "v_master_operations"
+            referencedColumns: ["agency_id"]
+          },
+          {
+            foreignKeyName: "user_rooming_bias_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "master_users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_rooming_bias_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "orphan_users"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "user_rooming_bias_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       vendor_feedback: {
         Row: {
           created_at: string | null
@@ -7780,6 +7870,10 @@ export type Database = {
         Returns: Json
       }
       ai_rebalance_preview: { Args: { p_event_id: string }; Returns: Json }
+      ai_rebalance_preview_with_bias: {
+        Args: { p_event_id: string; p_user_id: string }
+        Returns: Json
+      }
       ai_rooming_report: {
         Args: { p_event_id: string }
         Returns: {
@@ -7800,6 +7894,10 @@ export type Database = {
       ai_stock_guard: { Args: { p_event_id: string }; Returns: Json }
       ai_update_request_fulfillment: {
         Args: { p_event_id: string }
+        Returns: Json
+      }
+      ai_update_user_bias: {
+        Args: { p_event_id: string; p_user_id: string }
         Returns: Json
       }
       apply_extracted_requests: {
@@ -7924,6 +8022,16 @@ export type Database = {
           is_active: boolean
           member_count: number
           name: string
+        }[]
+      }
+      get_agency_bias_summary: {
+        Args: { p_agency_id: string }
+        Returns: {
+          strongest_preference: string
+          strongest_preference_score: number
+          total_biases: number
+          user_id: string
+          user_name: string
         }[]
       }
       get_agency_performance_with_score: {
@@ -8150,6 +8258,16 @@ export type Database = {
               type_name: string
             }[]
           }
+      get_user_bias_profile: {
+        Args: { p_user_id: string }
+        Returns: {
+          bias_score: number
+          last_updated: string
+          preference_level: string
+          room_type: string
+          sample_count: number
+        }[]
+      }
       get_user_role: {
         Args: { uid: string }
         Returns: Database["public"]["Enums"]["app_role"]

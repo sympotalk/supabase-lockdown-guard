@@ -22,6 +22,7 @@ import RoomingVisualTab from "@/components/rooming/RoomingVisualTab";
 import StockStatusCards from "@/components/rooming/StockStatusCards";
 import RebalancePreviewModal from "@/components/rooming/RebalancePreviewModal";
 import AIFeedbackAnalytics from "@/components/rooming/AIFeedbackAnalytics";
+import UserBiasProfile from "@/components/rooming/UserBiasProfile";
 
 export default function RoomingTab() {
   const { eventId } = useParams();
@@ -29,6 +30,7 @@ export default function RoomingTab() {
   const [isRunningAI, setIsRunningAI] = useState(false);
   const [isRunningWeighted, setIsRunningWeighted] = useState(false);
   const [stats, setStats] = useState<any>(null);
+  const [currentUserId, setCurrentUserId] = useState<string>('');
   
   // [Phase 77-H] Stock guard & rebalance states
   const [stockStatus, setStockStatus] = useState<any>(null);
@@ -143,12 +145,14 @@ export default function RoomingTab() {
 
   // [Phase 77-H] Load rebalance preview
   const handleRebalancePreview = async () => {
-    if (!eventId) return;
+    if (!eventId || !currentUserId) return;
     
     setIsLoadingPreview(true);
     try {
-      const { data, error } = await supabase.rpc('ai_rebalance_preview', {
-        p_event_id: eventId
+      // Try bias-enabled preview first if user has learned preferences
+      const { data, error } = await supabase.rpc('ai_rebalance_preview_with_bias', {
+        p_event_id: eventId,
+        p_user_id: currentUserId
       });
 
       if (error) throw error;
@@ -160,6 +164,10 @@ export default function RoomingTab() {
       if (!result.preview || result.preview.length === 0) {
         toast.info('리밸런스 불필요', {
           description: '재배정이 필요한 참가자가 없습니다.'
+        });
+      } else if (result.bias_enabled) {
+        toast.success('개인화된 리밸런스 미리보기', {
+          description: `사용자 성향이 반영되어 ${result.count}건의 재배정안이 생성되었습니다.`
         });
       }
     } catch (error: any) {
@@ -191,6 +199,23 @@ export default function RoomingTab() {
         description: `${result.count}건의 재배정이 적용되었습니다.`
       });
 
+      // [Phase 77-L] Update user bias after successful rebalance
+      if (currentUserId) {
+        supabase.rpc('ai_update_user_bias', {
+          p_user_id: currentUserId,
+          p_event_id: eventId
+        }).then(({ data: biasData, error: biasError }) => {
+          if (!biasError && biasData) {
+            const biasResult = biasData as any;
+            if (biasResult.updated_types > 0) {
+              toast.info('학습 완료', {
+                description: `${biasResult.updated_types}개 객실 타입 성향이 업데이트되었습니다.`
+              });
+            }
+          }
+        });
+      }
+
       setShowRebalanceModal(false);
       setRebalancePreview(null);
       mutate();
@@ -211,6 +236,13 @@ export default function RoomingTab() {
     if (!eventId) return;
     loadRoomingStats();
     loadStockStatus();
+    
+    // Get current user ID
+    supabase.auth.getUser().then(({ data }) => {
+      if (data.user) {
+        setCurrentUserId(data.user.id);
+      }
+    });
   }, [eventId]);
 
   // [Phase 76-Pre.C] Realtime subscription for room types
@@ -794,7 +826,12 @@ export default function RoomingTab() {
       </TabsContent>
 
       <TabsContent value="analytics">
-        <AIFeedbackAnalytics eventId={eventId!} />
+        <div className="space-y-6">
+          <AIFeedbackAnalytics eventId={eventId!} />
+          {currentUserId && (
+            <UserBiasProfile userId={currentUserId} eventId={eventId!} />
+          )}
+        </div>
       </TabsContent>
     </Tabs>
   );

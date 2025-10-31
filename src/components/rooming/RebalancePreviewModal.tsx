@@ -1,8 +1,9 @@
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowRight, Shield, Users } from "lucide-react";
+import { ArrowRight, Shield, Users, Sparkles } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface RebalanceChange {
   participant_id: string;
@@ -14,6 +15,9 @@ interface RebalanceChange {
   reason: string;
   role?: string;
   companion_count?: number;
+  base_score?: number;
+  bias_applied?: number;
+  adjusted_score?: number;
 }
 
 interface RebalancePreviewModalProps {
@@ -85,6 +89,30 @@ export default function RebalancePreviewModal({
                   <Badge variant="default" className="text-xs bg-purple-500">
                     {change.to_name}
                   </Badge>
+                  
+                  {/* [Phase 77-L] Show bias indicator */}
+                  {change.bias_applied && Math.abs(change.bias_applied) > 5 && (
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Badge 
+                            variant="secondary" 
+                            className="text-xs flex items-center gap-1 bg-purple-100 text-purple-700 border-purple-300"
+                          >
+                            <Sparkles className="w-3 h-3" />
+                            성향 반영
+                          </Badge>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <div className="text-xs space-y-1">
+                            <p>기본 점수: {change.base_score?.toFixed(1)}</p>
+                            <p>성향 보정: {change.bias_applied > 0 ? '+' : ''}{change.bias_applied.toFixed(1)}</p>
+                            <p className="font-semibold">최종 점수: {change.adjusted_score?.toFixed(1)}</p>
+                          </div>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  )}
                 </div>
               </div>
             ))}
