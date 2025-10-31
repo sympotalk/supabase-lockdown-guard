@@ -7080,6 +7080,8 @@ export type Database = {
       assign_master_role: { Args: { user_email: string }; Returns: Json }
       auto_confirm_invited_user: { Args: { p_user_id: string }; Returns: Json }
       cleanup_old_cache: { Args: never; Returns: undefined }
+      confirm_all_unconfirmed_users: { Args: never; Returns: Json }
+      confirm_user_by_id: { Args: { p_user_id: string }; Returns: Json }
       create_agency: {
         Args: {
           p_contact_email: string
