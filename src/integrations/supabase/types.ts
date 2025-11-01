@@ -4159,6 +4159,76 @@ export type Database = {
           },
         ]
       }
+      participants_staging: {
+        Row: {
+          event_id: string
+          id: string
+          manager_info: Json | null
+          name: string
+          organization: string
+          phone: string | null
+          request_memo: string | null
+          sfe_info: Json | null
+          upload_session_id: string
+          uploaded_at: string
+          uploaded_by: string | null
+          validation_message: string | null
+          validation_status: string
+        }
+        Insert: {
+          event_id: string
+          id?: string
+          manager_info?: Json | null
+          name: string
+          organization: string
+          phone?: string | null
+          request_memo?: string | null
+          sfe_info?: Json | null
+          upload_session_id: string
+          uploaded_at?: string
+          uploaded_by?: string | null
+          validation_message?: string | null
+          validation_status?: string
+        }
+        Update: {
+          event_id?: string
+          id?: string
+          manager_info?: Json | null
+          name?: string
+          organization?: string
+          phone?: string | null
+          request_memo?: string | null
+          sfe_info?: Json | null
+          upload_session_id?: string
+          uploaded_at?: string
+          uploaded_by?: string | null
+          validation_message?: string | null
+          validation_status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "participants_staging_uploaded_by_fkey"
+            columns: ["uploaded_by"]
+            isOneToOne: false
+            referencedRelation: "master_users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "participants_staging_uploaded_by_fkey"
+            columns: ["uploaded_by"]
+            isOneToOne: false
+            referencedRelation: "orphan_users"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "participants_staging_uploaded_by_fkey"
+            columns: ["uploaded_by"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       participants_temp: {
         Row: {
           agency_id: string | null
