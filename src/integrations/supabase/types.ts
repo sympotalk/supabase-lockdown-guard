@@ -8127,7 +8127,7 @@ export type Database = {
       cleanup_old_cache: { Args: never; Returns: undefined }
       clear_event_participants: { Args: { p_event_id: string }; Returns: Json }
       commit_staged_participants:
-        | { Args: { p_event_id: string; p_session_id: string }; Returns: Json }
+        | { Args: { p_event_id: string; p_session_id?: string }; Returns: Json }
         | {
             Args: {
               p_event_id: string
