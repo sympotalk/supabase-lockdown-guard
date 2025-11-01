@@ -8106,6 +8106,14 @@ export type Database = {
             Returns: string
           }
       debug_rooming_data: { Args: { p_event_id: string }; Returns: Json }
+      disable_trigger_temporarily: {
+        Args: { target_table: string }
+        Returns: undefined
+      }
+      enable_trigger_after_operation: {
+        Args: { target_table: string }
+        Returns: undefined
+      }
       ensure_default_room_types: {
         Args: { p_brand?: string; p_hotel: string }
         Returns: undefined
