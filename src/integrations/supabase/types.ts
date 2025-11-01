@@ -4170,8 +4170,7 @@ export type Database = {
           name: string
           organization: string
           phone: string | null
-          request_memo: string | null
-          sfe_info: Json | null
+          request_note: string | null
           upload_session_id: string
           uploaded_at: string
           uploaded_by: string | null
@@ -4185,8 +4184,7 @@ export type Database = {
           name: string
           organization: string
           phone?: string | null
-          request_memo?: string | null
-          sfe_info?: Json | null
+          request_note?: string | null
           upload_session_id: string
           uploaded_at?: string
           uploaded_by?: string | null
@@ -4200,8 +4198,7 @@ export type Database = {
           name?: string
           organization?: string
           phone?: string | null
-          request_memo?: string | null
-          sfe_info?: Json | null
+          request_note?: string | null
           upload_session_id?: string
           uploaded_at?: string
           uploaded_by?: string | null
@@ -8127,15 +8124,15 @@ export type Database = {
       cleanup_old_cache: { Args: never; Returns: undefined }
       clear_event_participants: { Args: { p_event_id: string }; Returns: Json }
       commit_staged_participants:
-        | { Args: { p_event_id: string; p_session_id?: string }; Returns: Json }
         | {
             Args: {
               p_event_id: string
-              p_session_id?: string
-              p_skip_ids?: string[]
+              p_session_id: string
+              p_skip_ids: string[]
             }
             Returns: Json
           }
+        | { Args: { p_event_id: string; p_session_id?: string }; Returns: Json }
       confirm_all_unconfirmed_users: { Args: never; Returns: Json }
       confirm_user_by_id: { Args: { p_user_id: string }; Returns: Json }
       create_agency: {
@@ -8806,6 +8803,10 @@ export type Database = {
             }
             Returns: boolean
           }
+      upload_participants_excel: {
+        Args: { p_event_id: string; p_rows: Json; p_session_id?: string }
+        Returns: Json
+      }
       upsert_hotels_v1: { Args: { payload: Json }; Returns: number }
       validate_invite_token: { Args: { p_token: string }; Returns: Json }
       validate_staged_participants: {

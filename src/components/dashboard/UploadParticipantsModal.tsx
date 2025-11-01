@@ -49,7 +49,7 @@ interface StagedParticipant {
   name: string;
   organization: string;
   phone: string;
-  request_memo: string;
+  request_note: string;
   validation_status: 'pending' | 'valid' | 'error' | 'warning';
   validation_message: string | null;
 }
@@ -206,7 +206,7 @@ export function UploadParticipantsModal({
     try {
       const newSessionId = `excel_${Date.now()}_${nanoid(10)}`;
       
-      const { data, error } = await supabase.rpc('import_participants_from_excel', {
+      const { data, error } = await supabase.rpc('upload_participants_excel', {
         p_event_id: activeEventId,
         p_rows: parsedRows,
         p_session_id: newSessionId
@@ -214,18 +214,18 @@ export function UploadParticipantsModal({
       
       if (error) throw error;
       
-      const result = data as { status: string; event_id: string; count: number; upload_session_id: string };
+      const result = data as { success: boolean; session_id: string; inserted: number; skipped: number; total: number };
       
-      if (result.status === 'success') {
-        setSessionId(result.upload_session_id);
+      if (result.success) {
+        setSessionId(result.session_id);
         toast({
           title: "업로드 완료",
-          description: `${result.count}개의 데이터를 업로드했습니다.`
+          description: `${result.inserted}개의 데이터를 업로드했습니다. (총 ${result.total}행, ${result.skipped}행 제외됨)`
         });
         
         // Move to validation step
         setStep(2);
-        await handleValidation(result.upload_session_id);
+        await handleValidation(result.session_id);
       } else {
         throw new Error('Upload failed');
       }

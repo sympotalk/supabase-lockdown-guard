@@ -33,7 +33,7 @@ interface StagedParticipant {
   name: string;
   organization: string;
   phone: string;
-  request_memo: string;
+  request_note: string;
   validation_status: 'pending' | 'valid' | 'error' | 'warning';
   validation_message: string | null;
 }
@@ -209,7 +209,7 @@ export function StagingTable({ data, selectedIds, onSelectionChange }: StagingTa
                     <TableCell>{row.organization}</TableCell>
                     <TableCell className="text-muted-foreground">{row.phone || '-'}</TableCell>
                     <TableCell className="max-w-[200px] truncate text-muted-foreground">
-                      {row.request_memo || '-'}
+                      {row.request_note || '-'}
                     </TableCell>
                     <TableCell>{getStatusBadge(row.validation_status)}</TableCell>
                     <TableCell className="max-w-[300px]">
