@@ -92,6 +92,17 @@ export function StagingTable({ data, selectedIds, onSelectionChange }: StagingTa
     }
   };
   
+  // Format validation message for error rows
+  const formatValidationMessage = (status: string, message: string | null) => {
+    if (!message) return '-';
+    
+    if (status === 'error') {
+      return `⚠️ ${message}\n이 행은 반영되지 않습니다.`;
+    }
+    
+    return message;
+  };
+  
   // Get status badge
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -203,8 +214,8 @@ export function StagingTable({ data, selectedIds, onSelectionChange }: StagingTa
                                 {row.validation_message}
                               </span>
                             </TooltipTrigger>
-                            <TooltipContent side="top" className="max-w-[400px]">
-                              <p className="text-sm">{row.validation_message}</p>
+                            <TooltipContent side="top" className="max-w-[400px] whitespace-pre-line">
+                              <p className="text-sm">{formatValidationMessage(row.validation_status, row.validation_message)}</p>
                             </TooltipContent>
                           </Tooltip>
                         </TooltipProvider>

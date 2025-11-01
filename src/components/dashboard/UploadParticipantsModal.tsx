@@ -276,9 +276,11 @@ export function UploadParticipantsModal({
         
         setStagedData((staged || []) as StagedParticipant[]);
         
+        const totalRows = result.summary.valid + result.summary.error + result.summary.warn;
+        
         toast({
           title: "검증 완료",
-          description: `유효 ${result.summary.valid}건 / 오류 ${result.summary.error}건`
+          description: `검증이 완료되었습니다.\n총 ${totalRows}행 중 ${result.summary.error}행 오류가 있습니다.\n오류행을 수정하거나 제외 후 반영하세요.`
         });
       }
     } catch (err: any) {
@@ -328,10 +330,29 @@ export function UploadParticipantsModal({
           await mutate(`participants_${agencyScope}_${activeEventId}`);
         }
         
-        toast({
-          title: "참가자 반영 완료",
-          description: `총 ${result.inserted + result.updated + result.skipped}명 반영됨 (신규 ${result.inserted}, 수정 ${result.updated}, 제외 ${result.skipped})`
-        });
+        // Show different toast messages based on results
+        const totalSuccess = result.inserted + result.updated;
+        
+        if (totalSuccess === 0) {
+          // Pattern 3: All failed
+          toast({
+            title: "반영 실패",
+            description: "반영할 수 있는 데이터가 없습니다.\n엑셀 컬럼명과 필수 항목을 다시 확인하세요.",
+            variant: "destructive"
+          });
+        } else if (result.skipped > 0) {
+          // Pattern 2: Partial success
+          toast({
+            title: "참가자 반영 완료",
+            description: `${totalSuccess}명 반영 완료 (신규 ${result.inserted}, 수정 ${result.updated})\n오류 ${result.skipped}건 제외됨 (사유 확인 가능)`
+          });
+        } else {
+          // Pattern 1: All successful
+          toast({
+            title: "참가자 반영 완료",
+            description: `총 ${totalSuccess}명 반영 완료 (신규 ${result.inserted}, 수정 ${result.updated}, 오류 0)`
+          });
+        }
         
         setStep(3);
       }
@@ -533,27 +554,10 @@ export function UploadParticipantsModal({
       <AlertDialog open={showCommitConfirm} onOpenChange={setShowCommitConfirm}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>참가자 데이터를 반영하시겠습니까?</AlertDialogTitle>
-            <AlertDialogDescription className="space-y-3">
-              <p>
-                <strong>{validCount + warnCount - selectedSkipIds.length}명</strong>의 참가자 데이터가 반영됩니다.
-              </p>
-              
-              {selectedSkipIds.length > 0 && (
-                <p className="text-orange-600">
-                  • {selectedSkipIds.length}개 행은 제외됩니다.
-                </p>
-              )}
-              
-              {warnCount > 0 && (
-                <p className="text-orange-600">
-                  • {warnCount}개의 경고 항목이 포함되어 있습니다. 중복 데이터는 기존 정보를 업데이트합니다.
-                </p>
-              )}
-              
-              <p className="text-muted-foreground text-sm pt-2">
-                반영된 데이터는 참가자 목록에 즉시 반영됩니다. 기존 참가자와 이름/연락처가 동일한 경우 정보가 업데이트됩니다.
-              </p>
+            <AlertDialogTitle>반영을 진행할까요?</AlertDialogTitle>
+            <AlertDialogDescription className="space-y-2">
+              <p>유효한 데이터만 반영됩니다.</p>
+              <p>오류가 있는 행은 제외되며, 중복된 참가자는 기존 데이터가 업데이트됩니다.</p>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
