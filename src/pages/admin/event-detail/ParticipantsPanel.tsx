@@ -27,6 +27,7 @@ import { DrawerPanel } from "@/components/participants/DrawerPanel";
 import { UploadParticipantsModal } from "@/components/dashboard/UploadParticipantsModal";
 import { CreateParticipantModal } from "@/components/participants/CreateParticipantModal";
 import { ParticipantsLogViewer } from "@/components/participants/ParticipantsLogViewer";
+import { ClearAllParticipantsButton } from "@/components/participants/ClearAllParticipantsButton";
 import { exportParticipantsToExcel, type ExportMode } from "@/utils/exportParticipants";
 import { LoadingSkeleton } from "@/components/pd/LoadingSkeleton";
 import { supabase } from "@/integrations/supabase/client";
@@ -395,6 +396,16 @@ export default function ParticipantsPanel({ onMutate }: ParticipantsPanelProps) 
               <DropdownMenuItem onClick={() => handleExport('archive')}>
                 보관용 템플릿
               </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="sm">
+                ⋯
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <ClearAllParticipantsButton eventId={eventId} />
             </DropdownMenuContent>
           </DropdownMenu>
           <Button 
