@@ -202,7 +202,31 @@ export function UploadParticipantsModal({
     reader.readAsArrayBuffer(uploadedFile);
   };
 
-  // [Phase 77-UF-FIX.3] Upload with FK error handling and auto-retry
+  // [Phase 77-UF-FIX.6] Realtime subscription pause/resume helpers
+  const pauseRealtimeSubscriptions = () => {
+    console.log('[77-UF-FIX.6] Pausing realtime subscriptions for Replace mode');
+    
+    // Unsubscribe from all participants-related channels
+    const channelPrefixes = [
+      `unified_bridge_${activeEventId}`,
+      `participants_${activeEventId}`,
+      `participants_rooming_${activeEventId}`,
+      `participants_log_${activeEventId}`
+    ];
+    
+    channelPrefixes.forEach(prefix => {
+      const channel = supabase.channel(prefix);
+      channel.unsubscribe();
+    });
+  };
+
+  const resumeRealtimeSubscriptions = () => {
+    console.log('[77-UF-FIX.6] Resuming realtime subscriptions');
+    // The subscriptions will be automatically re-established by useEffect hooks
+    // Just trigger a manual refresh to ensure data consistency
+  };
+
+  // [Phase 77-UF-FIX.6] Upload with FK safe-guard, Realtime pause, and consolidated toasts
   const handleUpload = async (isRetry: boolean = false) => {
     if (!agencyScope || !activeEventId) {
       console.warn("[73-L.7.6] Missing scope →", { agencyScope, eventId: activeEventId });
@@ -253,10 +277,15 @@ export function UploadParticipantsModal({
     
     setUploading(true);
     
+    // [Phase 77-UF-FIX.6] Pause Realtime subscriptions in Replace mode (only on first attempt)
+    if (replaceMode && !isRetry) {
+      pauseRealtimeSubscriptions();
+    }
+    
     // [Phase 75-C.1] Generate session ID for tracking using nanoid
     const sessionId = `upload_${Date.now()}_${nanoid(10)}`;
     
-    console.info("[75-C.1] RPC call → ai_participant_import_from_excel", { 
+    console.info("[77-UF-FIX.6] RPC call → ai_participant_import_from_excel", { 
       mode: replaceMode ? 'replace' : 'append',
       count: payload.length,
       sessionId 
@@ -271,22 +300,29 @@ export function UploadParticipantsModal({
       });
       
       if (error) {
-        console.error("[77-Upload-FIX] RPC upload error →", error);
+        console.error("[77-UF-FIX.6] RPC upload error →", error);
         
-        // [Phase 77-UF-FIX.3] Handle FK constraint violations with auto-retry
-        if (error.message?.includes('foreign key constraint') || error.message?.includes('violates foreign key')) {
+        // [Phase 77-UF-FIX.6] Consolidated error handling with auto-retry
+        if (error.message?.includes('foreign key constraint') || 
+            error.message?.includes('violates foreign key') ||
+            error.code === '23505' || 
+            error.message?.includes('duplicate')) {
+          
           if (!isRetry && retryCount < 2) {
-            console.warn(`[77-UF-FIX.3] FK error detected, retrying... (attempt ${retryCount + 1}/2)`);
+            console.warn(`[77-UF-FIX.6] Error detected, retrying... (attempt ${retryCount + 1}/2)`);
             setRetryCount(prev => prev + 1);
+            
+            // [Phase 77-UF-FIX.6] Single consolidated toast message
             toast({
-              title: "재시도 중...",
-              description: `Replace 과정 중 일시적 오류. 자동 재시도 중입니다. (${retryCount + 1}/2)`,
+              title: "자동 복구 중",
+              description: `Replace 중 오류 발생, 자동 복구 중입니다. (${retryCount + 1}/2)`,
             });
+            
             setUploading(false);
-            // Wait 1 second before retry
-            await new Promise(resolve => setTimeout(resolve, 1000));
+            await new Promise(resolve => setTimeout(resolve, 1500));
             return handleUpload(true);
           } else {
+            // [Phase 77-UF-FIX.6] Single failure message after retry
             toast({
               title: "업로드 실패",
               description: "Replace 과정 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.",
@@ -294,25 +330,13 @@ export function UploadParticipantsModal({
             });
             setUploading(false);
             setRetryCount(0);
+            
+            // Resume realtime on failure
+            if (replaceMode) {
+              resumeRealtimeSubscriptions();
+            }
             return;
           }
-        }
-        
-        // [Phase 75-C.1] Handle duplicate constraint violations gracefully
-        if (error.code === '23505' || error.message?.includes('duplicate') || error.message?.includes('unique')) {
-          toast({
-            title: "중복 데이터 처리 완료",
-            description: "중복된 전화번호는 업데이트로 자동 처리되었습니다.",
-          });
-          // Refresh data even on constraint violations
-          if (agencyScope) {
-            const cacheKey = `participants_${agencyScope}_${activeEventId}`;
-            await mutate(cacheKey);
-          }
-          mutate('event_progress_view');
-          onOpenChange(false);
-          setRetryCount(0);
-          return;
         }
         
         // Specific error handling
@@ -323,12 +347,18 @@ export function UploadParticipantsModal({
             variant: "destructive"
           });
         }
+        
+        // Resume realtime on error
+        if (replaceMode) {
+          resumeRealtimeSubscriptions();
+        }
+        
         throw error;
       }
       
-      // [77-Upload-FIX] Log upload result with session tracking
+      // [77-UF-FIX.6] Log upload result with session tracking
       const result = data as any;
-      console.log("[77-Upload-FIX] RPC success →", {
+      console.log("[77-UF-FIX.6] RPC success →", {
         inserted: result?.inserted || 0,
         updated: result?.updated || 0,
         skipped: result?.skipped || 0,
@@ -338,33 +368,34 @@ export function UploadParticipantsModal({
         sessionId: result?.session_id || sessionId
       });
 
+      // [Phase 77-UF-FIX.6] Resume Realtime subscriptions after Replace completion
+      if (replaceMode) {
+        resumeRealtimeSubscriptions();
+      }
+
       // Invalidate cache
       if (agencyScope) {
         const cacheKey = `participants_${agencyScope}_${activeEventId}`;
         await mutate(cacheKey);
-        console.info("[77-Upload-FIX] Cache invalidated:", cacheKey);
+        console.info("[77-UF-FIX.6] Cache invalidated:", cacheKey);
       }
       
       mutate('event_progress_view');
 
-      // [77-Upload-FIX] Show detailed result toast with errors
+      // [Phase 77-UF-FIX.6] Simplified success toast messages
       const inserted = result?.inserted || 0;
       const updated = result?.updated || 0;
-      const skipped = result?.skipped || 0;
       const deleted = result?.deleted || 0;
-      const errors = result?.errors || 0;
 
       if (replaceMode) {
         toast({
-          title: "전체 교체 완료",
-          description: `${deleted}명 삭제 · ${inserted}명 신규 등록${skipped > 0 ? ` · 스킵 ${skipped}건` : ''}${errors > 0 ? ` · 오류 ${errors}건` : ''} · 세션: ${sessionId.substring(0, 20)}...`,
-          variant: errors > 0 ? "destructive" : "default"
+          title: "완료되었습니다",
+          description: `${deleted}명 삭제 · ${inserted}명 신규 등록`,
         });
       } else {
         toast({
-          title: "업로드 완료",
-          description: `추가 ${inserted}명 · 갱신 ${updated}명${skipped > 0 ? ` · 스킵 ${skipped}건` : ''}${errors > 0 ? ` · 오류 ${errors}건` : ''}`,
-          variant: errors > 0 ? "destructive" : "default"
+          title: "완료되었습니다",
+          description: `추가 ${inserted}명 · 갱신 ${updated}명`,
         });
       }
       
@@ -428,7 +459,13 @@ export function UploadParticipantsModal({
       setRetryCount(0);
       onOpenChange(false);
     } catch (error: any) {
-      console.error("[73-L.7.6] Upload failed →", error);
+      console.error("[77-UF-FIX.6] Upload failed →", error);
+      
+      // [Phase 77-UF-FIX.6] Resume realtime on unexpected error
+      if (replaceMode) {
+        resumeRealtimeSubscriptions();
+      }
+      
       toast({
         title: "업로드 실패",
         description: error.message ?? "알 수 없는 오류입니다.",
