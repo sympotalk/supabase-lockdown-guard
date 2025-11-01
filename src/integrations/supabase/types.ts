@@ -3909,6 +3909,7 @@ export type Database = {
           changed_fields: Json | null
           context_json: Json | null
           created_at: string | null
+          created_by: string | null
           edited_at: string | null
           edited_by: string | null
           event_id: string | null
@@ -3925,6 +3926,7 @@ export type Database = {
           changed_fields?: Json | null
           context_json?: Json | null
           created_at?: string | null
+          created_by?: string | null
           edited_at?: string | null
           edited_by?: string | null
           event_id?: string | null
@@ -3941,6 +3943,7 @@ export type Database = {
           changed_fields?: Json | null
           context_json?: Json | null
           created_at?: string | null
+          created_by?: string | null
           edited_at?: string | null
           edited_by?: string | null
           event_id?: string | null
