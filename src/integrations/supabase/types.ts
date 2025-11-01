@@ -8131,7 +8131,7 @@ export type Database = {
         | {
             Args: {
               p_event_id: string
-              p_session_id: string
+              p_session_id?: string
               p_skip_ids?: string[]
             }
             Returns: Json
