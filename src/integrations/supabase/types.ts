@@ -4038,6 +4038,48 @@ export type Database = {
           },
         ]
       }
+      participants_log_backup: {
+        Row: {
+          action: string | null
+          agency_id: string | null
+          backup_reason: string | null
+          context_json: Json | null
+          created_at: string | null
+          deleted_at: string | null
+          event_id: string | null
+          id: string
+          original_log_id: string | null
+          participant_id: string | null
+          upload_session_id: string | null
+        }
+        Insert: {
+          action?: string | null
+          agency_id?: string | null
+          backup_reason?: string | null
+          context_json?: Json | null
+          created_at?: string | null
+          deleted_at?: string | null
+          event_id?: string | null
+          id?: string
+          original_log_id?: string | null
+          participant_id?: string | null
+          upload_session_id?: string | null
+        }
+        Update: {
+          action?: string | null
+          agency_id?: string | null
+          backup_reason?: string | null
+          context_json?: Json | null
+          created_at?: string | null
+          deleted_at?: string | null
+          event_id?: string | null
+          id?: string
+          original_log_id?: string | null
+          participant_id?: string | null
+          upload_session_id?: string | null
+        }
+        Relationships: []
+      }
       participants_logs: {
         Row: {
           changes: Json | null
