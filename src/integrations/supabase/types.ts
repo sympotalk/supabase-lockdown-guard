@@ -8123,10 +8123,16 @@ export type Database = {
       auto_confirm_invited_user: { Args: { p_user_id: string }; Returns: Json }
       cleanup_old_cache: { Args: never; Returns: undefined }
       clear_event_participants: { Args: { p_event_id: string }; Returns: Json }
-      commit_staged_participants: {
-        Args: { p_event_id: string; p_session_id: string }
-        Returns: Json
-      }
+      commit_staged_participants:
+        | { Args: { p_event_id: string; p_session_id: string }; Returns: Json }
+        | {
+            Args: {
+              p_event_id: string
+              p_session_id: string
+              p_skip_ids?: string[]
+            }
+            Returns: Json
+          }
       confirm_all_unconfirmed_users: { Args: never; Returns: Json }
       confirm_user_by_id: { Args: { p_user_id: string }; Returns: Json }
       create_agency: {

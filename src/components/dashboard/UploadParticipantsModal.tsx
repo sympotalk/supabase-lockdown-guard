@@ -22,13 +22,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { StagingTable } from "./StagingTable";
+import { ValidationSummaryCard } from "./ValidationSummaryCard";
 
 interface UploadParticipantsModalProps {
   open: boolean;
@@ -45,7 +40,7 @@ interface StagedParticipant {
   organization: string;
   phone: string;
   request_memo: string;
-  validation_status: 'pending' | 'valid' | 'error';
+  validation_status: 'pending' | 'valid' | 'error' | 'warning';
   validation_message: string | null;
 }
 
@@ -72,9 +67,8 @@ export function UploadParticipantsModal({
   const [errorCount, setErrorCount] = useState(0);
   const [warnCount, setWarnCount] = useState(0);
   
-  // Filters
-  const [statusFilter, setStatusFilter] = useState<'all' | 'valid' | 'error'>('all');
-  const [searchQuery, setSearchQuery] = useState('');
+  // Selection for skip
+  const [selectedSkipIds, setSelectedSkipIds] = useState<string[]>([]);
   
   // Results
   const [commitResult, setCommitResult] = useState<{ inserted: number; updated: number; skipped: number } | null>(null);
@@ -89,8 +83,7 @@ export function UploadParticipantsModal({
       setParsedRows([]);
       setStagedData([]);
       setSessionId('');
-      setStatusFilter('all');
-      setSearchQuery('');
+      setSelectedSkipIds([]);
       setCommitResult(null);
     }
   }, [open]);
@@ -286,7 +279,7 @@ export function UploadParticipantsModal({
     }
   };
   
-  // Step 3: Commit valid data
+  // Step 3: Commit valid data (excluding selected skip IDs)
   const handleCommit = async () => {
     if (!activeEventId || !sessionId) return;
     
@@ -295,7 +288,8 @@ export function UploadParticipantsModal({
     try {
       const { data, error } = await supabase.rpc('commit_staged_participants', {
         p_event_id: activeEventId,
-        p_session_id: sessionId
+        p_session_id: sessionId,
+        p_skip_ids: selectedSkipIds
       });
       
       if (error) throw error;
@@ -333,52 +327,6 @@ export function UploadParticipantsModal({
     }
   };
   
-  // Remove error rows from staging
-  const handleRemoveErrors = async () => {
-    if (!activeEventId || !sessionId) return;
-    
-    try {
-      const { error } = await supabase
-        .from('participants_staging')
-        .delete()
-        .eq('event_id', activeEventId)
-        .eq('upload_session_id', sessionId)
-        .eq('validation_status', 'error');
-      
-      if (error) throw error;
-      
-      toast({
-        title: "오류 행 제거 완료",
-        description: `${errorCount}개의 오류 행을 제거했습니다.`
-      });
-      
-      // Refresh validation
-      await handleValidation();
-    } catch (err: any) {
-      console.error("[78-B.3] Remove errors:", err);
-      toast({
-        title: "제거 실패",
-        description: err.message || "알 수 없는 오류가 발생했습니다.",
-        variant: "destructive"
-      });
-    }
-  };
-  
-  // Filter staged data
-  const filteredStaged = stagedData
-    .filter(row => {
-      if (statusFilter === 'all') return true;
-      return row.validation_status === statusFilter;
-    })
-    .filter(row => {
-      if (!searchQuery) return true;
-      const query = searchQuery.toLowerCase();
-      return (
-        row.name?.toLowerCase().includes(query) ||
-        row.organization?.toLowerCase().includes(query) ||
-        row.phone?.toLowerCase().includes(query)
-      );
-    });
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -473,115 +421,45 @@ export function UploadParticipantsModal({
         {/* Step 2: Validation */}
         {step === 2 && (
           <div className="space-y-4">
-            <div className="space-y-3">
-              <div className="flex items-center gap-4">
-                <Badge variant="secondary">
-                  유효 {validCount}
-                </Badge>
-                <Badge variant="destructive">
-                  오류 {errorCount}
-                </Badge>
-              </div>
-              <p className="text-sm text-muted-foreground">
-                유효: 반영 가능 / 오류: 사유 확인 후 수정하거나 제외하세요.
-              </p>
-            </div>
+            {/* Summary Card */}
+            <ValidationSummaryCard
+              validCount={validCount}
+              errorCount={errorCount}
+              warnCount={warnCount}
+            />
             
-            <div className="flex items-center justify-end gap-2">
-              <Select value={statusFilter} onValueChange={(v: any) => setStatusFilter(v)}>
-                <SelectTrigger className="w-[120px]">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">전체</SelectItem>
-                  <SelectItem value="valid">유효</SelectItem>
-                  <SelectItem value="error">오류</SelectItem>
-                </SelectContent>
-              </Select>
+            <p className="text-sm text-muted-foreground">
+              유효: 반영 가능 / 오류: 사유 확인 후 수정하거나 제외하세요.
+            </p>
+            
+            {/* Staging Table */}
+            <StagingTable
+              data={stagedData}
+              selectedIds={selectedSkipIds}
+              onSelectionChange={setSelectedSkipIds}
+            />
+            
+            {/* Action buttons */}
+            <div className="flex items-center justify-between">
+              <div>
+                {selectedSkipIds.length > 0 && (
+                  <p className="text-sm text-muted-foreground">
+                    {selectedSkipIds.length}개 행이 제외됩니다.
+                  </p>
+                )}
+              </div>
               
-              <Input
-                placeholder="검색..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-[200px]"
-              />
+              <div className="flex gap-2">
+                <Button variant="outline" onClick={() => setStep(1)}>
+                  뒤로
+                </Button>
+                <Button 
+                  onClick={handleCommit} 
+                  disabled={uploading || (validCount + warnCount) === 0}
+                >
+                  {uploading ? "반영 중..." : `반영하기 (${validCount + warnCount - selectedSkipIds.length}명)`}
+                </Button>
               </div>
-            
-            <Card>
-              <CardContent className="p-0">
-                <div className="max-h-[400px] overflow-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>No</TableHead>
-                        <TableHead>이름</TableHead>
-                        <TableHead>소속</TableHead>
-                        <TableHead>연락처</TableHead>
-                        <TableHead>요청사항</TableHead>
-                        <TableHead>상태</TableHead>
-                        <TableHead>사유</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {filteredStaged.map((row, idx) => (
-                        <TableRow key={row.id}>
-                          <TableCell>{idx + 1}</TableCell>
-                          <TableCell>{row.name}</TableCell>
-                          <TableCell>{row.organization}</TableCell>
-                          <TableCell>{row.phone}</TableCell>
-                          <TableCell className="max-w-[200px] truncate">{row.request_memo}</TableCell>
-                          <TableCell>
-                            {row.validation_status === 'valid' && (
-                              <Badge variant="secondary" className="gap-1">
-                                <CheckCircle className="h-3 w-3" />
-                                유효
-                              </Badge>
-                            )}
-                            {row.validation_status === 'error' && (
-                              <Badge variant="destructive" className="gap-1">
-                                <XCircle className="h-3 w-3" />
-                                오류
-                              </Badge>
-                            )}
-                          </TableCell>
-                          <TableCell className="text-xs text-muted-foreground">
-                            {row.validation_message}
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-              </CardContent>
-            </Card>
-            
-            {errorCount > 0 && (
-              <div className="flex items-center gap-2 p-3 bg-destructive/10 rounded-lg">
-                <AlertTriangle className="h-4 w-4 text-destructive" />
-                <p className="text-sm">
-                  오류가 있는 {errorCount}개의 행이 있습니다.
-                  <Button
-                    variant="link"
-                    size="sm"
-                    className="ml-2"
-                    onClick={handleRemoveErrors}
-                  >
-                    오류 행 제외하고 반영
-                  </Button>
-                </p>
-              </div>
-            )}
-            
-            <div className="flex justify-end gap-2">
-              <Button variant="outline" onClick={() => setStep(1)}>
-                뒤로
-              </Button>
-              <Button 
-                onClick={handleCommit} 
-                disabled={uploading || validCount === 0}
-              >
-                {uploading ? "반영 중..." : `반영하기 (${validCount}명)`}
-              </Button>
             </div>
           </div>
         )}
