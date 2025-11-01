@@ -8122,6 +8122,11 @@ export type Database = {
       assign_master_role: { Args: { user_email: string }; Returns: Json }
       auto_confirm_invited_user: { Args: { p_user_id: string }; Returns: Json }
       cleanup_old_cache: { Args: never; Returns: undefined }
+      clear_event_participants: { Args: { p_event_id: string }; Returns: Json }
+      commit_staged_participants: {
+        Args: { p_event_id: string; p_session_id: string }
+        Returns: Json
+      }
       confirm_all_unconfirmed_users: { Args: never; Returns: Json }
       confirm_user_by_id: { Args: { p_user_id: string }; Returns: Json }
       create_agency: {
@@ -8558,6 +8563,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      import_participants_from_excel: {
+        Args: { p_event_id: string; p_rows: Json; p_session_id?: string }
+        Returns: Json
+      }
       init_rooming_for_event: { Args: { p_event: string }; Returns: number }
       initialize_rooming_for_event: {
         Args: { p_event_id: string }
@@ -8790,6 +8799,10 @@ export type Database = {
           }
       upsert_hotels_v1: { Args: { payload: Json }; Returns: number }
       validate_invite_token: { Args: { p_token: string }; Returns: Json }
+      validate_staged_participants: {
+        Args: { p_event_id: string; p_session_id: string }
+        Returns: Json
+      }
     }
     Enums: {
       ai_agent_role: "insight" | "analysis" | "advisor" | "visual"
