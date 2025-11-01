@@ -406,12 +406,10 @@ export function UploadParticipantsModal({
         {step === 1 && (
           <div className="space-y-4">
             <Card className="bg-muted/50">
-              <CardContent className="pt-6 space-y-2">
-                <p className="text-sm font-medium">📋 컬럼명 안내</p>
-                <div className="text-xs text-muted-foreground space-y-1">
-                  <p>• <strong>필수:</strong> 이름, 소속</p>
-                  <p>• <strong>선택:</strong> 고객 연락처, 요청사항, 팀명, 담당자 성명, 담당자 연락처, 담당자 사번, SFE 거래처코드, SFE 고객코드</p>
-                </div>
+              <CardContent className="pt-6">
+                <p className="text-sm text-muted-foreground">
+                  엑셀 컬럼명을 아래와 같이 맞춰주세요: <span className="font-medium text-foreground">이름(필수), 소속(필수), 고객 연락처(선택), 요청사항(선택)</span> 담당자/팀/SFE 코드는 그대로 올려도 됩니다.
+                </p>
               </CardContent>
             </Card>
             
@@ -475,7 +473,7 @@ export function UploadParticipantsModal({
         {/* Step 2: Validation */}
         {step === 2 && (
           <div className="space-y-4">
-            <div className="flex items-center justify-between">
+            <div className="space-y-3">
               <div className="flex items-center gap-4">
                 <Badge variant="secondary">
                   유효 {validCount}
@@ -484,27 +482,30 @@ export function UploadParticipantsModal({
                   오류 {errorCount}
                 </Badge>
               </div>
-              
-              <div className="flex items-center gap-2">
-                <Select value={statusFilter} onValueChange={(v: any) => setStatusFilter(v)}>
-                  <SelectTrigger className="w-[120px]">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">전체</SelectItem>
-                    <SelectItem value="valid">유효</SelectItem>
-                    <SelectItem value="error">오류</SelectItem>
-                  </SelectContent>
-                </Select>
-                
-                <Input
-                  placeholder="검색..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-[200px]"
-                />
-              </div>
+              <p className="text-sm text-muted-foreground">
+                유효: 반영 가능 / 오류: 사유 확인 후 수정하거나 제외하세요.
+              </p>
             </div>
+            
+            <div className="flex items-center justify-end gap-2">
+              <Select value={statusFilter} onValueChange={(v: any) => setStatusFilter(v)}>
+                <SelectTrigger className="w-[120px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">전체</SelectItem>
+                  <SelectItem value="valid">유효</SelectItem>
+                  <SelectItem value="error">오류</SelectItem>
+                </SelectContent>
+              </Select>
+              
+              <Input
+                placeholder="검색..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-[200px]"
+              />
+              </div>
             
             <Card>
               <CardContent className="p-0">
@@ -593,7 +594,7 @@ export function UploadParticipantsModal({
               <div className="text-center">
                 <p className="text-lg font-semibold">완료되었습니다</p>
                 <p className="text-sm text-muted-foreground mt-2">
-                  총 {commitResult.inserted + commitResult.updated}명 반영됨
+                  총 {commitResult.inserted + commitResult.updated + commitResult.skipped}명 반영됨 (신규 {commitResult.inserted}, 수정 {commitResult.updated}, 제외 {commitResult.skipped})
                 </p>
               </div>
               
