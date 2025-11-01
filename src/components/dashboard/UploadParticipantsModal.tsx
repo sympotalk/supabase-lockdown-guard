@@ -2,6 +2,16 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -70,6 +80,9 @@ export function UploadParticipantsModal({
   // Selection for skip
   const [selectedSkipIds, setSelectedSkipIds] = useState<string[]>([]);
   
+  // Confirm modal state
+  const [showCommitConfirm, setShowCommitConfirm] = useState(false);
+  
   // Results
   const [commitResult, setCommitResult] = useState<{ inserted: number; updated: number; skipped: number } | null>(null);
   
@@ -85,6 +98,7 @@ export function UploadParticipantsModal({
       setSessionId('');
       setSelectedSkipIds([]);
       setCommitResult(null);
+      setShowCommitConfirm(false);
     }
   }, [open]);
 
@@ -279,10 +293,16 @@ export function UploadParticipantsModal({
     }
   };
   
+  // Open commit confirmation modal
+  const handleCommitClick = () => {
+    setShowCommitConfirm(true);
+  };
+  
   // Step 3: Commit valid data (excluding selected skip IDs)
   const handleCommit = async () => {
     if (!activeEventId || !sessionId) return;
     
+    setShowCommitConfirm(false);
     setUploading(true);
     
     try {
@@ -309,8 +329,8 @@ export function UploadParticipantsModal({
         }
         
         toast({
-          title: "완료되었습니다",
-          description: `총 ${result.inserted + result.updated}명 반영 (신규 ${result.inserted} / 수정 ${result.updated} / 스킵 ${result.skipped})`
+          title: "참가자 반영 완료",
+          description: `총 ${result.inserted + result.updated + result.skipped}명 반영됨 (신규 ${result.inserted}, 수정 ${result.updated}, 제외 ${result.skipped})`
         });
         
         setStep(3);
@@ -454,7 +474,7 @@ export function UploadParticipantsModal({
                   뒤로
                 </Button>
                 <Button 
-                  onClick={handleCommit} 
+                  onClick={handleCommitClick} 
                   disabled={uploading || (validCount + warnCount) === 0}
                 >
                   {uploading ? "반영 중..." : `반영하기 (${validCount + warnCount - selectedSkipIds.length}명)`}
@@ -508,6 +528,42 @@ export function UploadParticipantsModal({
           </div>
         )}
       </DialogContent>
+      
+      {/* Commit Confirmation Dialog */}
+      <AlertDialog open={showCommitConfirm} onOpenChange={setShowCommitConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>참가자 데이터를 반영하시겠습니까?</AlertDialogTitle>
+            <AlertDialogDescription className="space-y-3">
+              <p>
+                <strong>{validCount + warnCount - selectedSkipIds.length}명</strong>의 참가자 데이터가 반영됩니다.
+              </p>
+              
+              {selectedSkipIds.length > 0 && (
+                <p className="text-orange-600">
+                  • {selectedSkipIds.length}개 행은 제외됩니다.
+                </p>
+              )}
+              
+              {warnCount > 0 && (
+                <p className="text-orange-600">
+                  • {warnCount}개의 경고 항목이 포함되어 있습니다. 중복 데이터는 기존 정보를 업데이트합니다.
+                </p>
+              )}
+              
+              <p className="text-muted-foreground text-sm pt-2">
+                반영된 데이터는 참가자 목록에 즉시 반영됩니다. 기존 참가자와 이름/연락처가 동일한 경우 정보가 업데이트됩니다.
+              </p>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={uploading}>취소</AlertDialogCancel>
+            <AlertDialogAction onClick={handleCommit} disabled={uploading}>
+              {uploading ? "반영 중..." : "반영하기"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Dialog>
   );
 }
