@@ -40,6 +40,7 @@ export function UploadParticipantsModal({
   const [uploading, setUploading] = useState(false);
   const [parsedRows, setParsedRows] = useState<any[]>([]);
   const [replaceMode, setReplaceMode] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
   const activeEventId = eventId ?? "";
 
   // [LOCKED][QA3.FIX.R3] Validate event context only when modal opens
@@ -201,8 +202,8 @@ export function UploadParticipantsModal({
     reader.readAsArrayBuffer(uploadedFile);
   };
 
-  // [Phase 73-L.7.6] Upload with standard key validation
-  const handleUpload = async () => {
+  // [Phase 77-UF-FIX.3] Upload with FK error handling and auto-retry
+  const handleUpload = async (isRetry: boolean = false) => {
     if (!agencyScope || !activeEventId) {
       console.warn("[73-L.7.6] Missing scope →", { agencyScope, eventId: activeEventId });
       toast({
@@ -272,6 +273,31 @@ export function UploadParticipantsModal({
       if (error) {
         console.error("[77-Upload-FIX] RPC upload error →", error);
         
+        // [Phase 77-UF-FIX.3] Handle FK constraint violations with auto-retry
+        if (error.message?.includes('foreign key constraint') || error.message?.includes('violates foreign key')) {
+          if (!isRetry && retryCount < 2) {
+            console.warn(`[77-UF-FIX.3] FK error detected, retrying... (attempt ${retryCount + 1}/2)`);
+            setRetryCount(prev => prev + 1);
+            toast({
+              title: "재시도 중...",
+              description: `Replace 과정 중 일시적 오류. 자동 재시도 중입니다. (${retryCount + 1}/2)`,
+            });
+            setUploading(false);
+            // Wait 1 second before retry
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            return handleUpload(true);
+          } else {
+            toast({
+              title: "업로드 실패",
+              description: "Replace 과정 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.",
+              variant: "destructive"
+            });
+            setUploading(false);
+            setRetryCount(0);
+            return;
+          }
+        }
+        
         // [Phase 75-C.1] Handle duplicate constraint violations gracefully
         if (error.code === '23505' || error.message?.includes('duplicate') || error.message?.includes('unique')) {
           toast({
@@ -285,6 +311,7 @@ export function UploadParticipantsModal({
           }
           mutate('event_progress_view');
           onOpenChange(false);
+          setRetryCount(0);
           return;
         }
         
@@ -398,6 +425,7 @@ export function UploadParticipantsModal({
       setFile(null);
       setParsedRows([]);
       setReplaceMode(false);
+      setRetryCount(0);
       onOpenChange(false);
     } catch (error: any) {
       console.error("[73-L.7.6] Upload failed →", error);
@@ -512,7 +540,7 @@ export function UploadParticipantsModal({
           <Button variant="outline" className="flex-1" onClick={() => onOpenChange(false)} disabled={uploading}>
             취소
           </Button>
-          <Button className="flex-1" onClick={handleUpload} disabled={uploading || !parsedRows.length}>
+          <Button className="flex-1" onClick={() => handleUpload(false)} disabled={uploading || !parsedRows.length}>
             <Upload className="mr-2 h-4 w-4" />
             {uploading ? "업로드 중..." : "업로드"}
           </Button>

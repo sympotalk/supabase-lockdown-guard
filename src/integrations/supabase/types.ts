@@ -4080,6 +4080,36 @@ export type Database = {
         }
         Relationships: []
       }
+      participants_log_temp: {
+        Row: {
+          action: string
+          agency_id: string | null
+          context_json: Json | null
+          created_at: string | null
+          event_id: string | null
+          id: string
+          participant_id: string | null
+        }
+        Insert: {
+          action: string
+          agency_id?: string | null
+          context_json?: Json | null
+          created_at?: string | null
+          event_id?: string | null
+          id?: string
+          participant_id?: string | null
+        }
+        Update: {
+          action?: string
+          agency_id?: string | null
+          context_json?: Json | null
+          created_at?: string | null
+          event_id?: string | null
+          id?: string
+          participant_id?: string | null
+        }
+        Relationships: []
+      }
       participants_logs: {
         Row: {
           changes: Json | null
@@ -7972,11 +8002,11 @@ export type Database = {
         Returns: Json
       }
       ai_participant_import_from_excel:
-        | { Args: { p_event_id: string; p_payload: Json }; Returns: Json }
         | {
             Args: { p_data: Json; p_event_id: string; p_replace?: boolean }
             Returns: Json
           }
+        | { Args: { p_event_id: string; p_payload: Json }; Returns: Json }
         | {
             Args: { p_event_id: string; p_mode?: string; p_payload: Json }
             Returns: Json
