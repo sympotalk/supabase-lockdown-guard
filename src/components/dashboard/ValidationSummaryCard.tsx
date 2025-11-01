@@ -17,8 +17,8 @@ export function ValidationSummaryCard({
   const totalCount = validCount + errorCount + warnCount;
   
   return (
-    <Card className="bg-muted/50">
-      <CardContent className="pt-6">
+    <Card className="bg-[#F9FAFB] rounded-[10px]">
+      <CardContent className="p-3">
         <div className="space-y-4">
           {/* Status counts */}
           <div className="flex items-center gap-4 flex-wrap">

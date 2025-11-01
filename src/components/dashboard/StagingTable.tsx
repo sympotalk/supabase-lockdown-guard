@@ -26,6 +26,7 @@ import {
 } from "@/components/ui/tooltip";
 import { CheckCircle, XCircle, AlertTriangle } from "lucide-react";
 import { useDebounce } from "@/hooks/use-debounce";
+import { cn } from "@/lib/utils";
 
 interface StagedParticipant {
   id: string;
@@ -108,21 +109,21 @@ export function StagingTable({ data, selectedIds, onSelectionChange }: StagingTa
     switch (status) {
       case 'valid':
         return (
-          <Badge variant="secondary" className="gap-1 bg-green-100 text-green-700 border-green-300">
+          <Badge variant="secondary" className="gap-1 bg-green-100 text-green-700 border-green-300 text-xs font-bold">
             <CheckCircle className="h-3 w-3" />
             유효
           </Badge>
         );
       case 'error':
         return (
-          <Badge variant="destructive" className="gap-1">
+          <Badge variant="destructive" className="gap-1 text-xs font-bold">
             <XCircle className="h-3 w-3" />
             오류
           </Badge>
         );
       case 'warning':
         return (
-          <Badge variant="outline" className="gap-1 bg-orange-100 text-orange-700 border-orange-300">
+          <Badge variant="outline" className="gap-1 bg-orange-100 text-orange-700 border-orange-300 text-xs font-bold">
             <AlertTriangle className="h-3 w-3" />
             경고
           </Badge>
@@ -196,7 +197,13 @@ export function StagingTable({ data, selectedIds, onSelectionChange }: StagingTa
                 </TableRow>
               ) : (
                 filteredData.map((row, idx) => (
-                  <TableRow key={row.id} className="hover:bg-muted/50">
+                  <TableRow 
+                    key={row.id} 
+                    className={cn(
+                      "h-[44px] text-sm hover:bg-muted/50",
+                      row.validation_status === 'error' && "bg-[#FFF1F0]"
+                    )}
+                  >
                     <TableCell className="font-medium">{idx + 1}</TableCell>
                     <TableCell>{row.name}</TableCell>
                     <TableCell>{row.organization}</TableCell>
@@ -210,11 +217,14 @@ export function StagingTable({ data, selectedIds, onSelectionChange }: StagingTa
                         <TooltipProvider>
                           <Tooltip delayDuration={300}>
                             <TooltipTrigger asChild>
-                              <span className="text-sm text-muted-foreground truncate block cursor-help">
+                              <span className={cn(
+                                "text-sm truncate block cursor-help",
+                                row.validation_status === 'error' ? "text-[#D92D20]" : "text-muted-foreground"
+                              )}>
                                 {row.validation_message}
                               </span>
                             </TooltipTrigger>
-                            <TooltipContent side="top" className="max-w-[400px] whitespace-pre-line">
+                            <TooltipContent side="top" className="max-w-[400px] whitespace-pre-line rounded-[6px]">
                               <p className="text-sm">{formatValidationMessage(row.validation_status, row.validation_message)}</p>
                             </TooltipContent>
                           </Tooltip>
