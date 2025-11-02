@@ -253,7 +253,6 @@ export default function ParticipantsPanel({ onMutate }: ParticipantsPanelProps) 
     setIsRollingBack(true);
     
     try {
-      // Fetch recent backups
       const { data: backups, error: fetchError } = await supabase
         .from('participants_backup')
         .select('id, created_at, backup_type')
@@ -268,17 +267,14 @@ export default function ParticipantsPanel({ onMutate }: ParticipantsPanelProps) 
         return;
       }
 
-      // Use the most recent backup
       const latestBackup = backups[0];
       
-      // Confirm rollback
       const confirmed = window.confirm(
         `최근 백업(${new Date(latestBackup.created_at).toLocaleString('ko-KR')})으로 되돌리시겠습니까?\n\n현재 데이터는 자동으로 백업됩니다.`
       );
       
       if (!confirmed) return;
 
-      // Execute rollback
       const { data: result, error: rollbackError } = await supabase.rpc('rollback_participants', {
         p_event_id: eventId,
         p_backup_id: latestBackup.id
@@ -288,13 +284,11 @@ export default function ParticipantsPanel({ onMutate }: ParticipantsPanelProps) 
 
       const rollbackResult = result as unknown as { status: string; restored: number; backup_id: string };
 
-      // Refresh data
       mutate();
       onMutate?.();
 
-      toast.success(`✅ 복원 완료: ${rollbackResult.restored}명의 참가자가 복원되었습니다`);
+      toast.success(`✅ ${rollbackResult.restored}명의 참가자가 복원되었습니다`);
     } catch (error: any) {
-      console.error('[Rollback] Error:', error);
       toast.error(`복원 실패: ${error.message || '알 수 없는 오류'}`);
     } finally {
       setIsRollingBack(false);

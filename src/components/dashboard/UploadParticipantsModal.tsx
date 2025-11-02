@@ -128,15 +128,13 @@ export function UploadParticipantsModal({
 
       // ✅ Phase 86: Backup before replace mode
       if (replaceMode) {
-        const { data: backupId, error: backupError } = await supabase.rpc('backup_participants', {
+        const { error: backupError } = await supabase.rpc('backup_participants', {
           p_event_id: activeEventId,
           p_backup_type: 'pre_replace'
         });
         
         if (backupError) {
-          console.warn('[Backup] Failed to create backup before replace:', backupError);
-        } else {
-          console.log('[Backup] Created snapshot before replace:', backupId);
+          console.error('[Backup] Failed:', backupError.message);
         }
       }
 
@@ -163,12 +161,13 @@ export function UploadParticipantsModal({
 
       // ✅ Phase 85: Enhanced toast with status differentiation
       const hasSkipped = result.skipped > 0;
+      const title = hasSkipped ? "⚠️ 일부 제외됨" : "✅ 업로드 완료";
       const description = hasSkipped
-        ? `총 ${result.total}명 중 ${result.processed}명 반영, ${result.skipped}건 제외됨.`
-        : `${result.processed}명 등록 완료!`;
+        ? `${result.processed}명 반영, ${result.skipped}건 제외`
+        : `${result.processed}명 반영됨`;
 
       toast({
-        title: hasSkipped ? "⚠️ 업로드 완료 (일부 제외)" : "✅ 업로드 완료",
+        title,
         description,
       });
 
@@ -180,10 +179,9 @@ export function UploadParticipantsModal({
       onOpenChange(false);
 
     } catch (error: any) {
-      console.error('[UploadModal] Upload error:', error);
       toast({
         title: "❌ 업로드 실패",
-        description: error.message || "알 수 없는 오류가 발생했습니다.",
+        description: error.message || "파일을 확인해주세요",
         variant: "destructive",
       });
       setResult({
