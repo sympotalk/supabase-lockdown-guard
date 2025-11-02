@@ -19,6 +19,8 @@ interface UploadParticipantsModalProps {
     id: string;
     name: string;
   }>;
+  mutateParticipants?: () => void;
+  mutateEventStats?: () => void;
 }
 
 interface ProcessExcelUploadResponse {
@@ -32,6 +34,8 @@ interface ProcessExcelUploadResponse {
 export function UploadParticipantsModal({
   open,
   onOpenChange,
+  mutateParticipants,
+  mutateEventStats,
 }: UploadParticipantsModalProps) {
   const { toast } = useToast();
   const { eventId } = useParams<{ eventId: string }>();
@@ -91,26 +95,21 @@ export function UploadParticipantsModal({
 
       const result = rpcResult as unknown as ProcessExcelUploadResponse;
 
-      setResult({
-        success: result.status === 'ok',
-        mode: result.mode,
-        total: result.total,
-        processed: result.processed,
-        skipped: result.skipped
-      });
+      // ✅ Immediately refresh data
+      mutateParticipants?.();
+      mutateEventStats?.();
 
+      // Show success toast with stats
       toast({
         title: "업로드 완료",
-        description: `${result.mode === 'replace' ? '전체 교체' : '추가'}: ${result.processed}건 처리, ${result.skipped}건 제외`,
+        description: `총 ${result.total}명 중 ${result.processed}명 반영, ${result.skipped}건 제외됨.`,
       });
 
-      // Reset after 2 seconds
-      setTimeout(() => {
-        setFile(null);
-        setResult(null);
-        setReplaceMode(false);
-        onOpenChange(false);
-      }, 2000);
+      // Reset and close immediately
+      setFile(null);
+      setResult(null);
+      setReplaceMode(false);
+      onOpenChange(false);
 
     } catch (error: any) {
       console.error('[UploadModal] Upload error:', error);

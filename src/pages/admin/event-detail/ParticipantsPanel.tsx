@@ -466,6 +466,10 @@ export default function ParticipantsPanel({ onMutate }: ParticipantsPanelProps) 
           open={uploadOpen}
           onOpenChange={setUploadOpen}
           events={[{ id: eventId, name: "Current Event" }]}
+          mutateParticipants={() => {
+            mutate();
+            onMutate?.();
+          }}
         />
         
         {/* Create Participant Modal */}
