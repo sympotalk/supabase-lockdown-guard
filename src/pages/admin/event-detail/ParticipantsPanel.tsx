@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { useUser } from "@/context/UserContext";
-import { Plus, Search, Download, Upload, CheckSquare } from "lucide-react";
+import { Plus, Search, Download, Upload, CheckSquare, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -36,6 +36,8 @@ import { useParticipantsPanel } from "@/state/participantsPanel";
 import { cn } from "@/lib/utils";
 import { normalizeParticipants } from "@/lib/participantUtils";
 import useSWR from "swr";
+import { formatDistanceToNow } from "date-fns";
+import { ko } from "date-fns/locale";
 import "@/styles/participants.css";
 
 // [71-J.7] Extended participant interface with child_ages array
@@ -98,6 +100,13 @@ export default function ParticipantsPanel({ onMutate }: ParticipantsPanelProps) 
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   // [Phase 73-L.7.30 + 73-L.7.31-D.1] Track participant for highlight/scroll (new or updated)
   const [highlightedId, setHighlightedId] = useState<string | null>(null);
+  
+  // [Phase 85] Track last upload info
+  const [lastUploadInfo, setLastUploadInfo] = useState<{
+    count: number;
+    skipped: number;
+    time: string;
+  } | null>(null);
 
   // [71-I] Enforce event context
   if (!eventId || !agencyScope) {
@@ -112,6 +121,38 @@ export default function ParticipantsPanel({ onMutate }: ParticipantsPanelProps) 
   }
 
   const swrKey = `participants_${agencyScope}_${eventId}`;
+
+  // [Phase 85] Fetch last upload info from participants_log
+  const { data: lastUpload } = useSWR(
+    eventId ? `participants-log-${eventId}` : null,
+    async () => {
+      const { data, error } = await supabase
+        .from('participants_log')
+        .select('metadata, created_at')
+        .eq('event_id', eventId)
+        .eq('action', 'excel_process')
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single();
+
+      if (error || !data) return null;
+
+      const metadata = data.metadata as any;
+      return {
+        count: metadata.processed || 0,
+        skipped: metadata.skipped || 0,
+        time: data.created_at,
+      };
+    },
+    { revalidateOnFocus: false }
+  );
+
+  // Update lastUploadInfo when data changes
+  useEffect(() => {
+    if (lastUpload) {
+      setLastUploadInfo(lastUpload);
+    }
+  }, [lastUpload]);
 
   const { data: participants, error, isLoading, mutate } = useSWR<Participant[]>(
     swrKey,
@@ -349,6 +390,22 @@ export default function ParticipantsPanel({ onMutate }: ParticipantsPanelProps) 
           <Badge variant="secondary" className="text-sm">
             총 {participants?.length || 0}명
           </Badge>
+          
+          {/* [Phase 85] Last upload badge */}
+          {lastUploadInfo && (
+            <Badge variant="outline" className="text-xs flex items-center gap-1.5 px-2 py-1">
+              <Clock className="w-3 h-3" />
+              <span>
+                최근 업로드: {formatDistanceToNow(new Date(lastUploadInfo.time), { 
+                  addSuffix: true,
+                  locale: ko 
+                })}
+              </span>
+              <span className="text-muted-foreground">
+                ({lastUploadInfo.count}명{lastUploadInfo.skipped > 0 && `, ${lastUploadInfo.skipped}건 제외`})
+              </span>
+            </Badge>
+          )}
         </div>
         
         <div className="flex gap-2 action-buttons">
@@ -469,6 +526,12 @@ export default function ParticipantsPanel({ onMutate }: ParticipantsPanelProps) 
           mutateParticipants={() => {
             mutate();
             onMutate?.();
+          }}
+          mutateEventStats={() => {
+            // Refresh upload log to update badge
+            if (lastUpload) {
+              setLastUploadInfo(lastUpload);
+            }
           }}
         />
         

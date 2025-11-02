@@ -79,6 +79,7 @@ export function UploadParticipantsModal({
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const [replaceMode, setReplaceMode] = useState(false);
+  const [progress, setProgress] = useState(0);
   const [result, setResult] = useState<{
     success: boolean;
     mode: string;
@@ -108,6 +109,7 @@ export function UploadParticipantsModal({
     }
 
     setUploading(true);
+    setProgress(0);
     
     try {
       // Read Excel file
@@ -116,9 +118,13 @@ export function UploadParticipantsModal({
       const sheet = workbook.Sheets[workbook.SheetNames[0]];
       let rows = XLSX.utils.sheet_to_json(sheet);
 
+      setProgress(20);
+
       // ✅ Phase 84: Validate and normalize columns
       validateRequiredColumns(rows);
       rows = rows.map(normalizeRow);
+
+      setProgress(40);
 
       // Call single RPC with all rows
       const { data: rpcResult, error: rpcError } = await supabase.rpc('process_excel_upload', {
@@ -129,28 +135,38 @@ export function UploadParticipantsModal({
 
       if (rpcError) throw rpcError;
 
+      setProgress(90);
+
       const result = rpcResult as unknown as ProcessExcelUploadResponse;
 
       // ✅ Immediately refresh data
       mutateParticipants?.();
       mutateEventStats?.();
 
-      // Show success toast with stats
+      setProgress(100);
+
+      // ✅ Phase 85: Enhanced toast with status differentiation
+      const hasSkipped = result.skipped > 0;
+      const description = hasSkipped
+        ? `총 ${result.total}명 중 ${result.processed}명 반영, ${result.skipped}건 제외됨.`
+        : `${result.processed}명 등록 완료!`;
+
       toast({
-        title: "업로드 완료",
-        description: `총 ${result.total}명 중 ${result.processed}명 반영, ${result.skipped}건 제외됨.`,
+        title: hasSkipped ? "⚠️ 업로드 완료 (일부 제외)" : "✅ 업로드 완료",
+        description,
       });
 
       // Reset and close immediately
       setFile(null);
       setResult(null);
       setReplaceMode(false);
+      setProgress(0);
       onOpenChange(false);
 
     } catch (error: any) {
       console.error('[UploadModal] Upload error:', error);
       toast({
-        title: "업로드 실패",
+        title: "❌ 업로드 실패",
         description: error.message || "알 수 없는 오류가 발생했습니다.",
         variant: "destructive",
       });
@@ -163,6 +179,7 @@ export function UploadParticipantsModal({
       });
     } finally {
       setUploading(false);
+      setProgress(0);
     }
   };
 
@@ -171,6 +188,7 @@ export function UploadParticipantsModal({
       setFile(null);
       setResult(null);
       setReplaceMode(false);
+      setProgress(0);
       onOpenChange(false);
     }
   };
@@ -247,11 +265,24 @@ export function UploadParticipantsModal({
                 </CardContent>
               </Card>
 
-              {/* Uploading spinner */}
+              {/* Uploading progress */}
               {uploading && (
-                <div className="text-center py-4">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-                  <p className="text-sm text-muted-foreground mt-2">업로드 중...</p>
+                <div className="space-y-3 py-4">
+                  <div className="text-center">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+                    <p className="text-sm text-muted-foreground mt-2">업로드 중...</p>
+                  </div>
+                  {progress > 0 && (
+                    <div className="space-y-2">
+                      <div className="h-2 bg-muted rounded-full overflow-hidden">
+                        <div 
+                          className="h-full bg-primary transition-all duration-300 ease-in-out"
+                          style={{ width: `${progress}%` }}
+                        />
+                      </div>
+                      <p className="text-xs text-center text-muted-foreground">{progress}%</p>
+                    </div>
+                  )}
                 </div>
               )}
             </>
