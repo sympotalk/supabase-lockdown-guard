@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { useUser } from "@/context/UserContext";
-import { Plus, Search, Download, Upload, CheckSquare, Clock } from "lucide-react";
+import { Plus, Search, Download, Upload, CheckSquare, Clock, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -107,6 +107,9 @@ export default function ParticipantsPanel({ onMutate }: ParticipantsPanelProps) 
     skipped: number;
     time: string;
   } | null>(null);
+  
+  // [Phase 86] Track rollback state
+  const [isRollingBack, setIsRollingBack] = useState(false);
 
   // [71-I] Enforce event context
   if (!eventId || !agencyScope) {
@@ -242,6 +245,61 @@ export default function ParticipantsPanel({ onMutate }: ParticipantsPanelProps) 
       supabase.removeChannel(channel);
     };
   }, [eventId, mutate]);
+
+  // [Phase 86] Handle rollback
+  const handleRollback = async () => {
+    if (!eventId) return;
+    
+    setIsRollingBack(true);
+    
+    try {
+      // Fetch recent backups
+      const { data: backups, error: fetchError } = await supabase
+        .from('participants_backup')
+        .select('id, created_at, backup_type')
+        .eq('event_id', eventId)
+        .order('created_at', { ascending: false })
+        .limit(10);
+
+      if (fetchError) throw fetchError;
+
+      if (!backups || backups.length === 0) {
+        toast.error("복원 실패: 백업 내역이 없습니다");
+        return;
+      }
+
+      // Use the most recent backup
+      const latestBackup = backups[0];
+      
+      // Confirm rollback
+      const confirmed = window.confirm(
+        `최근 백업(${new Date(latestBackup.created_at).toLocaleString('ko-KR')})으로 되돌리시겠습니까?\n\n현재 데이터는 자동으로 백업됩니다.`
+      );
+      
+      if (!confirmed) return;
+
+      // Execute rollback
+      const { data: result, error: rollbackError } = await supabase.rpc('rollback_participants', {
+        p_event_id: eventId,
+        p_backup_id: latestBackup.id
+      });
+
+      if (rollbackError) throw rollbackError;
+
+      const rollbackResult = result as unknown as { status: string; restored: number; backup_id: string };
+
+      // Refresh data
+      mutate();
+      onMutate?.();
+
+      toast.success(`✅ 복원 완료: ${rollbackResult.restored}명의 참가자가 복원되었습니다`);
+    } catch (error: any) {
+      console.error('[Rollback] Error:', error);
+      toast.error(`복원 실패: ${error.message || '알 수 없는 오류'}`);
+    } finally {
+      setIsRollingBack(false);
+    }
+  };
 
   // [Phase 72–RM.EXPORT.SORT.UNIFY] Export with automatic sorting
   // [Phase 73-L.7.30] Handle new participant added
@@ -471,6 +529,15 @@ export default function ParticipantsPanel({ onMutate }: ParticipantsPanelProps) 
               />
             </DropdownMenuContent>
           </DropdownMenu>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={handleRollback}
+            disabled={isRollingBack || uploadOpen}
+          >
+            <RotateCcw className={`h-4 w-4 mr-2 ${isRollingBack ? 'animate-spin' : ''}`} />
+            되돌리기
+          </Button>
           <Button 
             variant="outline" 
             size="sm" 

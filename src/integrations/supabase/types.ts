@@ -3986,6 +3986,65 @@ export type Database = {
           },
         ]
       }
+      participants_backup: {
+        Row: {
+          agency_id: string
+          backup_data: Json
+          backup_type: string | null
+          created_at: string | null
+          created_by: string | null
+          event_id: string
+          id: string
+        }
+        Insert: {
+          agency_id: string
+          backup_data: Json
+          backup_type?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          event_id: string
+          id?: string
+        }
+        Update: {
+          agency_id?: string
+          backup_data?: Json
+          backup_type?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          event_id?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "participants_backup_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "event_progress_view"
+            referencedColumns: ["event_id"]
+          },
+          {
+            foreignKeyName: "participants_backup_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "participants_backup_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "v_event_participant_count"
+            referencedColumns: ["event_id"]
+          },
+          {
+            foreignKeyName: "participants_backup_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "v_event_room_summary"
+            referencedColumns: ["event_id"]
+          },
+        ]
+      }
       participants_log: {
         Row: {
           action: string
@@ -7713,6 +7772,10 @@ export type Database = {
       }
       assign_master_role: { Args: { user_email: string }; Returns: Json }
       auto_confirm_invited_user: { Args: { p_user_id: string }; Returns: Json }
+      backup_participants: {
+        Args: { p_backup_type?: string; p_event_id: string }
+        Returns: string
+      }
       cleanup_old_cache: { Args: never; Returns: undefined }
       clear_participants_by_event: {
         Args: { p_event_id: string }
@@ -8271,6 +8334,10 @@ export type Database = {
         Returns: undefined
       }
       restore_tm_status: { Args: { p_log_id: string }; Returns: Json }
+      rollback_participants: {
+        Args: { p_backup_id: string; p_event_id: string }
+        Returns: Json
+      }
       rooming_auto_assign: { Args: { p_event_id: string }; Returns: Json }
       rpc_activate_account: { Args: { token: string }; Returns: Json }
       rpc_create_agency: {

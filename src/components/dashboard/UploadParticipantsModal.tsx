@@ -126,6 +126,22 @@ export function UploadParticipantsModal({
 
       setProgress(40);
 
+      // ✅ Phase 86: Backup before replace mode
+      if (replaceMode) {
+        const { data: backupId, error: backupError } = await supabase.rpc('backup_participants', {
+          p_event_id: activeEventId,
+          p_backup_type: 'pre_replace'
+        });
+        
+        if (backupError) {
+          console.warn('[Backup] Failed to create backup before replace:', backupError);
+        } else {
+          console.log('[Backup] Created snapshot before replace:', backupId);
+        }
+      }
+
+      setProgress(50);
+
       // Call single RPC with all rows
       const { data: rpcResult, error: rpcError } = await supabase.rpc('process_excel_upload', {
         p_event_id: activeEventId,
