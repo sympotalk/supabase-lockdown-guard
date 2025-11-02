@@ -31,6 +31,42 @@ interface ProcessExcelUploadResponse {
   skipped: number;
 }
 
+// Phase 84: Column mapping dictionary
+const FIELD_MAP: Record<string, string[]> = {
+  name: ["이름", "성명", "고객 성명", "Name", "name"],
+  organization: ["소속", "회사명", "기관명", "Organization", "organization"],
+  phone: ["연락처", "전화번호", "핸드폰", "Phone", "phone"],
+  request_note: ["요청사항", "메모", "비고", "Request", "request_note"],
+};
+
+// Normalize row columns to standard field names
+function normalizeRow(row: any): any {
+  const normalized: any = {};
+  for (const key in FIELD_MAP) {
+    const aliases = FIELD_MAP[key];
+    const matched = Object.keys(row).find((k) =>
+      aliases.some((alias) => k.trim().includes(alias))
+    );
+    if (matched) normalized[key] = row[matched];
+  }
+  return normalized;
+}
+
+// Validate required columns exist
+function validateRequiredColumns(rows: any[]): void {
+  if (!rows.length) throw new Error("엑셀에 데이터가 없습니다.");
+
+  const firstRow = rows[0];
+  const required = ["name", "organization"];
+  const missing = required.filter((field) =>
+    Object.keys(firstRow).every((k) => !FIELD_MAP[field].some((a) => k.includes(a)))
+  );
+
+  if (missing.length > 0) {
+    throw new Error(`필수 컬럼 누락: ${missing.join(", ")}`);
+  }
+}
+
 export function UploadParticipantsModal({
   open,
   onOpenChange,
@@ -78,11 +114,11 @@ export function UploadParticipantsModal({
       const buffer = await file.arrayBuffer();
       const workbook = XLSX.read(buffer, { type: 'buffer' });
       const sheet = workbook.Sheets[workbook.SheetNames[0]];
-      const rows = XLSX.utils.sheet_to_json(sheet);
+      let rows = XLSX.utils.sheet_to_json(sheet);
 
-      if (rows.length === 0) {
-        throw new Error("엑셀 파일에 데이터가 없습니다.");
-      }
+      // ✅ Phase 84: Validate and normalize columns
+      validateRequiredColumns(rows);
+      rows = rows.map(normalizeRow);
 
       // Call single RPC with all rows
       const { data: rpcResult, error: rpcError } = await supabase.rpc('process_excel_upload', {
@@ -193,7 +229,7 @@ export function UploadParticipantsModal({
                 <CardContent className="pt-4 pb-3">
                   <div className="flex items-start gap-2">
                     <Info className="h-4 w-4 text-blue-600 dark:text-blue-400 mt-0.5" />
-                    <div className="text-sm space-y-1">
+                     <div className="text-sm space-y-1">
                       <p className="font-medium text-blue-900 dark:text-blue-100">
                         필수 컬럼: 이름, 소속
                       </p>
@@ -201,6 +237,9 @@ export function UploadParticipantsModal({
                         선택 컬럼: 연락처, 요청사항
                       </p>
                       <p className="text-xs text-blue-600 dark:text-blue-400 mt-2">
+                        ※ 자동 컬럼 감지: "성명", "회사명" 등 유사 컬럼도 인식
+                      </p>
+                      <p className="text-xs text-blue-600 dark:text-blue-400">
                         ※ 중복 방지: (이름 + 연락처) 조합이 같으면 업데이트됩니다
                       </p>
                     </div>
