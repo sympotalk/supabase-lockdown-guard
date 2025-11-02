@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "build:dev": "vite build --mode development",
     "build:release": "VITE_PHASE_LOCK=90 VITE_DEPLOY_ENV=production vite build",
     "preview": "vite preview",
     "preview:release": "vite preview --mode production",
