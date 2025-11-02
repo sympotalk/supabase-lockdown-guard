@@ -20,18 +20,20 @@ export default function RoomingSummaryCards({ eventId }: RoomingSummaryCardsProp
   const { data: summary, error, isLoading, mutate } = useSWR<SummaryData>(
     eventId ? `rooming_summary_${eventId}` : null,
     async () => {
+      // Query rooming_participants directly
       const { data, error } = await supabase
-        .from('v_rooming_visual_map')
-        .select('*')
-        .eq('event_id', eventId);
+        .from('rooming_participants')
+        .select('status')
+        .eq('event_id', eventId)
+        .eq('is_active', true);
       
       if (error) throw error;
 
-      // Aggregate totals
-      const assigned_total = data?.reduce((sum, row) => sum + (row.assigned_rooms || 0), 0) || 0;
-      const pending_total = data?.reduce((sum, row) => sum + (row.pending_rooms || 0), 0) || 0;
-      const canceled_total = data?.reduce((sum, row) => sum + (row.canceled_rooms || 0), 0) || 0;
-      const total_rooms = data?.reduce((sum, row) => sum + (row.total_rooms || 0), 0) || 0;
+      // Aggregate by status
+      const assigned_total = data?.filter(r => r.status === '배정완료').length || 0;
+      const pending_total = data?.filter(r => r.status === '대기').length || 0;
+      const canceled_total = data?.filter(r => r.status === '취소').length || 0;
+      const total_rooms = data?.length || 0;
 
       return {
         assigned_total,

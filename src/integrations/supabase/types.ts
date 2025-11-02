@@ -4032,155 +4032,6 @@ export type Database = {
           },
         ]
       }
-      participants_staging: {
-        Row: {
-          event_id: string
-          id: string
-          manager_info: Json | null
-          name: string
-          organization: string
-          phone: string | null
-          request_note: string | null
-          upload_session_id: string
-          uploaded_at: string
-          uploaded_by: string | null
-          validation_message: string | null
-          validation_status: string
-        }
-        Insert: {
-          event_id: string
-          id?: string
-          manager_info?: Json | null
-          name: string
-          organization: string
-          phone?: string | null
-          request_note?: string | null
-          upload_session_id: string
-          uploaded_at?: string
-          uploaded_by?: string | null
-          validation_message?: string | null
-          validation_status?: string
-        }
-        Update: {
-          event_id?: string
-          id?: string
-          manager_info?: Json | null
-          name?: string
-          organization?: string
-          phone?: string | null
-          request_note?: string | null
-          upload_session_id?: string
-          uploaded_at?: string
-          uploaded_by?: string | null
-          validation_message?: string | null
-          validation_status?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "participants_staging_uploaded_by_fkey"
-            columns: ["uploaded_by"]
-            isOneToOne: false
-            referencedRelation: "master_users"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "participants_staging_uploaded_by_fkey"
-            columns: ["uploaded_by"]
-            isOneToOne: false
-            referencedRelation: "orphan_users"
-            referencedColumns: ["user_id"]
-          },
-          {
-            foreignKeyName: "participants_staging_uploaded_by_fkey"
-            columns: ["uploaded_by"]
-            isOneToOne: false
-            referencedRelation: "user_profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      participants_temp: {
-        Row: {
-          agency_id: string | null
-          company_name: string | null
-          created_at: string | null
-          email: string | null
-          event_id: string
-          id: string
-          is_active: boolean | null
-          manager_info: Json | null
-          memo: string | null
-          participant_name: string | null
-          phone: string | null
-          position: string | null
-          role_type: string | null
-          sfe_client_code: string | null
-          sfe_store_code: string | null
-          stay_plan: string | null
-          updated_at: string | null
-        }
-        Insert: {
-          agency_id?: string | null
-          company_name?: string | null
-          created_at?: string | null
-          email?: string | null
-          event_id: string
-          id?: string
-          is_active?: boolean | null
-          manager_info?: Json | null
-          memo?: string | null
-          participant_name?: string | null
-          phone?: string | null
-          position?: string | null
-          role_type?: string | null
-          sfe_client_code?: string | null
-          sfe_store_code?: string | null
-          stay_plan?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          agency_id?: string | null
-          company_name?: string | null
-          created_at?: string | null
-          email?: string | null
-          event_id?: string
-          id?: string
-          is_active?: boolean | null
-          manager_info?: Json | null
-          memo?: string | null
-          participant_name?: string | null
-          phone?: string | null
-          position?: string | null
-          role_type?: string | null
-          sfe_client_code?: string | null
-          sfe_store_code?: string | null
-          stay_plan?: string | null
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "participants_temp_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "event_progress_view"
-            referencedColumns: ["event_id"]
-          },
-          {
-            foreignKeyName: "participants_temp_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "events"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "participants_temp_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "v_event_room_summary"
-            referencedColumns: ["event_id"]
-          },
-        ]
-      }
       phase_completion_log: {
         Row: {
           completed_by: string | null
@@ -6564,45 +6415,6 @@ export type Database = {
           },
         ]
       }
-      upload_logs: {
-        Row: {
-          actor_id: string | null
-          created_at: string | null
-          error_details: Json | null
-          event_id: string
-          fail_count: number | null
-          file_name: string
-          id: string
-          mode: string
-          success_count: number | null
-          total_count: number | null
-        }
-        Insert: {
-          actor_id?: string | null
-          created_at?: string | null
-          error_details?: Json | null
-          event_id: string
-          fail_count?: number | null
-          file_name: string
-          id?: string
-          mode: string
-          success_count?: number | null
-          total_count?: number | null
-        }
-        Update: {
-          actor_id?: string | null
-          created_at?: string | null
-          error_details?: Json | null
-          event_id?: string
-          fail_count?: number | null
-          file_name?: string
-          id?: string
-          mode?: string
-          success_count?: number | null
-          total_count?: number | null
-        }
-        Relationships: []
-      }
       user_event_roles: {
         Row: {
           created_at: string | null
@@ -7376,79 +7188,6 @@ export type Database = {
         }
         Relationships: []
       }
-      system_logs_view: {
-        Row: {
-          action: string | null
-          actor_role: string | null
-          created_at: string | null
-          created_by: string | null
-          event_id: string | null
-          id: string | null
-          messages_failed: number | null
-          messages_pending: number | null
-          messages_sent: number | null
-          payload: Json | null
-          target_table: string | null
-          total_upload_fail: number | null
-          total_upload_success: number | null
-          total_uploads: number | null
-        }
-        Insert: {
-          action?: string | null
-          actor_role?: string | null
-          created_at?: string | null
-          created_by?: string | null
-          event_id?: string | null
-          id?: string | null
-          messages_failed?: never
-          messages_pending?: never
-          messages_sent?: never
-          payload?: Json | null
-          target_table?: string | null
-          total_upload_fail?: never
-          total_upload_success?: never
-          total_uploads?: never
-        }
-        Update: {
-          action?: string | null
-          actor_role?: string | null
-          created_at?: string | null
-          created_by?: string | null
-          event_id?: string | null
-          id?: string | null
-          messages_failed?: never
-          messages_pending?: never
-          messages_sent?: never
-          payload?: Json | null
-          target_table?: string | null
-          total_upload_fail?: never
-          total_upload_success?: never
-          total_uploads?: never
-        }
-        Relationships: [
-          {
-            foreignKeyName: "logs_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "master_users"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "logs_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "orphan_users"
-            referencedColumns: ["user_id"]
-          },
-          {
-            foreignKeyName: "logs_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "user_profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       user_profiles: {
         Row: {
           agency_id: string | null
@@ -7567,42 +7306,6 @@ export type Database = {
           },
           {
             foreignKeyName: "event_room_refs_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "v_event_room_summary"
-            referencedColumns: ["event_id"]
-          },
-        ]
-      }
-      v_rooming_visual_map: {
-        Row: {
-          assigned_rooms: number | null
-          canceled_rooms: number | null
-          confirmed_rooms: number | null
-          event_id: string | null
-          manual_assigned_rooms: number | null
-          pending_rooms: number | null
-          room_type: string | null
-          room_type_id: string | null
-          total_rooms: number | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "rooming_participants_event_fk"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "event_progress_view"
-            referencedColumns: ["event_id"]
-          },
-          {
-            foreignKeyName: "rooming_participants_event_fk"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "events"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "rooming_participants_event_fk"
             columns: ["event_id"]
             isOneToOne: false
             referencedRelation: "v_event_room_summary"
@@ -7730,15 +7433,6 @@ export type Database = {
         Args: { p_event_id: string }
         Returns: Json
       }
-      ai_participant_import_from_excel: {
-        Args: {
-          p_data: Json
-          p_event_id: string
-          p_replace?: boolean
-          p_session_id?: string
-        }
-        Returns: Json
-      }
       ai_rebalance_apply: {
         Args: { p_changes: Json; p_event_id: string }
         Returns: Json
@@ -7785,16 +7479,6 @@ export type Database = {
         Args: { p_event_id: string }
         Returns: Json
       }
-      commit_staged_participants:
-        | {
-            Args: {
-              p_event_id: string
-              p_session_id: string
-              p_skip_ids: string[]
-            }
-            Returns: Json
-          }
-        | { Args: { p_event_id: string; p_session_id?: string }; Returns: Json }
       confirm_all_unconfirmed_users: { Args: never; Returns: Json }
       confirm_user_by_id: { Args: { p_user_id: string }; Returns: Json }
       create_agency: {
@@ -8465,10 +8149,6 @@ export type Database = {
             }
             Returns: boolean
           }
-      upload_participants_excel: {
-        Args: { p_event_id: string; p_rows: Json; p_session_id?: string }
-        Returns: Json
-      }
       upsert_hotels_v1: { Args: { payload: Json }; Returns: number }
       validate_invite_token: { Args: { p_token: string }; Returns: Json }
       validate_staged_participants: {

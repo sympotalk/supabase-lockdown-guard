@@ -1,3 +1,4 @@
+// [Phase 80-PURGE-FULL] Query rooming_participants directly without view
 import { useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -24,16 +25,61 @@ interface RoomingStats {
 
 export default function RoomingVisualMapCards({ eventId }: RoomingVisualMapCardsProps) {
   const { data: roomingStats, error, isLoading, mutate } = useSWR<RoomingStats[]>(
-    eventId ? `v_rooming_visual_map_${eventId}` : null,
+    eventId ? `rooming_visual_map_${eventId}` : null,
     async () => {
+      // Query rooming_participants with room type information
       const { data, error } = await supabase
-        .from('v_rooming_visual_map')
-        .select('*')
+        .from('rooming_participants')
+        .select(`
+          status,
+          room_type_id,
+          manual_assigned,
+          room_types:room_type_id(type_name)
+        `)
         .eq('event_id', eventId)
-        .order('room_type', { ascending: true });
+        .eq('is_active', true);
       
       if (error) throw error;
-      return data || [];
+
+      // Group by room_type and aggregate counts
+      const statsMap = new Map<string, RoomingStats>();
+      
+      data?.forEach((row: any) => {
+        const roomType = row.room_types?.type_name || '미지정';
+        
+        if (!statsMap.has(roomType)) {
+          statsMap.set(roomType, {
+            event_id: eventId,
+            room_type: roomType,
+            room_type_id: row.room_type_id,
+            total_rooms: 0,
+            assigned_rooms: 0,
+            pending_rooms: 0,
+            canceled_rooms: 0,
+            confirmed_rooms: 0,
+            manual_assigned_rooms: 0,
+          });
+        }
+        
+        const stats = statsMap.get(roomType)!;
+        stats.total_rooms++;
+        
+        if (row.status === '배정완료') {
+          stats.assigned_rooms++;
+          if (row.manual_assigned) {
+            stats.manual_assigned_rooms++;
+          }
+        } else if (row.status === '대기') {
+          stats.pending_rooms++;
+        } else if (row.status === '취소') {
+          stats.canceled_rooms++;
+        }
+      });
+      
+      // Convert map to array and sort by room_type
+      return Array.from(statsMap.values()).sort((a, b) => 
+        a.room_type.localeCompare(b.room_type, 'ko-KR')
+      );
     },
     { revalidateOnFocus: false }
   );
@@ -53,7 +99,7 @@ export default function RoomingVisualMapCards({ eventId }: RoomingVisualMapCards
           filter: `event_id=eq.${eventId}`,
         },
         () => {
-          console.log('[Phase 77-STATS-CARD] Rooming changed, refreshing stats...');
+          console.log('[RoomingVisualMapCards] Data changed, refreshing...');
           mutate();
         }
       )
@@ -66,8 +112,8 @@ export default function RoomingVisualMapCards({ eventId }: RoomingVisualMapCards
 
   if (error) {
     return (
-      <Card className="p-4 bg-red-50 border-red-200">
-        <p className="text-sm text-red-600">데이터 불러오기 실패: {error.message}</p>
+      <Card className="p-4 bg-destructive/10 border-destructive/30">
+        <p className="text-sm text-destructive">데이터 불러오기 실패: {error.message}</p>
       </Card>
     );
   }
@@ -86,8 +132,8 @@ export default function RoomingVisualMapCards({ eventId }: RoomingVisualMapCards
 
   if (!roomingStats || roomingStats.length === 0) {
     return (
-      <Card className="p-6 text-center bg-gray-50">
-        <Building2 className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+      <Card className="p-6 text-center bg-muted/30">
+        <Building2 className="w-12 h-12 mx-auto mb-3 text-muted-foreground/50" />
         <p className="text-sm text-muted-foreground">객실 배정 정보가 없습니다.</p>
       </Card>
     );
@@ -118,19 +164,19 @@ export default function RoomingVisualMapCards({ eventId }: RoomingVisualMapCards
               <TableHead className="font-semibold">객실타입</TableHead>
               <TableHead className="text-center font-semibold">
                 <div className="flex items-center justify-center gap-1">
-                  <CheckCircle2 className="w-4 h-4 text-blue-600" />
+                  <CheckCircle2 className="w-4 h-4 text-primary" />
                   <span>배정완료</span>
                 </div>
               </TableHead>
               <TableHead className="text-center font-semibold">
                 <div className="flex items-center justify-center gap-1">
-                  <Clock className="w-4 h-4 text-yellow-600" />
+                  <Clock className="w-4 h-4 text-amber-600" />
                   <span>대기중</span>
                 </div>
               </TableHead>
               <TableHead className="text-center font-semibold">
                 <div className="flex items-center justify-center gap-1">
-                  <XCircle className="w-4 h-4 text-red-600" />
+                  <XCircle className="w-4 h-4 text-destructive" />
                   <span>취소</span>
                 </div>
               </TableHead>
@@ -147,22 +193,22 @@ export default function RoomingVisualMapCards({ eventId }: RoomingVisualMapCards
               <TableRow key={idx} className="hover:bg-muted/30">
                 <TableCell className="font-medium">{stat.room_type}</TableCell>
                 <TableCell className="text-center">
-                  <span className="inline-flex items-center justify-center px-2 py-1 rounded-md bg-blue-50 text-blue-700 font-semibold">
+                  <span className="inline-flex items-center justify-center px-2 py-1 rounded-md bg-primary/10 text-primary font-semibold">
                     {stat.assigned_rooms}
                   </span>
                 </TableCell>
                 <TableCell className="text-center">
-                  <span className="inline-flex items-center justify-center px-2 py-1 rounded-md bg-yellow-50 text-yellow-700 font-semibold">
+                  <span className="inline-flex items-center justify-center px-2 py-1 rounded-md bg-amber-500/10 text-amber-600 font-semibold">
                     {stat.pending_rooms}
                   </span>
                 </TableCell>
                 <TableCell className="text-center">
-                  <span className="inline-flex items-center justify-center px-2 py-1 rounded-md bg-red-50 text-red-700 font-semibold">
+                  <span className="inline-flex items-center justify-center px-2 py-1 rounded-md bg-destructive/10 text-destructive font-semibold">
                     {stat.canceled_rooms}
                   </span>
                 </TableCell>
                 <TableCell className="text-center">
-                  <span className="inline-flex items-center justify-center px-2 py-1 rounded-md bg-gray-100 text-gray-700 font-semibold">
+                  <span className="inline-flex items-center justify-center px-2 py-1 rounded-md bg-muted text-foreground font-semibold">
                     {stat.total_rooms}
                   </span>
                 </TableCell>
@@ -172,22 +218,22 @@ export default function RoomingVisualMapCards({ eventId }: RoomingVisualMapCards
             <TableRow className="bg-muted/50 font-bold border-t-2">
               <TableCell className="font-bold">전체 합계</TableCell>
               <TableCell className="text-center">
-                <span className="inline-flex items-center justify-center px-2 py-1 rounded-md bg-blue-100 text-blue-800 font-bold">
+                <span className="inline-flex items-center justify-center px-2 py-1 rounded-md bg-primary/20 text-primary font-bold">
                   {totals.assigned_rooms}
                 </span>
               </TableCell>
               <TableCell className="text-center">
-                <span className="inline-flex items-center justify-center px-2 py-1 rounded-md bg-yellow-100 text-yellow-800 font-bold">
+                <span className="inline-flex items-center justify-center px-2 py-1 rounded-md bg-amber-500/20 text-amber-700 font-bold">
                   {totals.pending_rooms}
                 </span>
               </TableCell>
               <TableCell className="text-center">
-                <span className="inline-flex items-center justify-center px-2 py-1 rounded-md bg-red-100 text-red-800 font-bold">
+                <span className="inline-flex items-center justify-center px-2 py-1 rounded-md bg-destructive/20 text-destructive font-bold">
                   {totals.canceled_rooms}
                 </span>
               </TableCell>
               <TableCell className="text-center">
-                <span className="inline-flex items-center justify-center px-2 py-1 rounded-md bg-gray-200 text-gray-800 font-bold">
+                <span className="inline-flex items-center justify-center px-2 py-1 rounded-md bg-muted/50 text-foreground font-bold">
                   {totals.total_rooms}
                 </span>
               </TableCell>

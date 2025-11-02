@@ -20,10 +20,12 @@ export default function RoomingVisualTab({ eventId }: RoomingVisualTabProps) {
     async () => {
       if (!eventId) return [];
       
+      // Query rooming_participants directly
       const { data, error } = await supabase
-        .from("v_rooming_visual_map" as any)
+        .from("rooming_participants")
         .select("*")
-        .eq("event_id", eventId);
+        .eq("event_id", eventId)
+        .eq("is_active", true);
 
       if (error) throw error;
       return data || [];
