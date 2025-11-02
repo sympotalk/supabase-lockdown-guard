@@ -127,6 +127,29 @@ export function UploadParticipantsModal({
       validateRequiredColumns(rows);
       rows = rows.map(normalizeRow);
 
+      // 🔥 Phase 91: Filter duplicate rows by (event_id + phone)
+      const phoneMap = new Map<string, any>();
+      let duplicateCount = 0;
+      
+      rows.forEach((row: any) => {
+        const phone = row.phone?.toString().trim();
+        if (phone && phone !== '') {
+          if (phoneMap.has(phone)) {
+            duplicateCount++;
+          } else {
+            phoneMap.set(phone, row);
+          }
+        } else {
+          // Keep rows without phone
+          phoneMap.set(`no-phone-${Math.random()}`, row);
+        }
+      });
+      
+      const uniqueRows = Array.from(phoneMap.values());
+      console.log(`[Phase 91] Original: ${rows.length}, Unique: ${uniqueRows.length}, Duplicates: ${duplicateCount}`);
+      
+      rows = uniqueRows;
+
       setProgress(40);
 
       // ✅ Phase 86: Backup before replace mode
@@ -162,12 +185,13 @@ export function UploadParticipantsModal({
 
       setProgress(100);
 
-      // ✅ Phase 85: Enhanced toast with status differentiation
-      const hasSkipped = result.skipped > 0;
-      const title = hasSkipped ? "⚠️ 일부 제외됨" : "✅ 업로드 완료";
+      // ✅ Phase 91: Enhanced toast with duplicate info
+      const totalDuplicates = duplicateCount + (result.skipped || 0);
+      const hasSkipped = totalDuplicates > 0;
+      const title = hasSkipped ? "⚠️ 중복 데이터 제외됨" : "✅ 업로드 완료";
       const description = hasSkipped
-        ? `${result.processed}명 반영, ${result.skipped}건 제외`
-        : `${result.processed}명 반영됨`;
+        ? `중복 데이터 ${totalDuplicates}건 제외, 총 ${result.processed}명 반영되었습니다`
+        : `총 ${result.processed}명 반영되었습니다`;
 
       toast({
         title,
@@ -276,9 +300,9 @@ export function UploadParticipantsModal({
                       <p className="text-xs text-blue-600 dark:text-blue-400 mt-2">
                         ※ 자동 컬럼 감지: "성명", "회사명" 등 유사 컬럼도 인식
                       </p>
-                      <p className="text-xs text-blue-600 dark:text-blue-400">
-                        ※ 중복 방지: (이름 + 연락처) 조합이 같으면 업데이트됩니다
-                      </p>
+                       <p className="text-xs text-blue-600 dark:text-blue-400">
+                         ※ 중복 방지: 동일 연락처는 자동으로 업데이트됩니다 (이름 중복 허용)
+                       </p>
                     </div>
                   </div>
                 </CardContent>
