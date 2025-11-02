@@ -405,7 +405,13 @@ export default function ParticipantsPanel({ onMutate }: ParticipantsPanelProps) 
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <ClearAllParticipantsButton eventId={eventId} />
+              <ClearAllParticipantsButton 
+                eventId={eventId} 
+                onSuccess={() => {
+                  mutate();
+                  onMutate?.();
+                }} 
+              />
             </DropdownMenuContent>
           </DropdownMenu>
           <Button 

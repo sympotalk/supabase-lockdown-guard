@@ -1,4 +1,4 @@
-// [Phase 78-B.3] MASTER-only button to clear all participants
+// [Phase 79-R] MASTER-only button to clear all participants
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -14,16 +14,16 @@ import {
 import { Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { mutate } from "swr";
 import { useUser } from "@/context/UserContext";
 
 interface ClearAllParticipantsButtonProps {
   eventId: string;
+  onSuccess?: () => void;
 }
 
-export function ClearAllParticipantsButton({ eventId }: ClearAllParticipantsButtonProps) {
+export function ClearAllParticipantsButton({ eventId, onSuccess }: ClearAllParticipantsButtonProps) {
   const { toast } = useToast();
-  const { user, agencyScope } = useUser();
+  const { user } = useUser();
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [clearing, setClearing] = useState(false);
   
@@ -36,7 +36,7 @@ export function ClearAllParticipantsButton({ eventId }: ClearAllParticipantsButt
     setClearing(true);
     
     try {
-      const { data, error } = await supabase.rpc('clear_event_participants', {
+      const { data, error } = await supabase.rpc('clear_participants_by_event', {
         p_event_id: eventId
       });
       
@@ -47,18 +47,16 @@ export function ClearAllParticipantsButton({ eventId }: ClearAllParticipantsButt
       if (result.status === 'ok') {
         toast({
           title: "모든 참가자가 삭제되었습니다",
-          description: `${result.deleted}명의 참가자를 삭제했습니다.`
+          description: `총 ${result.deleted}명의 참가자 데이터가 삭제되었습니다.`
         });
         
-        // Invalidate cache
-        if (agencyScope) {
-          await mutate(`participants_${agencyScope}_${eventId}`);
-        }
+        // Trigger parent refresh
+        onSuccess?.();
         
         setConfirmOpen(false);
       }
     } catch (err: any) {
-      console.error("[78-B.3] Clear error:", err);
+      console.error("[79-R] Clear error:", err);
       toast({
         title: "삭제 실패",
         description: err.message || "알 수 없는 오류가 발생했습니다.",

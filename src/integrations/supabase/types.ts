@@ -7781,7 +7781,10 @@ export type Database = {
       assign_master_role: { Args: { user_email: string }; Returns: Json }
       auto_confirm_invited_user: { Args: { p_user_id: string }; Returns: Json }
       cleanup_old_cache: { Args: never; Returns: undefined }
-      clear_event_participants: { Args: { p_event_id: string }; Returns: Json }
+      clear_participants_by_event: {
+        Args: { p_event_id: string }
+        Returns: Json
+      }
       commit_staged_participants:
         | {
             Args: {
