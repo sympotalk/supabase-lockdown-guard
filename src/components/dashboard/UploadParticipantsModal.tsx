@@ -1,6 +1,7 @@
 // [Phase 82-STABILIZE-UPLOAD-FLOW] Single RPC upload with append/replace modes
 import { useState } from "react";
 import { useParams } from "react-router-dom";
+import { useUser } from "@/context/UserContext";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -75,6 +76,7 @@ export function UploadParticipantsModal({
 }: UploadParticipantsModalProps) {
   const { toast } = useToast();
   const { eventId } = useParams<{ eventId: string }>();
+  const { role } = useUser(); // Phase 89: Check user role for permissions
   
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -220,23 +222,25 @@ export function UploadParticipantsModal({
         <div className="space-y-4 py-4">
           {!result && (
             <>
-              {/* Mode toggle */}
-              <div className="flex items-center gap-3 p-3 border rounded-lg bg-muted/30">
-                <Switch
-                  id="replace-mode"
-                  checked={replaceMode}
-                  onCheckedChange={setReplaceMode}
-                  disabled={uploading}
-                />
-                <div className="flex-1">
-                  <Label htmlFor="replace-mode" className="font-medium cursor-pointer text-sm">
-                    전체 교체 모드
-                  </Label>
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    활성화시 기존 참가자를 모두 삭제하고 새로 등록합니다
-                  </p>
+              {/* Mode toggle - Phase 89: MASTER only */}
+              {role === 'master' && (
+                <div className="flex items-center gap-3 p-3 border rounded-lg bg-muted/30">
+                  <Switch
+                    id="replace-mode"
+                    checked={replaceMode}
+                    onCheckedChange={setReplaceMode}
+                    disabled={uploading}
+                  />
+                  <div className="flex-1">
+                    <Label htmlFor="replace-mode" className="font-medium cursor-pointer text-sm">
+                      전체 교체 모드 (MASTER 전용)
+                    </Label>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      활성화시 기존 참가자를 모두 삭제하고 새로 등록합니다
+                    </p>
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* File selection */}
               <div className="space-y-2">

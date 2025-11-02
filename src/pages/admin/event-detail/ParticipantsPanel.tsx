@@ -92,7 +92,7 @@ interface ParticipantsPanelProps {
 
 export default function ParticipantsPanel({ onMutate }: ParticipantsPanelProps) {
   const { eventId } = useParams();
-  const { agencyScope, user } = useUser();
+  const { agencyScope, user, role } = useUser(); // Phase 89: Check role for permissions
   const { isOpen } = useParticipantsPanel();
   const [searchQuery, setSearchQuery] = useState("");
   const [uploadOpen, setUploadOpen] = useState(false);
@@ -523,15 +523,18 @@ export default function ParticipantsPanel({ onMutate }: ParticipantsPanelProps) 
               />
             </DropdownMenuContent>
           </DropdownMenu>
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={handleRollback}
-            disabled={isRollingBack || uploadOpen}
-          >
-            <RotateCcw className={`h-4 w-4 mr-2 ${isRollingBack ? 'animate-spin' : ''}`} />
-            되돌리기
-          </Button>
+          {/* [Phase 89] Rollback button - MASTER only */}
+          {role === 'master' && (
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={handleRollback}
+              disabled={isRollingBack || uploadOpen}
+            >
+              <RotateCcw className={`h-4 w-4 mr-2 ${isRollingBack ? 'animate-spin' : ''}`} />
+              되돌리기
+            </Button>
+          )}
           <Button 
             variant="outline" 
             size="sm" 
