@@ -34,3 +34,5 @@ const Index = () => {
 };
 
 export default Index;
+
+console.log("ENV TEST:", import.meta.env.VITE_PHASE_LOCK, import.meta.env.VITE_DEPLOY_ENV);
