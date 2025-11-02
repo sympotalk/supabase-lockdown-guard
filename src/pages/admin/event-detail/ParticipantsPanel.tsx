@@ -1,3 +1,4 @@
+// @locked-phase-90
 // [71-J.2-FINAL] Participants panel with grid + drawer layout
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
@@ -160,7 +161,9 @@ export default function ParticipantsPanel({ onMutate }: ParticipantsPanelProps) 
   const { data: participants, error, isLoading, mutate } = useSWR<Participant[]>(
     swrKey,
     async () => {
-      console.log("[71-I.QA3-FIX.R7] Loading participants", { eventId, agencyScope });
+      if (import.meta.env.DEV) {
+        console.log("[71-I.QA3-FIX.R7] Loading participants", { eventId, agencyScope });
+      }
       
       const { data, error } = await supabase
         .from("participants")
@@ -182,7 +185,9 @@ export default function ParticipantsPanel({ onMutate }: ParticipantsPanelProps) 
       }));
       
       const normalized = normalizeParticipants(participantsWithEditor);
-      console.log("[71-I.QA3-FIX.R7] Loaded participants:", normalized.length);
+      if (import.meta.env.DEV) {
+        console.log("[71-I.QA3-FIX.R7] Loaded participants:", normalized.length);
+      }
       return normalized;
     },
     { 
@@ -197,7 +202,9 @@ export default function ParticipantsPanel({ onMutate }: ParticipantsPanelProps) 
   useEffect(() => {
     if (!eventId) return;
 
-    console.log("[Phase 72] Subscribing to participants realtime for event:", eventId);
+    if (import.meta.env.DEV) {
+      console.log("[Phase 72] Subscribing to participants realtime for event:", eventId);
+    }
 
     const channel = supabase
       .channel(`participants_${eventId}`)
@@ -210,7 +217,9 @@ export default function ParticipantsPanel({ onMutate }: ParticipantsPanelProps) 
           filter: `event_id=eq.${eventId}`,
         },
         (payload) => {
-          console.log("[Phase 72] Realtime change detected:", payload);
+          if (import.meta.env.DEV) {
+            console.log("[Phase 72] Realtime change detected:", payload);
+          }
           
           // Show toast for changes from other users
           if (payload.eventType === 'UPDATE' && payload.new && payload.old) {
@@ -241,7 +250,9 @@ export default function ParticipantsPanel({ onMutate }: ParticipantsPanelProps) 
       .subscribe();
 
     return () => {
-      console.log("[Phase 72] Unsubscribing from participants realtime");
+      if (import.meta.env.DEV) {
+        console.log("[Phase 72] Unsubscribing from participants realtime");
+      }
       supabase.removeChannel(channel);
     };
   }, [eventId, mutate]);
@@ -298,7 +309,9 @@ export default function ParticipantsPanel({ onMutate }: ParticipantsPanelProps) 
   // [Phase 72–RM.EXPORT.SORT.UNIFY] Export with automatic sorting
   // [Phase 73-L.7.30] Handle new participant added
   const handleParticipantAdded = (newId?: string) => {
-    console.log("[Phase 73-L.7.30] New participant added:", newId);
+    if (import.meta.env.DEV) {
+      console.log("[Phase 73-L.7.30] New participant added:", newId);
+    }
     
     // Refresh list immediately
     mutate();
@@ -331,7 +344,9 @@ export default function ParticipantsPanel({ onMutate }: ParticipantsPanelProps) 
       });
       
       if (reorderError) {
-        console.error("[Phase 72] Reorder RPC error:", reorderError);
+        if (import.meta.env.DEV) {
+          console.error("[Phase 72] Reorder RPC error:", reorderError);
+        }
         toast.error("정렬 중 오류가 발생했습니다");
         return;
       }
@@ -350,7 +365,9 @@ export default function ParticipantsPanel({ onMutate }: ParticipantsPanelProps) 
         duration: 2000
       });
     } catch (error) {
-      console.error("[Phase 72] Export error:", error);
+      if (import.meta.env.DEV) {
+        console.error("[Phase 72] Export error:", error);
+      }
       toast.error("엑셀 내보내기 중 오류가 발생했습니다");
     }
   };
@@ -368,10 +385,11 @@ export default function ParticipantsPanel({ onMutate }: ParticipantsPanelProps) 
       .in("id", selectedIds);
 
     if (error) {
-      console.error("[QA2] Bulk update error:", error);
+      if (import.meta.env.DEV) {
+        console.error("[QA2] Bulk update error:", error);
+      }
       toast.error("일괄 수정 실패");
     } else {
-      console.log("[QA2] Bulk updated:", selectedIds.length, "participants");
       toast.success(`${selectedIds.length}명 일괄 수정 완료`);
       setSelectedIds([]);
       mutate();

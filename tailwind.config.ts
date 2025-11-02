@@ -1,3 +1,4 @@
+// @locked-phase-90
 import type { Config } from "tailwindcss";
 
 export default {

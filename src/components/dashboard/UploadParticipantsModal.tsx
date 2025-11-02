@@ -1,3 +1,4 @@
+// @locked-phase-90
 // [Phase 82-STABILIZE-UPLOAD-FLOW] Single RPC upload with append/replace modes
 import { useState } from "react";
 import { useParams } from "react-router-dom";
@@ -135,7 +136,7 @@ export function UploadParticipantsModal({
           p_backup_type: 'pre_replace'
         });
         
-        if (backupError) {
+        if (backupError && import.meta.env.DEV) {
           console.error('[Backup] Failed:', backupError.message);
         }
       }
@@ -211,7 +212,7 @@ export function UploadParticipantsModal({
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[500px]" style={{ borderRadius: '16px' }}>
         <DialogHeader>
           <DialogTitle>참가자 업로드</DialogTitle>
           <DialogDescription>

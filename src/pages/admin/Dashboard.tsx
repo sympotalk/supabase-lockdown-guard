@@ -33,7 +33,7 @@ export default function Dashboard() {
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
   const [createModalOpen, setCreateModalOpen] = useState(false);
 
-  if (process.env.NODE_ENV !== 'production') {
+  if (import.meta.env.DEV) {
     console.log('[71-D.FIXFLOW] Dashboard render - events:', eventProgressData?.length, 'counts:', countsData);
   }
 
