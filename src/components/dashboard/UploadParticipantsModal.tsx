@@ -1,17 +1,16 @@
-// [Phase 80-PURGE-FULL] Simplified direct upload without staging system
+// [Phase 82-STABILIZE-UPLOAD-FLOW] Single RPC upload with append/replace modes
 import { useState } from "react";
 import { useParams } from "react-router-dom";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { Upload, FileSpreadsheet, CheckCircle, XCircle } from "lucide-react";
+import { Upload, FileSpreadsheet, CheckCircle, XCircle, Info } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import * as XLSX from "xlsx";
-import { useUser } from "@/context/UserContext";
 import { Card, CardContent } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
+import { Switch } from "@/components/ui/switch";
 
 interface UploadParticipantsModalProps {
   open: boolean;
@@ -22,18 +21,31 @@ interface UploadParticipantsModalProps {
   }>;
 }
 
+interface ProcessExcelUploadResponse {
+  status: string;
+  mode: string;
+  total: number;
+  processed: number;
+  skipped: number;
+}
+
 export function UploadParticipantsModal({
   open,
   onOpenChange,
 }: UploadParticipantsModalProps) {
   const { toast } = useToast();
   const { eventId } = useParams<{ eventId: string }>();
-  const { agencyScope } = useUser();
   
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
-  const [progress, setProgress] = useState(0);
-  const [result, setResult] = useState<{ success: number; errors: number } | null>(null);
+  const [replaceMode, setReplaceMode] = useState(false);
+  const [result, setResult] = useState<{
+    success: boolean;
+    mode: string;
+    total: number;
+    processed: number;
+    skipped: number;
+  } | null>(null);
   
   const activeEventId = eventId ?? "";
 
@@ -46,7 +58,7 @@ export function UploadParticipantsModal({
   };
 
   const handleUpload = async () => {
-    if (!file || !activeEventId || !agencyScope) {
+    if (!file || !activeEventId) {
       toast({
         title: "업로드 실패",
         description: "파일과 행사를 선택해주세요.",
@@ -56,7 +68,6 @@ export function UploadParticipantsModal({
     }
 
     setUploading(true);
-    setProgress(0);
     
     try {
       // Read Excel file
@@ -69,58 +80,35 @@ export function UploadParticipantsModal({
         throw new Error("엑셀 파일에 데이터가 없습니다.");
       }
 
-      setProgress(30);
+      // Call single RPC with all rows
+      const { data: rpcResult, error: rpcError } = await supabase.rpc('process_excel_upload', {
+        p_event_id: activeEventId,
+        p_rows: rows as any,
+        p_mode: replaceMode ? 'replace' : 'append'
+      });
 
-      // Map Excel rows to participant records
-      const participants = rows.map((row: any) => ({
-        event_id: activeEventId,
-        agency_id: agencyScope,
-        name: row['성명'] || row['이름'] || row['name'] || '',
-        organization: row['소속'] || row['organization'] || '',
-        phone: row['연락처'] || row['전화번호'] || row['phone'] || '',
-        email: row['이메일'] || row['email'] || '',
-        request_note: row['요청사항'] || row['메모'] || row['request_note'] || '',
-        fixed_role: '참석자', // Default role
-        is_active: true,
-      }));
+      if (rpcError) throw rpcError;
 
-      setProgress(60);
+      const result = rpcResult as unknown as ProcessExcelUploadResponse;
 
-      // Insert participants directly into database
-      const { data, error } = await supabase
-        .from('participants')
-        .insert(participants)
-        .select();
-
-      if (error) throw error;
-
-      setProgress(100);
-      setResult({ success: data?.length || 0, errors: 0 });
-
-      // Log the upload
-      await supabase
-        .from('participants_log')
-        .insert({
-          event_id: activeEventId,
-          agency_id: agencyScope,
-          action: 'excel_upload_direct',
-          metadata: {
-            file_name: file.name,
-            uploaded_count: data?.length || 0,
-            timestamp: new Date().toISOString(),
-          },
-        });
+      setResult({
+        success: result.status === 'ok',
+        mode: result.mode,
+        total: result.total,
+        processed: result.processed,
+        skipped: result.skipped
+      });
 
       toast({
         title: "업로드 완료",
-        description: `${data?.length || 0}명의 참가자가 등록되었습니다.`,
+        description: `${result.mode === 'replace' ? '전체 교체' : '추가'}: ${result.processed}건 처리, ${result.skipped}건 제외`,
       });
 
       // Reset after 2 seconds
       setTimeout(() => {
         setFile(null);
         setResult(null);
-        setProgress(0);
+        setReplaceMode(false);
         onOpenChange(false);
       }, 2000);
 
@@ -131,7 +119,13 @@ export function UploadParticipantsModal({
         description: error.message || "알 수 없는 오류가 발생했습니다.",
         variant: "destructive",
       });
-      setResult({ success: 0, errors: 1 });
+      setResult({
+        success: false,
+        mode: replaceMode ? 'replace' : 'append',
+        total: 0,
+        processed: 0,
+        skipped: 0
+      });
     } finally {
       setUploading(false);
     }
@@ -141,7 +135,7 @@ export function UploadParticipantsModal({
     if (!uploading) {
       setFile(null);
       setResult(null);
-      setProgress(0);
+      setReplaceMode(false);
       onOpenChange(false);
     }
   };
@@ -157,9 +151,27 @@ export function UploadParticipantsModal({
         </DialogHeader>
 
         <div className="space-y-4 py-4">
-          {/* File selection */}
           {!result && (
             <>
+              {/* Mode toggle */}
+              <div className="flex items-center gap-3 p-3 border rounded-lg bg-muted/30">
+                <Switch
+                  id="replace-mode"
+                  checked={replaceMode}
+                  onCheckedChange={setReplaceMode}
+                  disabled={uploading}
+                />
+                <div className="flex-1">
+                  <Label htmlFor="replace-mode" className="font-medium cursor-pointer text-sm">
+                    전체 교체 모드
+                  </Label>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    활성화시 기존 참가자를 모두 삭제하고 새로 등록합니다
+                  </p>
+                </div>
+              </div>
+
+              {/* File selection */}
               <div className="space-y-2">
                 <Label htmlFor="file">엑셀 파일 선택</Label>
                 <Input
@@ -177,25 +189,31 @@ export function UploadParticipantsModal({
                 )}
               </div>
 
-              <Card className="bg-muted/30">
-                <CardContent className="pt-4 pb-3 text-sm text-muted-foreground space-y-1">
-                  <p className="font-medium text-foreground mb-2">필수 컬럼:</p>
-                  <ul className="list-disc list-inside space-y-0.5">
-                    <li>성명 (또는 이름, name)</li>
-                    <li>소속 (또는 organization)</li>
-                    <li>연락처 (또는 전화번호, phone)</li>
-                  </ul>
-                  <p className="mt-2 text-xs">※ 선택 컬럼: 이메일, 요청사항</p>
+              {/* Required columns info */}
+              <Card className="bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800">
+                <CardContent className="pt-4 pb-3">
+                  <div className="flex items-start gap-2">
+                    <Info className="h-4 w-4 text-blue-600 dark:text-blue-400 mt-0.5" />
+                    <div className="text-sm space-y-1">
+                      <p className="font-medium text-blue-900 dark:text-blue-100">
+                        필수 컬럼: 이름, 소속
+                      </p>
+                      <p className="text-xs text-blue-700 dark:text-blue-300">
+                        선택 컬럼: 연락처, 요청사항
+                      </p>
+                      <p className="text-xs text-blue-600 dark:text-blue-400 mt-2">
+                        ※ 중복 방지: (이름 + 연락처) 조합이 같으면 업데이트됩니다
+                      </p>
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
 
-              {/* Progress */}
+              {/* Uploading spinner */}
               {uploading && (
-                <div className="space-y-2">
-                  <Progress value={progress} className="h-2" />
-                  <p className="text-sm text-muted-foreground text-center">
-                    업로드 중... {progress}%
-                  </p>
+                <div className="text-center py-4">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+                  <p className="text-sm text-muted-foreground mt-2">업로드 중...</p>
                 </div>
               )}
             </>
@@ -203,16 +221,19 @@ export function UploadParticipantsModal({
 
           {/* Results */}
           {result && (
-            <Card className={result.errors > 0 ? "border-destructive" : "border-primary"}>
+            <Card className={result.success ? "border-green-500" : "border-destructive"}>
               <CardContent className="pt-6 pb-4 text-center space-y-3">
-                {result.errors === 0 ? (
+                {result.success ? (
                   <>
-                    <CheckCircle className="h-12 w-12 text-primary mx-auto" />
+                    <CheckCircle className="h-12 w-12 text-green-600 dark:text-green-400 mx-auto" />
                     <div>
                       <p className="font-semibold text-lg">업로드 완료</p>
-                      <p className="text-sm text-muted-foreground">
-                        총 {result.success}명의 참가자가 등록되었습니다
-                      </p>
+                      <div className="text-sm text-muted-foreground space-y-1 mt-2">
+                        <p>모드: {result.mode === 'replace' ? '전체 교체' : '추가'}</p>
+                        <p>총 입력: {result.total}건</p>
+                        <p>처리 완료: {result.processed}건</p>
+                        <p>제외: {result.skipped}건</p>
+                      </div>
                     </div>
                   </>
                 ) : (
@@ -239,7 +260,7 @@ export function UploadParticipantsModal({
             </Button>
             <Button onClick={handleUpload} disabled={!file || uploading}>
               <Upload className="h-4 w-4 mr-2" />
-              업로드
+              {replaceMode ? '전체 교체' : '업로드'}
             </Button>
           </div>
         )}
